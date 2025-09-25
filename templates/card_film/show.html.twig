@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}CardFilm{% endblock %}
+
+{% block body %}
+    <h1>CardFilm</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ card_film.id }}</td>
+            </tr>
+            <tr>
+                <th>Nom</th>
+                <td>{{ card_film.nom }}</td>
+            </tr>
+            <tr>
+                <th>ImagePath</th>
+                <td>{{ card_film.imagePath }}</td>
+            </tr>
+            <tr>
+                <th>Description</th>
+                <td>{{ card_film.description }}</td>
+            </tr>
+            <tr>
+                <th>Quantity</th>
+                <td>{{ card_film.quantity }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_card_film_index') }}">back to list</a>
+
+    <a href="{{ path('app_card_film_edit', {'id': card_film.id}) }}">edit</a>
+
+    {{ include('card_film/_delete_form.html.twig') }}
+{% endblock %}

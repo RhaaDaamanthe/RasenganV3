@@ -23,7 +23,7 @@ class CardFilm
     private ?Rarities $rarity = null;
 
     #[ORM\ManyToOne(inversedBy: 'cardFilms')]
-    private ?film $film = null;
+    private ?Film $film = null; // <= Correction ici !
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $imagePath = null;
@@ -74,12 +74,12 @@ class CardFilm
         return $this;
     }
 
-    public function getFilm(): ?film
+    public function getFilm(): ?Film
     {
         return $this->film;
     }
 
-    public function setFilm(?film $film): static
+    public function setFilm(?Film $film): static
     {
         $this->film = $film;
 

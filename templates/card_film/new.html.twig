@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New CardFilm{% endblock %}
+
+{% block body %}
+    <h1>Create new CardFilm</h1>
+
+    {{ include('card_film/_form.html.twig') }}
+
+    <a href="{{ path('app_card_film_index') }}">back to list</a>
+{% endblock %}

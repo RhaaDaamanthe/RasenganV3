@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gérer les cartes de film{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/admin.css') }}" />
+{% endblock %}
+
+{% block body %}
+<main>
+    <div class="admin-container">
+        <h1>Gérer les cartes de film</h1>
+        <a href="{{ path('app_card_film_new') }}" class="btn btn-primary">Créer une nouvelle carte</a>
+
+        <div class="card-grid">
+            {% for card_film in card_films %}
+                <div class="admin-card">
+                    {% if card_film.imagePath %}
+                        <img src="{{ asset(card_film.imagePath) }}" alt="{{ card_film.nom }}" class="card-image">
+                    {% else %}
+                        <img src="{{ asset('images/placeholder.png') }}" alt="{{ card_film.nom }}" class="card-image">
+                    {% endif %}
+                    <div class="card-content">
+                        <h3>{{ card_film.nom }}</h3>
+                        <p><strong>Description:</strong> {{ card_film.description }}</p>
+                        <p><strong>Quantité:</strong> {{ card_film.quantity }}</p>
+                        {% if card_film.film %}
+                            <p><strong>Film:</strong> {{ card_film.film.nom }}</p>
+                        {% else %}
+                            <p><strong>Film:</strong> Non lié</p>
+                        {% endif %}
+                    </div>
+                    <div class="admin-card-actions">
+                        <a href="{{ path('app_card_film_edit', {'id': card_film.id}) }}" class="btn btn-warning">Modifier</a>
+                        <form method="post" action="{{ path('app_card_film_delete', {'id': card_film.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette carte ?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ card_film.id) }}">
+                            <button type="submit" class="btn btn-danger">Supprimer</button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <p>Aucune carte de film trouvée.</p>
+            {% endfor %}
+        </div>
+    </div>
+</main>
+{% endblock %}

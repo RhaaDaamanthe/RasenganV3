@@ -1,0 +1,29 @@
+{{ form_start(form, {'attr': {'enctype': 'multipart/form-data', 'class': 'form-upload'}}) }}
+    <div class="form-group">
+        {{ form_label(form.nom) }}
+        {{ form_widget(form.nom, {'attr': {'class': 'form-control'}}) }}
+    </div>
+    <div class="form-group">
+        {{ form_label(form.rarity) }}
+        {{ form_widget(form.rarity, {'attr': {'class': 'form-control'}}) }}
+    </div>
+    <div class="form-group">
+        {{ form_label(form.anime) }}
+        {{ form_widget(form.anime, {'attr': {'class': 'form-control'}}) }}
+    </div>
+    <div class="form-group">
+        {{ form_label(form.imagePath) }}
+        {{ form_widget(form.imagePath, {'attr': {'class': 'form-control-file'}}) }}
+        <small class="form-text text-muted">Formats acceptés : JPG, PNG ou WEBP. Taille max : 1MB.</small>
+    </div>
+    <div class="form-group">
+        {{ form_label(form.description) }}
+        {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 5}}) }}
+    </div>
+    <div class="form-group">
+        {{ form_label(form.quantity) }}
+        {{ form_widget(form.quantity, {'attr': {'class': 'form-control'}}) }}
+    </div>
+    <br>
+    <button class="btn btn-primary" type="submit">{{ button_label|default('Créer') }}</button>
+{{ form_end(form) }}

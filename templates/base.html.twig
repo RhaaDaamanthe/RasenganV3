@@ -19,7 +19,9 @@
             <div class="nav-links">
                 <ul>
                     <li class="active"><a href="{{ path('app_home') }}">Accueil</a></li>
-                    <li><a href="/admin">Admin</a></li>
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <li><a href="{{ path('app_admin') }}">Admin</a></li>
+                    {% endif %}
                     <li><a href="/catalogue">Catalogue</a></li>
                     <a href="{{ path('app_players_list') }}">Collection des joueurs</a>
                     {% if app.user %}

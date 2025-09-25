@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gérer les cartes d'animé{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/admin.css') }}" />
+{% endblock %}
+
+{% block body %}
+<main>
+    <div class="admin-container">
+        <h1>Gérer les cartes d'animé</h1>
+        <a href="{{ path('app_card_anime_new') }}" class="btn btn-primary">Créer une nouvelle carte</a>
+
+        <div class="card-grid">
+            {% for card_anime in card_animes %}
+                <div class="admin-card">
+                    {% if card_anime.imagePath %}
+                        <img src="{{ asset(card_anime.imagePath) }}" alt="{{ card_anime.nom }}" class="card-image">
+                    {% else %}
+                        <img src="{{ asset('images/placeholder.png') }}" alt="{{ card_anime.nom }}" class="card-image">
+                    {% endif %}
+                    <div class="card-content">
+                        <h3>{{ card_anime.nom }}</h3>
+                        <p><strong>Description:</strong> {{ card_anime.description }}</p>
+                        <p><strong>Quantité:</strong> {{ card_anime.quantity }}</p>
+                        {% if card_anime.anime %}
+                            <p><strong>Animé:</strong> {{ card_anime.anime.nom }}</p>
+                        {% else %}
+                            <p><strong>Animé:</strong> Non lié</p>
+                        {% endif %}
+                    </div>
+                    <div class="admin-card-actions">
+                        <a href="{{ path('app_card_anime_edit', {'id': card_anime.id}) }}" class="btn btn-warning">Modifier</a>
+                        <form method="post" action="{{ path('app_card_anime_delete', {'id': card_anime.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette carte ?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ card_anime.id) }}">
+                            <button type="submit" class="btn btn-danger">Supprimer</button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <p>Aucune carte d'animé trouvée.</p>
+            {% endfor %}
+        </div>
+    </div>
+</main>
+{% endblock %}

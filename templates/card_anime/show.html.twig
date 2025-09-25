@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}CardAnime{% endblock %}
+
+{% block body %}
+    <h1>CardAnime</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ card_anime.id }}</td>
+            </tr>
+            <tr>
+                <th>Nom</th>
+                <td>{{ card_anime.nom }}</td>
+            </tr>
+            <tr>
+                <th>ImagePath</th>
+                <td>{{ card_anime.imagePath }}</td>
+            </tr>
+            <tr>
+                <th>Description</th>
+                <td>{{ card_anime.description }}</td>
+            </tr>
+            <tr>
+                <th>Quantity</th>
+                <td>{{ card_anime.quantity }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_card_anime_index') }}">back to list</a>
+
+    <a href="{{ path('app_card_anime_edit', {'id': card_anime.id}) }}">edit</a>
+
+    {{ include('card_anime/_delete_form.html.twig') }}
+{% endblock %}

@@ -1,0 +1,188 @@
+/* ==================================== */
+/* Styles pour le tableau de bord Admin */
+/* ==================================== */
+
+/* Surcharge le style de fond général pour cette page */
+body {
+    background-color: #f0f2f5; /* Fond clair pour un look d'administration */
+}
+
+main {
+    padding: 30px; /* Moins de padding pour la page admin */
+    background: transparent !important; /* Retire l'image de fond du styles.css */
+    flex-grow: 1;
+}
+
+.admin-container {
+    max-width: 1200px; /* Augmente la largeur du conteneur principal */
+    margin: 30px auto;
+    padding: 20px;
+}
+
+h1 {
+    font-size: 2.5em;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.subtitle {
+    text-align: center;
+    color: #6c757d;
+    font-size: 1rem;
+    margin-bottom: 25px;
+}
+
+/* Grille pour les cartes */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 25px;
+}
+
+/* Styles pour les cartes de chaque carte (anime, film, etc.) */
+.admin-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    padding: 5px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.admin-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.admin-card .card-image {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 5px;
+}
+
+.admin-card .card-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.admin-card h3 {
+    color: #007bff;
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.admin-card p {
+    color: #6c757d;
+    margin: 2px 0;
+    font-size: 0.9em;
+}
+
+.admin-card-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 5px;
+    width: 100%;
+}
+
+/* Styles pour les boutons */
+.btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    text-decoration: none; /* Important pour les liens */
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #004085;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: black;
+}
+
+.btn-warning:hover {
+    background-color: #e0a800;
+    border-color: #d39e00;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+/* Styles du formulaire de création */
+.card-form-wrapper {
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.form-upload .form-group {
+    margin-bottom: 20px;
+}
+
+.form-upload .form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.form-upload .form-control,
+.form-upload .form-control-file {
+    width: 100%;
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    transition: all 0.3s ease;
+}
+
+.form-upload .form-control:focus,
+.form-upload .form-control-file:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    outline: none;
+}

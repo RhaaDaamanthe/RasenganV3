@@ -33,18 +33,21 @@
             </div>
         </div>
         <div class="catalogue2">
-    {% for card in cards %}
-        {% if card.anime is not null %}
-            <div class="card" data-anime="{{ card.anime.nom }}" data-rarete="{{ card.rarity.id }}">
-                {# LIGNE CORRIGÉE : Le lien a été retiré pour éviter la redirection et l'erreur. #}
-                <img src="{{ asset(card.imagePath) }}" alt="{{ card.nom }}">
-                <div class="card-content">
+            {% for card in cards %}
+                {% if card.anime is not null %}
+                    {# Correction ici pour utiliser le libellé de la rareté au lieu de l'ID #}
+                    <div class="card" data-anime="{{ card.anime.nom }}" data-rarete="{{ card.rarity.id }}">
+                        {% if card.imagePath %}
+                            <img src="{{ asset(card.imagePath) }}" alt="{{ card.nom }}">
+                        {% else %}
+                            <img src="{{ asset('images/placeholder.png') }}" alt="{{ card.nom }}">
+                        {% endif %}
+                        <div class="card-content">
                             {% set total_owned = 0 %}
                             {% for userCard in card.userCardAnimes %}
                                 {% set total_owned = total_owned + userCard.quantity %}
                             {% endfor %}
                             
-                            {# Affichage du titre en fonction de la rareté #}
                             {% if card.rarity.id in [4, 5, 6] %}
                                 <h2 class="card-title">
                                     {% if card.userCardAnimes|length > 0 and card.userCardAnimes|first.user is defined %}
@@ -58,8 +61,6 @@
                                     {{ total_owned }} / {{ card.quantity ?? 0 }}
                                 </h2>
 
-
-                                {# Liste des propriétaires (affichée au clic via JS) #}
                                 <ul class="owners-list" style="display:none;">
                                     {% if card.userCardAnimes|length > 0 %}
                                         {% for userCard in card.userCardAnimes %}
