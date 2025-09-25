@@ -1,0 +1,59 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Connexion{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="wrapper">
+        <form method="post" action="{{ path('app_login') }}">
+            <h1>Se connecter</h1>
+            
+            {% if error %}
+                <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+            {% endif %}
+
+            {% if app.user %}
+                <div class="mb-3">
+                    Vous êtes connecté en tant que {{ app.user.pseudo }}, <a href="{{ path('app_logout') }}">Déconnexion</a>
+                </div>
+            {% endif %}
+
+            <div class="input-box">
+                <input type="email" value="{{ last_username }}" name="_username" id="username" placeholder="Email" autocomplete="email" required autofocus>
+                <i class='bx bx-envelope'></i>
+            </div>
+            
+            <div class="input-box">
+                <input type="password" name="_password" id="password" placeholder="Mot de passe" autocomplete="current-password" required>
+                <i class='bx bxs-lock-alt'></i>
+            </div>
+
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+            
+            <div class="remember-forgot">
+                <label>
+                    <input type="checkbox" name="_remember_me"> Se souvenir de moi
+                </label>
+                <a href="#">Mot de passe oublié ?</a>
+            </div>
+
+            <div class="bouton-connexion">
+                <button type="submit" class="btn">Se connecter</button>
+            </div>
+
+            <p class="inscription">
+                Je n'ai pas de <span>compte</span>. Je m'en
+                <a href="{{ path('app_register') }}"><span>créer</span></a> un.
+            </p>
+
+            <div class="social-media">
+                <a href="https://discord.gg/kyfQZbnkjy" target="_blank"><i class="fa-brands fa-discord"></i></a>
+                <a href="https://www.tiktok.com/@rhaadaamanthe_" target="_blank"><i class="fa-brands fa-tiktok"></i></a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    {% if film is defined %}
+        Cartes du film {{ film.nom }}
+    {% else %}
+        Toutes les cartes
+    {% endif %}
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
+{% endblock %}
+
+{% block body %}
+    <main>
+        <input type="text" id="searchbar" placeholder="Recherche un personnage ou un film."/>
+        <div class="filters-container">
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="rarityFilter">🌟 Rareté</label>
+                    <select id="rarityFilter">
+                    <option value="">Toutes les raretés</option>
+                    <option value="Events">Events</option>
+                    <option value="Mythiques">Mythiques</option>
+                    <option value="Legendaires">Légendaires</option>
+                    <option value="Epiques">Épiques</option>
+                    <option value="Rares">Rares</option>
+                    <option value="Communes">Communes</option>
+                </select>
+                </div>
+            </div>
+        </div>
+        <div class="catalogue2">
+            {% for card in cards %}
+                {% if card.film is not null %}
+                    <div class="card" data-film="{{ card.film.nom }}" data-rarete="{{ card.rarity.id }}">
+                        {# Le lien a été retiré, le JS gérera le clic #}
+                        <img src="{{ asset(card.imagePath) }}" alt="{{ card.nom }}">
+                        <div class="card-content">
+                            {% set total_owned = 0 %}
+                            {% for userCard in card.userCardFilms %}
+                                {% set total_owned = total_owned + userCard.quantity %}
+                            {% endfor %}
+                            
+                            {# Affichage du titre en fonction de la rareté #}
+                            {% if card.rarity.id in [4, 5, 6] %}
+                                <h2 class="card-title">
+                                    {% if card.userCardFilms|length > 0 and card.userCardFilms|first.user is defined %}
+                                        {{ card.userCardFilms|first.user.pseudo }}
+                                    {% else %}
+                                        Aucun
+                                    {% endif %}
+                                </h2>
+                            {% else %}
+                                <h2 class="card-title">
+                                    {{ total_owned }} / {{ card.quantity ?? 0 }}
+                                </h2>
+
+                                {# Liste des propriétaires (affichée au clic via JS) #}
+                                <ul class="owners-list" style="display:none;">
+                                    {% if card.userCardFilms|length > 0 %}
+                                        {% for userCard in card.userCardFilms %}
+                                            <li>{{ userCard.user.pseudo }} (x{{ userCard.quantity }})</li>
+                                        {% endfor %}
+                                    {% else %}
+                                        <li>Aucun propriétaire</li>
+                                    {% endif %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/utilisateurs_cartes.js') }}"></script>
+    <script src="{{ asset('js/filtre_cartes.js') }}"></script>
+{% endblock %}

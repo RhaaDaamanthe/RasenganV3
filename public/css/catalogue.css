@@ -1,0 +1,176 @@
+/* BARRE DE NAVIGATION */
+
+/* Main */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+  text-decoration: none;
+  list-style: none;
+}
+
+h1 {
+  text-align: center;
+  font-size: 28px;
+  font-weight: bold;
+  margin-top: 120px;
+  color: white;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  background: url("../Images/inscription.jpg") no-repeat;
+  background-size: cover;
+  background-position: center;
+}
+
+/* Catalogue et cartes */
+
+.main-catalogue {
+  display: flex;
+  justify-content: center;
+  gap: 300px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.card {
+  background: linear-gradient(white 90%, rgb(250, 157, 17));
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
+  text-decoration: none;
+  color: black;
+  border: 3px solid white;
+  width: 250px;
+  text-align: center;
+}
+
+.card:hover {
+  transform: scale(0.95);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.card img {
+  width: 100%;
+  height: auto;
+}
+
+.card-content {
+  padding: 5px;
+}
+
+.card-title {
+  font-size: 20px;
+  margin: 0 0 5px;
+  text-align: center;
+}
+
+/* Liste anime / films */
+
+.catalogue-section {
+  text-align: center;
+  margin-top: 40px;
+}
+
+/* Amélioration du centrage des barres de recherche */
+.search-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.search-container div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.search-container label {
+  font-size: 18px;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.search-container input {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 250px;
+  text-align: center;
+}
+
+/* Alignement et espace des listes */
+.catalogue-container {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 20px;
+  margin-bottom: 50px;
+  flex-wrap: wrap;
+  width: 60vw;
+}
+
+.catalogue-list {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 10px;
+  width: 40%;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* Style du scroll */
+.catalogue-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.catalogue-list::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.catalogue-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Total cards styling */
+.total-cards {
+  margin-top: 10px;
+  font-size: 1.2em;
+  color: #e76d0a;
+}
+
+/* Responsive */
+
+@media (max-width: 599px) {
+  /* Main */
+  .main-catalogue {
+    gap: 30px;
+  }
+
+  .catalogue-list {
+    padding: 10px;
+    width: 100%;
+  }
+
+  .catalogue-container {
+    width: 75vw;
+  }
+
+  h1 {
+    font-size: 22px;
+    margin-top: 20px;
+  }
+}

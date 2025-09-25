@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{{ asset('css/base.css') }}"/>
+    {% block stylesheets %}{% endblock %}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Hammersmith+One&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet"/>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>{% block title %}Rasengan - Cards Collection{% endblock %}</title>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <a href="{{ path('app_home') }}" class="logo">RASENGAN</a>
+            <div class="nav-links">
+                <ul>
+                    <li class="active"><a href="{{ path('app_home') }}">Accueil</a></li>
+                    <li><a href="/admin">Admin</a></li>
+                    <li><a href="/catalogue">Catalogue</a></li>
+                    <a href="{{ path('app_players_list') }}">Collection des joueurs</a>
+                    {% if app.user %}
+                        <li><span class="welcome-message">Bienvenue, {{ app.user.pseudo }}!</span></li>
+                        <li><a href="{{ path('app_logout') }}">Déconnexion</a></li>
+                    {% else %}
+                        <li><a href="{{ path('app_login') }}">Connexion</a></li>
+                        <li><a href="{{ path('app_register') }}">Inscription</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+            <img src="{{ asset('images/burger.png') }}" alt="Menu Hamburger" class="menu-burger"/>
+        </nav>
+    </header>
+
+    <main>
+        {% block body %}{% endblock %}
+    </main>
+
+    <footer>
+        <p>© 2024 - Rasengan</p>
+        <a href="https://discord.gg/kyfQZbnkjy" target="_blank">Rejoindre</a>
+    </footer>
+
+    <script src="{{ asset('js/main.js') }}"></script>
+    {% block javascripts %}{% endblock %}
+</body>
+</html>

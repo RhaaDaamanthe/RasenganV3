@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="wrapper">
+        {{ form_start(registrationForm) }}
+            <h1>Inscription</h1>
+            
+            {{ form_errors(registrationForm) }}
+
+            <div class="input-box">
+                {{ form_widget(registrationForm.pseudo, {'attr': {'placeholder': 'Pseudo'}}) }}
+                <i class='bx bxs-user'></i>
+            </div>
+            {{ form_errors(registrationForm.pseudo) }}
+            
+            <div class="input-box">
+                {{ form_widget(registrationForm.email, {'attr': {'placeholder': 'Email'}}) }}
+                <i class='bx bx-envelope' ></i>
+            </div>
+            {{ form_errors(registrationForm.email) }}
+            
+            <div class="input-box">
+                {{ form_widget(registrationForm.plainPassword.first, {'attr': {'placeholder': 'Mot de passe'}}) }}
+                <i class='bx bxs-lock-alt' ></i>
+            </div>
+            {{ form_errors(registrationForm.plainPassword.first) }}
+            
+            <div class="input-box">
+                {{ form_widget(registrationForm.plainPassword.second, {'attr': {'placeholder': 'Confirmer mot de passe'}}) }}
+                <i class='bx bxs-lock-alt' ></i>
+            </div>
+            {{ form_errors(registrationForm.plainPassword.second) }}
+            
+            <div class="form-check">
+                {{ form_row(registrationForm.agreeTerms) }}
+            </div>
+            
+            <button type="submit" class="btn">S'inscrire</button>
+            
+        {{ form_end(registrationForm) }}
+    </div>
+{% endblock %}

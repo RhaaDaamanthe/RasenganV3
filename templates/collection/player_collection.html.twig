@@ -1,0 +1,85 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Collection de {{ user.pseudo }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
+{% endblock %}
+
+{% block body %}
+    <main class="main-collec-responsive">
+        <h2 id="Catalogue">Chez {{ user.pseudo }}</h2>
+        <input type="text" id="searchbar" placeholder="Recherche un personnage, un animé, une série ou un film"/>
+
+        <div class="filters-container">
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="sectionFilter">📚 Section</label>
+                    <select id="sectionFilter">
+                        <option value="all">Toutes les sections</option>
+                        <option value="anime">Animés</option>
+                        <option value="film">Films & séries</option>
+                    </select>
+                </div>
+            
+                <div class="filter-group">
+                    <label for="rarityFilter">🌟 Rareté</label>
+                    <select id="rarityFilter">
+                        <option value="">Toutes les raretés</option>
+                        <option value="Events">Événements</option>
+                        <option value="Mythiques">Mythiques</option>
+                        <option value="Legendaires">Légendaires</option>
+                        <option value="Epiques">Épiques</option>
+                        <option value="Rares">Rares</option>
+                        <option value="Communes">Communes</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="catalogue2">
+    {% set allUserCards = userCardAnimes|merge(userCardFilms) %}
+    
+    {% if allUserCards is empty %}
+        <p>{{ user.pseudo }} n'a aucune carte dans son inventaire.</p>
+    {% else %}
+        {% for userCard in allUserCards %}
+            {% if userCard.cardAnime is defined and userCard.cardAnime is not null %}
+                {% set card = userCard.cardAnime %}
+                {% set section = 'anime' %}
+            {% elseif userCard.cardFilm is defined and userCard.cardFilm is not null %}
+                {% set card = userCard.cardFilm %}
+                {% set section = 'film' %}
+            {% else %}
+                {% set card = null %}
+            {% endif %}
+
+            {% if card is not null %}
+                <div class="card" 
+                     data-section="{{ section }}"
+                     data-anime="{{ card.anime.nom ?? '' }}"
+                     data-film="{{ card.film.nom ?? '' }}"
+                     {# LIGNE CORRIGÉE : on utilise l'ID de rareté ici pour les clics #}
+                     data-rarete="{{ card.rarity.id ?? '' }}"
+                     {# NOUVEL ATTRIBUT : on ajoute le nom de la rareté pour les filtres #}
+                     data-rarity-name="{{ card.rarity.libelle ?? '' }}">
+                    <img src="{{ asset(card.imagePath) }}" alt="{{ card.nom }}">
+                    <div class="card-content">
+                        <h2 class="card-title">{{ userCard.quantity }}</h2>
+                        {% if card.description %}
+                            <p>{{ card.description|raw }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+</div>
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/filtre_cartes.js') }}"></script>
+{% endblock %}

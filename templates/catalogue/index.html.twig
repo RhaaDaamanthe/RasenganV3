@@ -1,0 +1,76 @@
+{# Fichier : templates/catalogue/index.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Catalogue des Cartes{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/catalogue.css') }}" />
+{% endblock %}
+
+{% block body %}
+    <main>
+        <h1>Catalogue des cartes</h1>
+        <div class="main-catalogue">
+            <div class="card" data-url="{{ path('app_catalogue_all_anime_cards') }}">
+                <img src="{{ asset('images/anime_catalogue.jpg') }}" alt="Animés"/>
+                <div class="card-content">
+                    <h2 class="card-title">Cartes animés</h2>
+                </div>
+            </div>
+            <div class="card" data-url="{{ path('app_catalogue_all_film_cards') }}">
+                <img src="{{ asset('images/film_catalogue.jpg') }}" alt="Films & séries" />
+                <div class="card-content">
+                    <h2 class="card-title">Cartes films & séries</h2>
+                </div>
+            </div>
+        </div>
+
+        <section class="catalogue-section">
+            <div class="catalogue-container">
+                <div class="catalogue-list">
+                    <h3>Animés</h3>
+                    <ul id="anime-list">
+                        {% set totalAnimes = 0 %}
+                        {% for anime in animes %}
+                            {% set totalAnimes = totalAnimes + anime.card_count %}
+                            <li>
+                                {{ anime.nom }} ({{ anime.card_count }})
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <p>Total de cartes animés : <strong>{{ totalAnimes }}</strong></p>
+                </div>
+                <div class="catalogue-list">
+                    <h3>Films et séries</h3>
+                    <ul id="film-list">
+                        {% set totalFilms = 0 %}
+                        {% for film in films %}
+                            {% set totalFilms = totalFilms + film.card_count %}
+                            <li>
+                                {{ film.nom }} ({{ film.card_count }})
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <p>Total de cartes films : <strong>{{ totalFilms }}</strong></p>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll(".card").forEach((card) => {
+                card.addEventListener("click", () => {
+                    const url = card.getAttribute("data-url");
+                    if (url) {
+                        window.location.href = url;
+                    }
+                });
+            });
+        });
+    </script>
+    <script src="{{ asset('js/main.js') }}"></script>
+{% endblock %}

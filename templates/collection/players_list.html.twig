@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Collection des joueurs{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
+{% endblock %}
+
+{% block body %}
+    <main>
+        <div class="content">
+            <div class="catalogue">
+                {% for user in users %}
+                    <a href="{{ path('app_player_collection', {'id': user.id}) }}">
+                        <div class="card special-card">
+                            {# Cette ligne est commentée car la propriété 'imagePath' n'existe pas dans l'entité User #}
+                            {# <img src="{{ asset(user.imagePath) }}" alt="{{ user.pseudo }}"> #}
+                            <div class="card-content">
+                                <h2 class="card-title">{{ user.pseudo }}</h2>
+                            </div>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </main>
+
+    {% block javascripts %}
+        {{ parent() }}
+        <script>
+            // Gestion des clics sur les cartes
+            document.addEventListener("DOMContentLoaded", () => {
+                document.querySelectorAll(".card").forEach((card) => {
+                    card.addEventListener("click", () => {
+                        // On trouve le lien à l'intérieur de la carte et on le suit
+                        const link = card.closest("a");
+                        if (link) {
+                            window.location.href = link.getAttribute("href");
+                        }
+                    });
+                });
+            });
+        </script>
+    {% endblock %}
+{% endblock %}
