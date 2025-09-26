@@ -42,7 +42,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'json')]
     private array $roles = [];
-
+    
     /**
      * @var Collection<int, UserCardAnime>
      */
@@ -151,7 +151,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->isAdmin = $isAdmin;
         return $this;
     }
-
+    
     // -----------------------
     // Security methods
     // -----------------------

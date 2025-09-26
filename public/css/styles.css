@@ -16,6 +16,13 @@ body {
   flex-direction: column;
 }
 
+.nav-links a.active {
+    color: #fff;
+    background-color: #e76d0a;
+    border-radius: 5px;
+    padding: 5px 10px;
+}
+
 /* MAIN */
 
   main {

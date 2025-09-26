@@ -5,17 +5,97 @@
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
+    <style>
+        .modern-player-card {
+            background: linear-gradient(145deg, #fff7ea, #ffddaa);
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            text-decoration: none;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 25px 15px;
+        }
+
+        .modern-player-card:hover {
+            transform: translateY(-12px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+        }
+
+        .player-profile-img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid #ff9933;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            transition: transform 0.4s ease, border-color 0.3s;
+        }
+        
+        .modern-player-card:hover .player-profile-img {
+            transform: scale(1.1);
+            border-color: #ff6600;
+        }
+
+        .card-content {
+            padding: 15px 0 0;
+            width: 100%;
+            text-align: center;
+        }
+
+        .card-title {
+            font-size: 1.6rem;
+            margin: 10px 0 0;
+            font-weight: 700;
+            color: #420502;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            text-transform: uppercase;
+        }
+
+        .catalogue {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 35px;
+            justify-content: center;
+            padding: 50px 0;
+        }
+
+        @media (max-width: 768px) {
+            .catalogue {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 20px;
+            }
+            .modern-player-card {
+                padding: 15px;
+            }
+            .player-profile-img {
+                width: 90px;
+                height: 90px;
+            }
+            .card-title {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
 {% endblock %}
 
 {% block body %}
     <main>
         <div class="content">
+            <h1 style="text-align: center; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">Collection des joueurs</h1>
             <div class="catalogue">
                 {% for user in users %}
                     <a href="{{ path('app_player_collection', {'id': user.id}) }}">
-                        <div class="card special-card">
-                            {# Cette ligne est commentée car la propriété 'imagePath' n'existe pas dans l'entité User #}
-                            {# <img src="{{ asset(user.imagePath) }}" alt="{{ user.pseudo }}"> #}
+                        <div class="card special-card modern-player-card">
+                            {% if user.imageCollection is not null %}
+                                <img src="{{ asset(user.imageCollection) }}" alt="{{ user.pseudo }}" class="player-profile-img">
+                            {% else %}
+                                <img src="{{ asset('images/default-profile.png') }}" alt="{{ user.pseudo }}" class="player-profile-img">
+                            {% endif %}
                             <div class="card-content">
                                 <h2 class="card-title">{{ user.pseudo }}</h2>
                             </div>
@@ -29,11 +109,9 @@
     {% block javascripts %}
         {{ parent() }}
         <script>
-            // Gestion des clics sur les cartes
             document.addEventListener("DOMContentLoaded", () => {
-                document.querySelectorAll(".card").forEach((card) => {
+                document.querySelectorAll(".modern-player-card").forEach((card) => {
                     card.addEventListener("click", () => {
-                        // On trouve le lien à l'intérieur de la carte et on le suit
                         const link = card.closest("a");
                         if (link) {
                             window.location.href = link.getAttribute("href");

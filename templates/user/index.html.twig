@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Catalogue des Cartes{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
+{% endblock %}
+
+
+{% block body %}
+    <main class="profile-container">
+        <h1>Bienvenue sur ton profil, {{ user.pseudo }}</h1>
+        <p>Gère tes informations ici et personnalise ta carte de profil.</p>
+        <a href="{{ path('app_profile_edit') }}" class="btn-edit-profile">Modifier ma carte de profil</a>
+    </main>
+{% endblock %}

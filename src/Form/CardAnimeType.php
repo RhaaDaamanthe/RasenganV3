@@ -26,7 +26,7 @@ class CardAnimeType extends AbstractType
                 'required' => false, // Ne le rendez pas obligatoire
                 'constraints' => [
                     new File([
-                        'maxSize' => '5M',
+                        'maxSize' => '20M',
                         'mimeTypes' => [
                             'image/jpeg',
                             'image/png',

@@ -11,8 +11,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\HttpFoundation\File\Exception\FileException;
-use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Component\HttpFoundation\File\Exception\FileException; // Import ajouté
+use Symfony\Component\String\Slugger\SluggerInterface; // Import ajouté
+use Symfony\Component\HttpFoundation\File\UploadedFile; // Import ajouté
 
 #[Route('/card/anime')]
 #[IsGranted('ROLE_ADMIN')]
@@ -27,7 +28,7 @@ final class CardAnimeController extends AbstractController
     }
 
     #[Route('/new', name: 'app_card_anime_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response // SluggerInterface a été ajouté ici
     {
         $cardAnime = new CardAnime();
         $form = $this->createForm(CardAnimeType::class, $cardAnime);
@@ -39,28 +40,29 @@ final class CardAnimeController extends AbstractController
 
             if ($imageFile) {
                 $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                // this is needed to safely include the filename as part of the URL
                 $safeFilename = $slugger->slug($originalFilename);
                 $newFilename = $safeFilename.'-'.uniqid().'.'.$imageFile->guessExtension();
 
                 try {
-                    $rarityName = $cardAnime->getRarity()->getLibelle();
                     $imageFile->move(
-                        $this->getParameter('images_directory') . '/Cartes/' . $rarityName,
+                        $this->getParameter('images_directory'),
                         $newFilename
                     );
                 } catch (FileException $e) {
-                    $this->addFlash('error', 'Erreur lors de l\'upload du fichier : ' . $e->getMessage());
-                    return $this->redirectToRoute('app_card_anime_new');
+                    $this->addFlash('error', 'Une erreur est survenue lors du téléchargement de l\'image.');
                 }
-
-                $rarityName = $cardAnime->getRarity()->getLibelle();
-                $cardAnime->setImagePath('images/Cartes/' . $rarityName . '/' . $newFilename);
+                $cardAnime->setImagePath($newFilename);
             }
 
             $entityManager->persist($cardAnime);
             $entityManager->flush();
 
-            return $this->redirectToRoute('app_card_anime_index', [], Response::HTTP_SEE_OTHER);
+            // Ajoute un message flash de succès
+            $this->addFlash('success', 'La carte a été créée avec succès !');
+
+            // Redirige vers la page de création, pour afficher le formulaire vide et le message de succès
+            return $this->redirectToRoute('app_card_anime_new', [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('card_anime/new.html.twig', [

@@ -33,8 +33,14 @@ security:
                 remember_me_parameter: _remember_me
 
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        # Pages publiques (accessible sans connexion)
+        - { path: ^/$, roles: PUBLIC_ACCESS }                    # Page d'accueil
+        - { path: ^/login, roles: PUBLIC_ACCESS }                # Page de connexion
+        - { path: ^/register, roles: PUBLIC_ACCESS }             # Page d'inscription
+        - { path: ^/logout, roles: PUBLIC_ACCESS }               # Déconnexion
+        
+        # Toutes les autres pages nécessitent une connexion
+        - { path: ^/, roles: ROLE_USER }
 
 when@test:
     security:

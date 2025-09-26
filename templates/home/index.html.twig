@@ -5,43 +5,40 @@
 {% endblock %}
 
 {% block body %}
-    {% if app.user %}
-        <p class="welcome">Bienvenue dans ton espace, {{ app.user.pseudo }} !</p>
-    {% else %}
-        <p class="welcome">Bienvenue ! <a href="{{ path('app_login') }}">Connecte-toi</a> pour accéder à ta collection de cartes.</p>
-    {% endif %}
+    <main>
 
-    <div class="animecardcollection">
-        <img src="{{ asset('images/Anime Cards Collection.jpg') }}" alt="Image Description"/>
-    </div>
+        <div class="animecardcollection">
+            <img src="{{ asset('images/Anime Cards Collection.jpg') }}" alt="Image Description"/>
+        </div>
 
-    <div class="obtain-cards-container">
-        <h1 class="obtain-cards-title">Comment obtenir des cartes ?</h1>
-        <div class="methods-grid">
-            <div class="method-card">
-                <h3 class="method-title">Events du serveur</h3>
-                <p class="method-description">LA méthode pour gagner le plus de cartes. Participez régulièrement aux événements organisés sur notre serveur.</p>
-            </div>
-            <div class="method-card">
-                <h3 class="method-title">Sessions vocales</h3>
-                <p class="method-description">Participez aux paris et aux petits jeux organisés lors des sessions vocales.</p>
-            </div>
-            <div class="method-card">
-                <h3 class="method-title">Système de niveaux</h3>
-                <p class="method-description">Gagnez des niveaux en étant actif sur le serveur. Certains niveaux vous récompensent avec des cartes.</p>
-            </div>
-            <div class="method-card">
-                <h3 class="method-title">Récompense hebdomadaire</h3>
-                <p class="method-description">Réagissez au message épinglé une fois par semaine pour obtenir une carte aléatoire.</p>
-            </div>
-            <div class="method-card">
-                <h3 class="method-title">Drops aléatoires</h3>
-                <p class="method-description">Soyez le premier à réagir aux messages spéciaux dans le tchat général pour gagner une carte.</p>
-            </div>
-            <div class="method-card">
-                <h3 class="method-title">Événements spéciaux</h3>
-                <p class="method-description">Participez aux giveaways et n'oubliez pas d'enregistrer votre anniversaire avec /anniversaire définir pour recevoir un cadeau spécial.</p>
+        <div class="obtain-cards-container">
+            <h1 class="obtain-cards-title">Comment obtenir des cartes ?</h1>
+            <div class="methods-grid">
+                <div class="method-card">
+                    <h3 class="method-title">Events du serveur</h3>
+                    <p class="method-description">LA méthode pour gagner le plus de cartes. Participez régulièrement aux événements organisés sur notre serveur.</p>
+                </div>
+                <div class="method-card">
+                    <h3 class="method-title">Sessions vocales</h3>
+                    <p class="method-description">Participez aux paris et aux petits jeux organisés lors des sessions vocales.</p>
+                </div>
+                <div class="method-card">
+                    <h3 class="method-title">Système de niveaux</h3>
+                    <p class="method-description">Gagnez des niveaux en étant actif sur le serveur. Certains niveaux vous récompensent avec des cartes.</p>
+                </div>
+                <div class="method-card">
+                    <h3 class="method-title">Récompense hebdomadaire</h3>
+                    <p class="method-description">Réagissez au message épinglé une fois par semaine pour obtenir une carte aléatoire.</p>
+                </div>
+                <div class="method-card">
+                    <h3 class="method-title">Drops aléatoires</h3>
+                    <p class="method-description">Soyez le premier à réagir aux messages spéciaux dans le tchat général pour gagner une carte.</p>
+                </div>
+                <div class="method-card">
+                    <h3 class="method-title">Événements spéciaux</h3>
+                    <p class="method-description">Participez aux giveaways et n'oubliez pas d'enregistrer votre anniversaire avec /anniversaire définir pour recevoir un cadeau spécial.</p>
+                </div>
             </div>
         </div>
-    </div>
+    </main>
 {% endblock %}
