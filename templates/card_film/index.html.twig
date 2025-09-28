@@ -12,26 +12,42 @@
 <main>
     <div class="admin-container">
         <h1>Gérer les cartes de film</h1>
-        <a href="{{ path('app_card_film_new') }}" class="btn btn-primary">Créer une nouvelle carte</a>
 
-        <div class="card-grid">
+        <div class="actions-header">
+            <a href="{{ path('app_card_film_new') }}" class="btn btn-action">
+                Créer une nouvelle carte
+            </a>
+            
+            {# Barre de recherche fonctionnelle #}
+            <div class="search-container">
+                <input type="text" id="card-search" placeholder="Rechercher par nom, description ou film..." aria-label="Rechercher une carte" onkeyup="filterCards()">
+                <i class="fas fa-search"></i>
+            </div>
+        </div>
+
+        <div class="card-grid" id="card-grid">
             {% for card_film in card_films %}
-                <div class="admin-card">
+                {# Ajout des attributs data-* pour le filtrage JavaScript #}
+                <div class="admin-card"
+                     data-name="{{ card_film.nom|lower }}"
+                     data-description="{{ card_film.description|lower }}"
+                     data-anime="{{ card_film.film ? card_film.film.nom|lower : 'non lié' }}">
+                    
                     {% if card_film.imagePath %}
                         <img src="{{ asset(card_film.imagePath) }}" alt="{{ card_film.nom }}" class="card-image">
                     {% else %}
                         <img src="{{ asset('images/placeholder.png') }}" alt="{{ card_film.nom }}" class="card-image">
                     {% endif %}
+                    
                     <div class="card-content">
                         <h3>{{ card_film.nom }}</h3>
-                        <p><strong>Description:</strong> {{ card_film.description }}</p>
-                        <p><strong>Quantité:</strong> {{ card_film.quantity }}</p>
                         {% if card_film.film %}
                             <p><strong>Film:</strong> {{ card_film.film.nom }}</p>
                         {% else %}
                             <p><strong>Film:</strong> Non lié</p>
                         {% endif %}
                     </div>
+                    
                     <div class="admin-card-actions">
                         <a href="{{ path('app_card_film_edit', {'id': card_film.id}) }}" class="btn btn-warning">Modifier</a>
                         <form method="post" action="{{ path('app_card_film_delete', {'id': card_film.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette carte ?');">
@@ -41,9 +57,15 @@
                     </div>
                 </div>
             {% else %}
-                <p>Aucune carte de film trouvée.</p>
+                <p id="no-cards-message">Aucune carte de film trouvée.</p>
             {% endfor %}
         </div>
+        <p id="no-results-message" style="display: none; text-align: center; margin-top: 20px;">Aucun résultat ne correspond à votre recherche.</p>
     </div>
 </main>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/admin.js') }}"></script>
 {% endblock %}

@@ -14,7 +14,8 @@ main {
 }
 
 .admin-container {
-    max-width: 1200px; /* Augmente la largeur du conteneur principal */
+    /* CHANGEMENT: Augmente la largeur maximale du conteneur à 1900px pour un remplissage plus grand */
+    max-width: 1900px; 
     margin: 30px auto;
     padding: 20px;
 }
@@ -27,83 +28,178 @@ h1 {
     text-align: center;
 }
 
-.subtitle {
-    text-align: center;
-    color: #6c757d;
-    font-size: 1rem;
-    margin-bottom: 25px;
+/* --- Nouvelles sections pour l'en-tête et la recherche --- */
+.actions-header {
+    display: flex;
+    justify-content: flex-start; 
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap; 
+    gap: 20px; /* Augmente l'espace entre les éléments */
 }
+
+/* Style pour la barre de recherche */
+.search-container {
+    position: relative;
+    width: 100%; 
+    max-width: 350px;
+    order: 1; 
+}
+
+.search-container input {
+    width: 100%;
+    padding: 10px 15px 10px 40px; /* Espace à gauche pour l'icône */
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.search-container input:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+.search-container i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+}
+
+/* Responsive pour l'en-tête */
+@media (max-width: 768px) {
+    .actions-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .search-container {
+        max-width: none;
+        order: 2; 
+    }
+    .btn-action {
+        order: 1; 
+    }
+}
+/* -------------------------------------------------------- */
+
 
 /* Grille pour les cartes */
 .card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 25px;
+    /* Les cartes font désormais minimum 150px de large */
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
+    gap: 20px; /* Espacement légèrement réduit */
 }
 
-/* Styles pour les cartes de chaque carte (anime, film, etc.) */
+/* Styles pour une carte individuelle */
 .admin-card {
     background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
-    padding: 5px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 10px; /* Coins un peu moins arrondis */
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08); /* Ombre plus légère */
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
+    min-height: 100%; 
 }
 
 .admin-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
 }
 
-.admin-card .card-image {
+.card-image {
     width: 100%;
-    height: 300px;
+    /* Réduit la hauteur de l'image pour gagner de la place */
+    height: 200px; 
     object-fit: cover;
-    border-radius: 8px;
-    margin-bottom: 5px;
+    border-bottom: 1px solid #eee;
 }
 
-.admin-card .card-content {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-}
-
-.admin-card h3 {
-    color: #007bff;
-    font-size: 1.5rem;
-    margin: 0;
-}
-
-.admin-card p {
-    color: #6c757d;
-    margin: 2px 0;
+.card-content {
+    padding: 3px; 
+    flex-grow: 1; 
     font-size: 0.9em;
 }
 
-.admin-card-actions {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 5px;
-    width: 100%;
+.card-content h3 {
+    margin-top: 0;
+    font-size: 1.1em; /* Titre plus petit */
+    color: #333;
+    border-bottom: 1px solid #f0f2f5;
+    padding-bottom: 5px;
+    margin-bottom: 5px;
+    white-space: nowrap; /* Empêche le titre de se couper */
+    overflow: hidden;
+    text-overflow: ellipsis; /* Ajoute "..." si le titre est trop long */
 }
 
-/* Styles pour les boutons */
-.btn {
-    padding: 8px 16px;
-    border-radius: 8px;
+.card-content p {
+    margin: 3px 0;
+}
+
+.rarity-label {
+    color: #007bff;
+    font-weight: 500;
+}
+
+/* Styles des boutons d'action */
+.admin-card-actions {
+    display: flex;
+    padding: 8px 10px; /* Réduit le padding */
+    background-color: #f7f7f7;
+    border-top: 1px solid #eee;
+    gap: 5px; /* Réduit l'espace entre les boutons */
+}
+
+.admin-card-actions a,
+.admin-card-actions form {
+    flex: 1; 
+}
+
+/* UNIFORMISATION DE LA TAILLE DES BOUTONS */
+.admin-card-actions a, 
+.admin-card-actions form button {
+    display: block; 
+    width: 100%; 
+    padding: 6px 8px; /* Réduit le padding des boutons */
+    border-radius: 4px;
+    font-size: 0.75em; /* Texte des boutons plus petit */
     font-weight: 600;
     text-align: center;
-    white-space: nowrap;
-    text-decoration: none; /* Important pour les liens */
-    transition: all 0.3s ease;
+    text-decoration: none;
+    line-height: 1.2; 
+}
+/* ---------------------------------------- */
+
+
+/* Styles des boutons généraux (conservés) */
+.btn {
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+/* Bouton Créer (Orange) */
+.btn-action {
+    background-color: #ff8c00; 
+    border-color: #e07b00;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 1.1em;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 4px 6px rgba(255, 140, 0, 0.3);
+    order: 0; 
+}
+
+.btn-action:hover {
+    background-color: #e07b00;
+    border-color: #c06500;
+    box-shadow: 0 6px 10px rgba(255, 140, 0, 0.4);
 }
 
 .btn-primary {
@@ -115,17 +211,6 @@ h1 {
 .btn-primary:hover {
     background-color: #0056b3;
     border-color: #004085;
-}
-
-.btn-secondary {
-    background-color: #6c757d;
-    border-color: #6c757d;
-    color: white;
-}
-
-.btn-secondary:hover {
-    background-color: #5a6268;
-    border-color: #545b62;
 }
 
 .btn-warning {
@@ -150,39 +235,84 @@ h1 {
     border-color: #bd2130;
 }
 
-/* Styles du formulaire de création */
+/* ================================================= */
+/* NOUVEAUX STYLES POUR LE FORMULAIRE DE CRÉATION/ÉDITION */
+/* ================================================= */
 .card-form-wrapper {
     background: #ffffff;
     padding: 40px;
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    max-width: 600px;
-    margin: 0 auto;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1); /* Ombre plus prononcée */
+    max-width: 650px; /* Légèrement plus étroit pour le focus */
+    margin: 30px auto;
+    border: 1px solid #e0e0e0; /* Bordure légère */
 }
 
-.form-upload .form-group {
-    margin-bottom: 20px;
+/* Conteneur de champ (div autour du label et de l'input) */
+.card-form-wrapper form > div {
+    margin-bottom: 25px;
+    padding: 0 10px;
 }
 
-.form-upload .form-label {
-    font-weight: 600;
-    color: #495057;
-    margin-bottom: 8px;
+/* Styles pour les labels */
+.card-form-wrapper label {
     display: block;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 8px;
+    font-size: 0.95em;
+    transition: color 0.2s;
 }
 
-.form-upload .form-control,
-.form-upload .form-control-file {
+/* Styles pour tous les champs (input, select, textarea) */
+.card-form-wrapper input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]),
+.card-form-wrapper textarea,
+.card-form-wrapper select {
     width: 100%;
-    padding: 12px 15px;
-    border-radius: 8px;
-    border: 1px solid #ced4da;
-    transition: all 0.3s ease;
+    padding: 12px 15px; /* Padding généreux */
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1em;
+    color: #333;
+    background-color: #f9f9f9;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    box-sizing: border-box; /* Assure que le padding n'augmente pas la largeur */
 }
 
-.form-upload .form-control:focus,
-.form-upload .form-control-file:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+/* Effet de focus */
+.card-form-wrapper input:focus,
+.card-form-wrapper textarea:focus,
+.card-form-wrapper select:focus {
+    border-color: #ff8c00; /* Couleur d'accentuation orange */
+    box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.2);
+    background-color: #ffffff;
     outline: none;
+}
+
+/* Styles spécifiques pour le bouton d'envoi */
+.card-form-wrapper button[type="submit"] {
+    display: block;
+    width: 100%;
+    margin-top: 30px;
+    padding: 15px 20px;
+    font-size: 1.2em;
+    font-weight: 700;
+    border-radius: 8px;
+    /* Utilise le style de .btn-action pour l'uniformité */
+    background-color: #ff8c00; 
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.card-form-wrapper button[type="submit"]:hover {
+    background-color: #e07b00;
+    box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4);
+}
+
+/* Style spécifique pour la zone de texte Description */
+.card-form-wrapper textarea {
+    min-height: 150px;
+    resize: vertical;
 }

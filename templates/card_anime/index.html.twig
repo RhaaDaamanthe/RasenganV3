@@ -12,26 +12,44 @@
 <main>
     <div class="admin-container">
         <h1>Gérer les cartes d'animé</h1>
-        <a href="{{ path('app_card_anime_new') }}" class="btn btn-primary">Créer une nouvelle carte</a>
 
-        <div class="card-grid">
+        <div class="actions-header">
+            {# Le bouton "Créer" est maintenant séparé des cartes et stylisé en orange #}
+            <a href="{{ path('app_card_anime_new') }}" class="btn btn-action">Créer une nouvelle carte</a>
+            
+            {# Barre de recherche ajoutée #}
+            <div class="search-container">
+                <input type="text" id="card-search" placeholder="Rechercher par nom, description ou animé..." aria-label="Rechercher une carte" onkeyup="filterCards()">
+                <i class="fas fa-search"></i> {# Icône de loupe #}
+            </div>
+        </div>
+
+        <div class="card-grid" id="card-grid">
             {% for card_anime in card_animes %}
-                <div class="admin-card">
+                {# Ajout de classes et d'attributs data pour le filtrage JavaScript #}
+                <div class="admin-card"
+                     data-name="{{ card_anime.nom|lower }}"
+                     data-description="{{ card_anime.description|lower }}"
+                     data-anime="{{ card_anime.anime ? card_anime.anime.nom|lower : 'non lié' }}">
+                    
                     {% if card_anime.imagePath %}
                         <img src="{{ asset(card_anime.imagePath) }}" alt="{{ card_anime.nom }}" class="card-image">
                     {% else %}
                         <img src="{{ asset('images/placeholder.png') }}" alt="{{ card_anime.nom }}" class="card-image">
                     {% endif %}
+                    
                     <div class="card-content">
                         <h3>{{ card_anime.nom }}</h3>
-                        <p><strong>Description:</strong> {{ card_anime.description }}</p>
-                        <p><strong>Quantité:</strong> {{ card_anime.quantity }}</p>
                         {% if card_anime.anime %}
                             <p><strong>Animé:</strong> {{ card_anime.anime.nom }}</p>
                         {% else %}
                             <p><strong>Animé:</strong> Non lié</p>
                         {% endif %}
+                        
+                        {# La description est cachée sur la vue principale pour l'esthétique, mais conservée pour la recherche #}
+                        {# <p class="card-description-hidden"><strong>Description:</strong> {{ card_anime.description }}</p> #}
                     </div>
+                    
                     <div class="admin-card-actions">
                         <a href="{{ path('app_card_anime_edit', {'id': card_anime.id}) }}" class="btn btn-warning">Modifier</a>
                         <form method="post" action="{{ path('app_card_anime_delete', {'id': card_anime.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette carte ?');">
@@ -41,9 +59,15 @@
                     </div>
                 </div>
             {% else %}
-                <p>Aucune carte d'animé trouvée.</p>
+                <p id="no-cards-message">Aucune carte d'animé trouvée.</p>
             {% endfor %}
         </div>
+        <p id="no-results-message" style="display: none; text-align: center; margin-top: 20px;">Aucun résultat ne correspond à votre recherche.</p>
     </div>
 </main>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/admin.js') }}"></script>
 {% endblock %}

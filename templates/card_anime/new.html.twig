@@ -34,7 +34,7 @@
         <div class="card-form-wrapper">
             <h1>Créer une nouvelle carte d'animé</h1>
             <p class="subtitle">Remplissez le formulaire ci-dessous pour ajouter une carte à votre collection.</p>
-
+            <a href="{{ path('app_card_anime_index') }}" class="btn btn-secondary top-action-link">Retour à la liste</a>
             {# Début du code ajouté pour les messages flash #}
             {% for message in app.flashes('success') %}
                 <div class="flash-message flash-success">
