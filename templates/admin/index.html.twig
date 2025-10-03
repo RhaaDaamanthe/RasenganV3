@@ -11,26 +11,53 @@
 {% block body %}
 <main>
     <div class="admin-container">
-        <h1 class="text-center">Tableau de bord de l'administration</h1>
-
-        <div class="admin-section">
-            <div class="admin-card">
-                <h5 class="card-title">Gestion des cartes</h5>
-                <p class="card-text">Créer, modifier ou supprimer des cartes.</p>
-                <div class="admin-buttons">
-                    <a href="{{ path('app_card_anime_index') }}" class="btn btn-primary">Gérer les cartes d'animé</a>
-                    <a href="{{ path('app_card_film_index') }}" class="btn btn-primary">Gérer les cartes de film</a>
-                </div>
-            </div>
+        <!-- Hero Section -->
+        <div class="dashboard-hero">
+            <h1>🎯 Administration</h1>
+            <p>Gérez votre collection de cartes comme un chef</p>
         </div>
 
-        <div class="admin-section">
-            <div class="admin-card">
-                <h5 class="card-title">Attribuer des cartes aux joueurs</h5>
-                <p class="card-text">Ajouter des cartes existantes à l'inventaire des joueurs.</p>
-                <div class="admin-buttons">
-                    <a href="#" class="btn btn-primary">Attribuer des cartes d'animés</a>
-                    <a href="#" class="btn btn-primary">Attribuer des cartes de films</a>
+        <!-- Grid moderne -->
+        <div class="admin-grid">
+            <!-- Section Cartes -->
+            <div class="admin-section">
+                <div class="section-header cards">
+                    <h2>🎴 Gestion des cartes</h2>
+                    <p>Créer, modifier ou supprimer des cartes d'animés et de films</p>
+                </div>
+                <div class="section-content">
+                    <div class="admin-buttons">
+                        <a href="{{ path('app_card_anime_index') }}" class="btn btn-primary">Gérer les cartes d'animé</a>
+                        <a href="{{ path('app_card_film_index') }}" class="btn btn-primary">Gérer les cartes de film</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Animés/Films -->
+            <div class="admin-section">
+                <div class="section-header media">
+                    <h2>🎬 Gestion des médias</h2>
+                    <p>Créer, modifier ou supprimer des animés et films pour les associer aux cartes</p>
+                </div>
+                <div class="section-content">
+                    <div class="admin-buttons">
+                        <a href="{{ path('app_anime_index') }}" class="btn btn-success">Gérer les animés</a>
+                        <a href="{{ path('app_film_index') }}" class="btn btn-success">Gérer les films</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Attribution -->
+            <div class="admin-section">
+                <div class="section-header assign">
+                    <h2>👥 Attribution aux joueurs</h2>
+                    <p>Ajouter des cartes existantes à l'inventaire des joueurs</p>
+                </div>
+                <div class="section-content">
+                    <div class="admin-buttons">
+                        <a href="#" class="btn btn-primary">Attribuer des cartes d'animés</a>
+                        <a href="#" class="btn btn-primary">Attribuer des cartes de films</a>
+                    </div>
                 </div>
             </div>
         </div>

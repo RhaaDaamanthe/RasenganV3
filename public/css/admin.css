@@ -4,21 +4,231 @@
 
 /* Surcharge le style de fond général pour cette page */
 body {
-    background-color: #f0f2f5; /* Fond clair pour un look d'administration */
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
 }
 
 main {
-    padding: 30px; /* Moins de padding pour la page admin */
-    background: transparent !important; /* Retire l'image de fond du styles.css */
+    padding: 30px;
+    background: transparent !important;
     flex-grow: 1;
 }
 
 .admin-container {
-    /* CHANGEMENT: Augmente la largeur maximale du conteneur à 1900px pour un remplissage plus grand */
     max-width: 1900px; 
     margin: 30px auto;
     padding: 20px;
 }
+
+/* ===== NOUVEAU DESIGN DASHBOARD ===== */
+
+.dashboard-hero {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    color: white;
+    padding: 60px 20px;
+    text-align: center;
+    margin-bottom: 50px;
+    border-radius: 25px;
+    box-shadow: 0 20px 40px rgba(255, 107, 107, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.dashboard-hero h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 15px;
+    text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    position: relative;
+    z-index: 1;
+}
+
+.dashboard-hero p {
+    font-size: 1.3rem;
+    opacity: 0.9;
+    margin-bottom: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: 35px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.admin-section {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 25px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    transition: all 0.4s ease;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+.admin-section:hover {
+    transform: translateY(-15px) scale(1.02);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+}
+
+.section-header {
+    padding: 35px 30px 25px;
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.section-header.cards {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.section-header.media {
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+}
+
+.section-header.assign {
+    background: linear-gradient(135deg, #d299c2 0%, #fef9d7 100%);
+}
+
+.section-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 150px;
+    height: 150px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    transform: rotate(45deg);
+}
+
+.section-header h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0 15px 0;
+    position: relative;
+    z-index: 1;
+}
+
+.section-header p {
+    font-size: 1.1rem;
+    opacity: 0.95;
+    margin: 0;
+    position: relative;
+    z-index: 1;
+    line-height: 1.5;
+}
+
+.section-content {
+    padding: 35px 30px;
+}
+
+.admin-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.admin-buttons .btn {
+    padding: 20px 30px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    border-radius: 15px;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.admin-buttons .btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.admin-buttons .btn:hover::before {
+    left: 100%;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(102, 126, 234, 0.6);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+    box-shadow: 0 8px 25px rgba(56, 239, 125, 0.4);
+}
+
+.btn-success:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(56, 239, 125, 0.6);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .admin-grid {
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+    
+    .dashboard-hero {
+        padding: 40px 20px;
+        margin-bottom: 30px;
+    }
+    
+    .dashboard-hero h1 {
+        font-size: 2.5rem;
+    }
+    
+    .section-header {
+        padding: 25px 20px 20px;
+    }
+    
+    .section-content {
+        padding: 25px 20px;
+    }
+}
+
+/* ==================================== */
+/* STYLES EXISTANTS POUR LES AUTRES PAGES */
+/* ==================================== */
 
 h1 {
     font-size: 2.5em;
@@ -35,7 +245,7 @@ h1 {
     align-items: center;
     margin-bottom: 30px;
     flex-wrap: wrap; 
-    gap: 20px; /* Augmente l'espace entre les éléments */
+    gap: 20px;
 }
 
 /* Style pour la barre de recherche */
@@ -48,7 +258,7 @@ h1 {
 
 .search-container input {
     width: 100%;
-    padding: 10px 15px 10px 40px; /* Espace à gauche pour l'icône */
+    padding: 10px 15px 10px 40px;
     border: 2px solid #ccc;
     border-radius: 8px;
     font-size: 1rem;
@@ -82,22 +292,19 @@ h1 {
         order: 1; 
     }
 }
-/* -------------------------------------------------------- */
-
 
 /* Grille pour les cartes */
 .card-grid {
     display: grid;
-    /* Les cartes font désormais minimum 150px de large */
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
-    gap: 20px; /* Espacement légèrement réduit */
+    gap: 20px;
 }
 
 /* Styles pour une carte individuelle */
 .admin-card {
     background: #ffffff;
-    border-radius: 10px; /* Coins un peu moins arrondis */
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08); /* Ombre plus légère */
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
     overflow: hidden;
     transition: transform 0.2s, box-shadow 0.2s;
     display: flex;
@@ -112,7 +319,6 @@ h1 {
 
 .card-image {
     width: 100%;
-    /* Réduit la hauteur de l'image pour gagner de la place */
     height: 200px; 
     object-fit: cover;
     border-bottom: 1px solid #eee;
@@ -126,14 +332,14 @@ h1 {
 
 .card-content h3 {
     margin-top: 0;
-    font-size: 1.1em; /* Titre plus petit */
+    font-size: 1.1em;
     color: #333;
     border-bottom: 1px solid #f0f2f5;
     padding-bottom: 5px;
     margin-bottom: 5px;
-    white-space: nowrap; /* Empêche le titre de se couper */
+    white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis; /* Ajoute "..." si le titre est trop long */
+    text-overflow: ellipsis;
 }
 
 .card-content p {
@@ -148,10 +354,10 @@ h1 {
 /* Styles des boutons d'action */
 .admin-card-actions {
     display: flex;
-    padding: 8px 10px; /* Réduit le padding */
+    padding: 8px 10px;
     background-color: #f7f7f7;
     border-top: 1px solid #eee;
-    gap: 5px; /* Réduit l'espace entre les boutons */
+    gap: 5px;
 }
 
 .admin-card-actions a,
@@ -159,30 +365,26 @@ h1 {
     flex: 1; 
 }
 
-/* UNIFORMISATION DE LA TAILLE DES BOUTONS */
 .admin-card-actions a, 
 .admin-card-actions form button {
     display: block; 
     width: 100%; 
-    padding: 6px 8px; /* Réduit le padding des boutons */
+    padding: 6px 8px;
     border-radius: 4px;
-    font-size: 0.75em; /* Texte des boutons plus petit */
+    font-size: 0.75em;
     font-weight: 600;
     text-align: center;
     text-decoration: none;
     line-height: 1.2; 
 }
-/* ---------------------------------------- */
 
-
-/* Styles des boutons généraux (conservés) */
+/* Styles des boutons généraux */
 .btn {
     border: 1px solid transparent;
     transition: all 0.2s;
     cursor: pointer;
 }
 
-/* Bouton Créer (Orange) */
 .btn-action {
     background-color: #ff8c00; 
     border-color: #e07b00;
@@ -200,17 +402,6 @@ h1 {
     background-color: #e07b00;
     border-color: #c06500;
     box-shadow: 0 6px 10px rgba(255, 140, 0, 0.4);
-}
-
-.btn-primary {
-    background-color: #007bff;
-    border-color: #007bff;
-    color: white;
-}
-
-.btn-primary:hover {
-    background-color: #0056b3;
-    border-color: #004085;
 }
 
 .btn-warning {
@@ -235,26 +426,22 @@ h1 {
     border-color: #bd2130;
 }
 
-/* ================================================= */
-/* NOUVEAUX STYLES POUR LE FORMULAIRE DE CRÉATION/ÉDITION */
-/* ================================================= */
+/* STYLES POUR LE FORMULAIRE */
 .card-form-wrapper {
     background: #ffffff;
     padding: 40px;
     border-radius: 12px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1); /* Ombre plus prononcée */
-    max-width: 650px; /* Légèrement plus étroit pour le focus */
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    max-width: 650px;
     margin: 30px auto;
-    border: 1px solid #e0e0e0; /* Bordure légère */
+    border: 1px solid #e0e0e0;
 }
 
-/* Conteneur de champ (div autour du label et de l'input) */
 .card-form-wrapper form > div {
     margin-bottom: 25px;
     padding: 0 10px;
 }
 
-/* Styles pour les labels */
 .card-form-wrapper label {
     display: block;
     font-weight: 600;
@@ -264,32 +451,29 @@ h1 {
     transition: color 0.2s;
 }
 
-/* Styles pour tous les champs (input, select, textarea) */
 .card-form-wrapper input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]),
 .card-form-wrapper textarea,
 .card-form-wrapper select {
     width: 100%;
-    padding: 12px 15px; /* Padding généreux */
+    padding: 12px 15px;
     border: 1px solid #ccc;
     border-radius: 6px;
     font-size: 1em;
     color: #333;
     background-color: #f9f9f9;
     transition: border-color 0.3s, box-shadow 0.3s;
-    box-sizing: border-box; /* Assure que le padding n'augmente pas la largeur */
+    box-sizing: border-box;
 }
 
-/* Effet de focus */
 .card-form-wrapper input:focus,
 .card-form-wrapper textarea:focus,
 .card-form-wrapper select:focus {
-    border-color: #ff8c00; /* Couleur d'accentuation orange */
+    border-color: #ff8c00;
     box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.2);
     background-color: #ffffff;
     outline: none;
 }
 
-/* Styles spécifiques pour le bouton d'envoi */
 .card-form-wrapper button[type="submit"] {
     display: block;
     width: 100%;
@@ -298,7 +482,6 @@ h1 {
     font-size: 1.2em;
     font-weight: 700;
     border-radius: 8px;
-    /* Utilise le style de .btn-action pour l'uniformité */
     background-color: #ff8c00; 
     border: none;
     color: white;
@@ -311,7 +494,6 @@ h1 {
     box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4);
 }
 
-/* Style spécifique pour la zone de texte Description */
 .card-form-wrapper textarea {
     min-height: 150px;
     resize: vertical;

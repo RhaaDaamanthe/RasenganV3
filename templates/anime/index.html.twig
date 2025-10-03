@@ -1,0 +1,88 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gérer les animés{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/admin.css') }}" />
+    <style>
+        .flash-message {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .flash-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .flash-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<main>
+    <div class="admin-container">
+        <h1>Gérer les animés</h1>
+
+        {% for message in app.flashes('success') %}
+            <div class="flash-message flash-success">
+                {{ message }}
+            </div>
+        {% endfor %}
+        {% for message in app.flashes('error') %}
+            <div class="flash-message flash-error">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        <div class="actions-header">
+            <a href="{{ path('app_anime_new') }}" class="btn btn-action">Créer un nouvel animé</a>
+            
+            <div class="search-container">
+                <input type="text" id="card-search" placeholder="Rechercher un animé..." aria-label="Rechercher un animé" onkeyup="filterCards()">
+                <i class="fas fa-search"></i>
+            </div>
+        </div>
+
+        <div class="card-grid" id="card-grid">
+            {% for anime in animes %}
+                <div class="admin-card"
+                     data-name="{{ anime.nom|lower }}"
+                     data-description="{{ anime.nom|lower }}"
+                     data-anime="{{ anime.nom|lower }}">
+                    
+                    <div class="card-content">
+                        <h3>{{ anime.nom }}</h3>
+                        <p><strong>ID:</strong> {{ anime.id }}</p>
+                    </div>
+                    
+                    <div class="admin-card-actions">
+                        <a href="{{ path('app_anime_edit', {'id': anime.id}) }}" class="btn btn-warning">Modifier</a>
+                        <form method="post" action="{{ path('app_anime_delete', {'id': anime.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet animé ?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ anime.id) }}">
+                            <button type="submit" class="btn btn-danger">Supprimer</button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <p id="no-cards-message">Aucun animé trouvé.</p>
+            {% endfor %}
+        </div>
+        <p id="no-results-message" style="display: none; text-align: center; margin-top: 20px;">Aucun résultat ne correspond à votre recherche.</p>
+    </div>
+</main>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/admin.js') }}"></script>
+{% endblock %}

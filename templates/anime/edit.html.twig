@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier un animé{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/admin.css') }}" />
+    <style>
+        .flash-message {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .flash-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .flash-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <main class="admin-container">
+        <div class="card-form-wrapper">
+            <h1>Modifier l'animé "{{ anime.nom }}"</h1>
+            <p class="subtitle">Modifiez les informations de cet animé.</p>
+            <a href="{{ path('app_anime_index') }}" class="btn btn-secondary top-action-link">Retour à la liste</a>
+            
+            {% for message in app.flashes('success') %}
+                <div class="flash-message flash-success">
+                    {{ message }}
+                </div>
+            {% endfor %}
+            {% for message in app.flashes('error') %}
+                <div class="flash-message flash-error">
+                    {{ message }}
+                </div>
+            {% endfor %}
+
+            {{ form_start(form, {'attr': {'class': 'form-upload'}}) }}
+                <div class="form-group">
+                    {{ form_label(form.nom) }}
+                    {{ form_widget(form.nom, {'attr': {'class': 'form-control'}}) }}
+                </div>
+                <br>
+                <button class="btn btn-primary" type="submit">Modifier</button>
+            {{ form_end(form) }}
+
+            <a href="{{ path('app_anime_index') }}" class="btn btn-secondary mt-3">Retour à la liste</a>
+        </div>
+    </main>
+{% endblock %}

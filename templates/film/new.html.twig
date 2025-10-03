@@ -1,0 +1,88 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gérer les films{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/admin.css') }}" />
+    <style>
+        .flash-message {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .flash-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .flash-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<main>
+    <div class="admin-container">
+        <h1>Gérer les films</h1>
+
+        {% for message in app.flashes('success') %}
+            <div class="flash-message flash-success">
+                {{ message }}
+            </div>
+        {% endfor %}
+        {% for message in app.flashes('error') %}
+            <div class="flash-message flash-error">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        <div class="actions-header">
+            <a href="{{ path('app_film_new') }}" class="btn btn-action">Créer un nouveau film</a>
+            
+            <div class="search-container">
+                <input type="text" id="card-search" placeholder="Rechercher un film..." aria-label="Rechercher un film" onkeyup="filterCards()">
+                <i class="fas fa-search"></i>
+            </div>
+        </div>
+
+        <div class="card-grid" id="card-grid">
+            {% for film in films %}
+                <div class="admin-card"
+                     data-name="{{ film.nom|lower }}"
+                     data-description="{{ film.nom|lower }}"
+                     data-anime="{{ film.nom|lower }}">
+                    
+                    <div class="card-content">
+                        <h3>{{ film.nom }}</h3>
+                        <p><strong>ID:</strong> {{ film.id }}</p>
+                    </div>
+                    
+                    <div class="admin-card-actions">
+                        <a href="{{ path('app_film_edit', {'id': film.id}) }}" class="btn btn-warning">Modifier</a>
+                        <form method="post" action="{{ path('app_film_delete', {'id': film.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce film ?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ film.id) }}">
+                            <button type="submit" class="btn btn-danger">Supprimer</button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <p id="no-cards-message">Aucun film trouvé.</p>
+            {% endfor %}
+        </div>
+        <p id="no-results-message" style="display: none; text-align: center; margin-top: 20px;">Aucun résultat ne correspond à votre recherche.</p>
+    </div>
+</main>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/admin.js') }}"></script>
+{% endblock %}
