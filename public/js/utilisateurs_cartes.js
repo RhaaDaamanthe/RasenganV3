@@ -1,43 +1,30 @@
-// Fichier : public/js/utilisateurs_cartes.js
-
 document.addEventListener("DOMContentLoaded", () => {
+    // ------------------------------------------------------------------
+    // ATTENTION: Les fonctions de filtrage côté client sont retirées.
+    // Le filtrage (searchbar et rarityFilter) est géré côté serveur par PHP/Symfony
+    // via la soumission du formulaire GET dans animeCards.html.twig.
+    // ------------------------------------------------------------------
+
     const cards = document.querySelectorAll(".card");
-    const rarityFilter = document.getElementById("rarityFilter");
-    const searchbar = document.getElementById("searchbar");
-
-    function filterCards() {
-        const rarity = rarityFilter.value.toLowerCase();
-        const search = searchbar.value.toLowerCase();
-
-        cards.forEach((card) => {
-            const anime = card.getAttribute("data-anime").toLowerCase();
-            const title = card.querySelector(".card-content h2").textContent.toLowerCase();
-            const rarete = card.getAttribute("data-rarete").toLowerCase();
-            const show =
-                (!rarity || title.includes(rarity) || rarete.includes(rarity)) &&
-                (!search || anime.includes(search) || title.includes(search));
-            card.style.display = show ? "block" : "none";
-        });
-    }
-
-    rarityFilter.addEventListener("change", filterCards);
-    searchbar.addEventListener("input", filterCards);
 
     // Gère le clic sur les cartes pour afficher/masquer la liste des propriétaires
     cards.forEach(card => {
         card.addEventListener("click", (e) => {
-            // LIGNE CORRIGÉE : Utilisation de `data-rarete` et `parseInt`
-            const rarete = parseInt(card.getAttribute("data-rarete"));
+            
+            const ownersList = card.querySelector(".owners-list");
 
-            if (rarete <= 3) {
-                // Empêche le comportement par défaut (comme la redirection) uniquement pour ces raretés
+            // On vérifie si la liste des propriétaires existe dans cette carte. 
+            // Si elle existe, c'est que la carte est une carte "collectable" 
+            // (les cartes rares/spéciales n'ont pas cette liste dans le Twig).
+            if (ownersList) {
+                // Empêche le comportement par défaut (comme la redirection si la carte est un lien)
                 e.preventDefault(); 
+                e.stopPropagation(); // Empêche le clic de se propager au document
                 
-                const ownersList = card.querySelector(".owners-list");
-                if (ownersList) {
-                    const isVisible = ownersList.style.display === "block";
-                    ownersList.style.display = isVisible ? "none" : "block";
-                }
+                const isVisible = ownersList.style.display === "block";
+                ownersList.style.display = isVisible ? "none" : "block";
+
+                // Optionnel : si un bouton de bascule existe, mettez à jour son texte ici
             }
         });
     });
@@ -46,7 +33,9 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("click", (e) => {
         cards.forEach(card => {
             const ownersList = card.querySelector(".owners-list");
-            if (ownersList && !card.contains(e.target)) {
+            
+            // Si la liste existe ET si le clic n'est PAS sur la carte elle-même
+            if (ownersList && ownersList.style.display === "block" && !card.contains(e.target)) {
                 ownersList.style.display = "none";
             }
         });

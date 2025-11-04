@@ -14,6 +14,7 @@ use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\File;
+use Doctrine\ORM\EntityRepository;
 
 class CardFilmType extends AbstractType
 {
@@ -81,7 +82,11 @@ class CardFilmType extends AbstractType
                 'required' => false,
                 'attr' => [
                     'class' => 'form-control'
-                ]
+                ],
+                'query_builder' => function (EntityRepository $er) {
+                    return $er->createQueryBuilder('f')
+                        ->orderBy('f.nom', 'ASC'); // Tri (A-Z)
+                },
             ])
         ;
     }

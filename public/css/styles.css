@@ -174,7 +174,7 @@ select {
 
 .catalogue2 {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
+  grid-template-columns: repeat(10, 1fr);
   gap: 15px;
   justify-content: center;
   padding-top: 50px;
@@ -251,6 +251,270 @@ select {
 }
 .card.expanded .owners-list {
   display: block;
+}
+
+/* ========================================= */
+/* RECHERCHE ET FILTRES */
+/* ========================================= */
+
+.search-filters-container {
+    max-width: 700px;
+    margin: 30px auto 40px;
+    padding: 0 20px;
+}
+
+.search-form {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.search-input-wrapper {
+    position: relative;
+    margin-bottom: 25px;
+}
+
+#searchbar {
+    width: 100%;
+    padding: 18px 60px 18px 25px;
+    font-size: 1.1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    background: #f9f9f9;
+}
+
+#searchbar:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+.search-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+}
+
+.search-btn:hover {
+    transform: translateY(-50%) scale(1.05);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.filters {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 250px;
+}
+
+.filter-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #333;
+    font-size: 1rem;
+}
+
+#sectionFilter {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    background: #f9f9f9;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#sectionFilter:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+#rarityFilter {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    background: #f9f9f9;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#rarityFilter:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+.reset-filters {
+    padding: 12px 25px;
+    background: #ff6b6b;
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.reset-filters:hover {
+    background: #ee5a52;
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+}
+
+/* ========================================= */
+/* PAGINATION MODERNE */
+/* ========================================= */
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin: 40px auto;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    max-width: fit-content;
+    flex-wrap: wrap;
+}
+
+.pagination-top {
+    margin-top: 20px;
+    margin-bottom: 5px;
+}
+
+.pagination-bottom {
+    margin-top: 50px;
+    margin-bottom: 30px;
+}
+
+.pagination-btn {
+    padding: 12px 25px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.pagination-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+}
+
+.pagination-btn.prev::before {
+    content: '';
+}
+
+.pagination-btn.next::after {
+    content: '';
+}
+
+.pagination-numbers {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.page-number {
+    min-width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f5f5;
+    color: #333;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.page-number:hover {
+    background: #667eea;
+    color: white;
+    transform: scale(1.1);
+}
+
+.page-number.active {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    color: white;
+    border-color: #ff6b6b;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+    transform: scale(1.15);
+}
+
+.pagination-dots {
+    color: #999;
+    font-weight: bold;
+    padding: 0 5px;
+}
+
+/* Message aucun résultat */
+.no-results {
+    text-align: center;
+    padding: 80px 20px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 20px;
+    margin: 40px auto;
+    max-width: 600px;
+}
+
+.no-results p {
+    font-size: 1.5rem;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.no-results a {
+    display: inline-block;
+    padding: 15px 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.no-results a:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
 }
 
 /* Responsive */
@@ -349,4 +613,53 @@ select {
     margin: 5px auto;
     font-size: 12px;
   }
+
+  /* Pagination search bar etc */
+      .search-form {
+        padding: 20px;
+    }
+
+    #searchbar {
+        font-size: 1rem;
+        padding: 15px 55px 15px 20px;
+    }
+
+    .search-btn {
+        padding: 10px 15px;
+        font-size: 1rem;
+    }
+
+    .filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-group {
+        min-width: 100%;
+    }
+
+    .reset-filters {
+        width: 100%;
+        text-align: center;
+    }
+
+    .pagination {
+        gap: 8px;
+        padding: 15px;
+    }
+
+    .pagination-btn {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
+
+    .page-number {
+        min-width: 40px;
+        height: 40px;
+        font-size: 0.9rem;
+    }
+
+    .pagination-numbers {
+        gap: 5px;
+    }
 }

@@ -8,78 +8,155 @@
 {% endblock %}
 
 {% block body %}
-    <main class="main-collec-responsive">
-        <h2 id="Catalogue">Chez {{ user.pseudo }}</h2>
-        <input type="text" id="searchbar" placeholder="Recherche un personnage, un animé, une série ou un film"/>
+<main class="main-collec-responsive">
 
-        <div class="filters-container">
+    <h2 id="Catalogue">Chez {{ user.pseudo }}</h2>
+
+    <!-- Barre de recherche + filtres -->
+    <div class="search-filters-container">
+        <form method="get" action="" class="search-form">
+            <div class="search-input-wrapper">
+                <input 
+                    type="text" 
+                    name="search" 
+                    id="searchbar" 
+                    placeholder="Recherche un personnage, un animé, une série ou un film..." 
+                    value="{{ search ?? '' }}"
+                />
+                <button type="submit" class="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+
             <div class="filters">
                 <div class="filter-group">
                     <label for="sectionFilter">📚 Section</label>
-                    <select id="sectionFilter">
-                        <option value="all">Toutes les sections</option>
-                        <option value="anime">Animés</option>
-                        <option value="film">Films & séries</option>
+                    <select name="section" id="sectionFilter" onchange="this.form.submit()">
+                        <option value="">Toutes les sections</option>
+                        <option value="anime" {% if selectedSection == 'anime' %}selected{% endif %}>Animés</option>
+                        <option value="film" {% if selectedSection == 'film' %}selected{% endif %}>Films & séries</option>
                     </select>
                 </div>
-            
+
                 <div class="filter-group">
                     <label for="rarityFilter">🌟 Rareté</label>
-                    <select id="rarityFilter">
+                    <select name="rarity" id="rarityFilter" onchange="this.form.submit()">
                         <option value="">Toutes les raretés</option>
-                        <option value="Events">Événements</option>
-                        <option value="Mythiques">Mythiques</option>
-                        <option value="Legendaires">Légendaires</option>
-                        <option value="Epiques">Épiques</option>
-                        <option value="Rares">Rares</option>
-                        <option value="Communes">Communes</option>
+                        {% for rarity in rarities %}
+                            <option value="{{ rarity.libelle }}" {% if selectedRarity == rarity.libelle %}selected{% endif %}>
+                                {{ rarity.libelle }}
+                            </option>
+                        {% endfor %}
                     </select>
                 </div>
+
+                {% if search or selectedRarity or selectedSection %}
+                    <a href="{{ path(app.request.attributes.get('_route'), {'id': user.id}) }}" class="reset-filters">
+                        ✖ Réinitialiser
+                    </a>
+                {% endif %}
             </div>
-        </div>
-        
-        <div class="catalogue2">
-    {% set allUserCards = userCardAnimes|merge(userCardFilms) %}
-    
-    {% if allUserCards is empty %}
-        <p>{{ user.pseudo }} n'a aucune carte dans son inventaire.</p>
-    {% else %}
-        {% for userCard in allUserCards %}
-            {% if userCard.cardAnime is defined and userCard.cardAnime is not null %}
-                {% set card = userCard.cardAnime %}
-                {% set section = 'anime' %}
-            {% elseif userCard.cardFilm is defined and userCard.cardFilm is not null %}
-                {% set card = userCard.cardFilm %}
-                {% set section = 'film' %}
-            {% else %}
-                {% set card = null %}
+        </form>
+    </div>
+
+    <!-- Pagination (haut) -->
+    {% if totalPages > 1 %}
+        <div class="pagination pagination-top">
+            {% if currentPage > 1 %}
+                <a href="?page={{ currentPage - 1 }}{% if search %}&search={{ search }}{% endif %}{% if selectedRarity %}&rarity={{ selectedRarity }}{% endif %}{% if selectedSection %}&section={{ selectedSection }}{% endif %}" class="pagination-btn prev">← Précédent</a>
             {% endif %}
 
-            {% if card is not null %}
-                <div class="card" 
-                     data-section="{{ section }}"
-                     data-anime="{{ card.anime.nom ?? '' }}"
-                     data-film="{{ card.film.nom ?? '' }}"
-                     {# LIGNE CORRIGÉE : on utilise l'ID de rareté ici pour les clics #}
-                     data-rarete="{{ card.rarity.id ?? '' }}"
-                     {# NOUVEL ATTRIBUT : on ajoute le nom de la rareté pour les filtres #}
-                     data-rarity-name="{{ card.rarity.libelle ?? '' }}">
-                    <img src="{{ asset(card.imagePath) }}" alt="{{ card.nom }}">
-                    <div class="card-content">
-                        <h2 class="card-title">{{ userCard.quantity }}</h2>
-                        {% if card.description %}
-                            <p>{{ card.description|raw }}</p>
-                        {% endif %}
-                    </div>
-                </div>
+            <div class="pagination-numbers">
+                {% for i in 1..totalPages %}
+                    {% if i == 1 or i == totalPages or (i >= currentPage - 2 and i <= currentPage + 2) %}
+                        <a href="?page={{ i }}{% if search %}&search={{ search }}{% endif %}{% if selectedRarity %}&rarity={{ selectedRarity }}{% endif %}{% if selectedSection %}&section={{ selectedSection }}{% endif %}"
+                           class="page-number {% if i == currentPage %}active{% endif %}">
+                            {{ i }}
+                        </a>
+                    {% elseif i == currentPage - 3 or i == currentPage + 3 %}
+                        <span class="pagination-dots">...</span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            {% if currentPage < totalPages %}
+                <a href="?page={{ currentPage + 1 }}{% if search %}&search={{ search }}{% endif %}{% if selectedRarity %}&rarity={{ selectedRarity }}{% endif %}{% if selectedSection %}&section={{ selectedSection }}{% endif %}" class="pagination-btn next">Suivant →</a>
             {% endif %}
-        {% endfor %}
+        </div>
     {% endif %}
-</div>
-    </main>
+
+    <!-- Catalogue -->
+    <div class="catalogue2">
+        {% if paginatedCards is empty %}
+            <div class="no-results">
+                <p>😔 Aucune carte trouvée avec ces critères.</p>
+                {% if search or selectedRarity or selectedSection %}
+                    <a href="{{ path(app.request.attributes.get('_route'), {'id': user.id}) }}">Réinitialiser les filtres</a>
+                {% else %}
+                    <p>{{ user.pseudo }} n'a aucune carte dans son inventaire.</p>
+                {% endif %}
+            </div>
+        {% else %}
+            {% for userCard in paginatedCards %}
+                {% if userCard.cardAnime is defined and userCard.cardAnime is not null %}
+                    {% set card = userCard.cardAnime %}
+                    {% set section = 'anime' %}
+                {% elseif userCard.cardFilm is defined and userCard.cardFilm is not null %}
+                    {% set card = userCard.cardFilm %}
+                    {% set section = 'film' %}
+                {% else %}
+                    {% set card = null %}
+                {% endif %}
+
+                {% if card is not null %}
+                    <div class="card">
+                        {% if card.imagePath %}
+                            <img src="{{ asset(card.imagePath) }}" alt="{{ card.nom }}">
+                        {% else %}
+                            <img src="{{ asset('images/placeholder.png') }}" alt="{{ card.nom }}">
+                        {% endif %}
+                        <div class="card-content">
+                            <h2 class="card-title">x{{ userCard.quantity }}</h2>
+                            {% if card.description %}
+                                <p>{{ card.description|raw }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- Pagination (bas) -->
+    {% if totalPages > 1 %}
+        <div class="pagination pagination-bottom">
+            {% if currentPage > 1 %}
+                <a href="?page={{ currentPage - 1 }}{% if search %}&search={{ search }}{% endif %}{% if selectedRarity %}&rarity={{ selectedRarity }}{% endif %}{% if selectedSection %}&section={{ selectedSection }}{% endif %}" class="pagination-btn prev">← Précédent</a>
+            {% endif %}
+
+            <div class="pagination-numbers">
+                {% for i in 1..totalPages %}
+                    {% if i == 1 or i == totalPages or (i >= currentPage - 2 and i <= currentPage + 2) %}
+                        <a href="?page={{ i }}{% if search %}&search={{ search }}{% endif %}{% if selectedRarity %}&rarity={{ selectedRarity }}{% endif %}{% if selectedSection %}&section={{ selectedSection }}{% endif %}" 
+                           class="page-number {% if i == currentPage %}active{% endif %}">
+                            {{ i }}
+                        </a>
+                    {% elseif i == currentPage - 3 or i == currentPage + 3 %}
+                        <span class="pagination-dots">...</span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            {% if currentPage < totalPages %}
+                <a href="?page={{ currentPage + 1 }}{% if search %}&search={{ search }}{% endif %}{% if selectedRarity %}&rarity={{ selectedRarity }}{% endif %}{% if selectedSection %}&section={{ selectedSection }}{% endif %}" class="pagination-btn next">Suivant →</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</main>
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/filtre_cartes.js') }}"></script>
+    {# PAS de filtre_cartes.js - tout est géré en PHP maintenant #}
+    <script src="{{ asset('js/utilisateurs_cartes.js') }}"></script>
 {% endblock %}

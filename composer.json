@@ -11,6 +11,7 @@
         "doctrine/doctrine-bundle": "^2.16",
         "doctrine/doctrine-migrations-bundle": "^3.4",
         "doctrine/orm": "^3.5",
+        "knplabs/knp-paginator-bundle": "^6.9",
         "paragonie/sodium_compat": "^2.2",
         "symfony/asset": "7.3.*",
         "symfony/console": "7.3.*",
@@ -27,6 +28,7 @@
         "symfonycasts/reset-password-bundle": "^1.23",
         "symfonycasts/verify-email-bundle": "^1.17",
         "twig/extra-bundle": "^2.12|^3.0",
+        "twig/string-extra": "^3.21",
         "twig/twig": "^2.12|^3.0"
     },
     "config": {
