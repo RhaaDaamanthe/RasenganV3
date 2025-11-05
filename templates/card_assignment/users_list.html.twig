@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Choisir un joueur{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/admin.css') }}" />
+{% endblock %}
+
+{% block body %}
+<main>
+    <div class="admin-container">
+        <h1>👥 Choisir un joueur</h1>
+        <p class="subtitle">Sélectionnez le joueur à qui vous voulez attribuer des cartes {{ type == 'anime' ? 'd\'animé' : 'de film' }}</p>
+
+        <div class="card-grid">
+            {% for user in users %}
+                <div class="admin-card user-card">
+                    <div class="card-content">
+                        <h3>{{ user.pseudo }}</h3>
+                    </div>
+                    <div class="admin-card-actions">
+                        {% if type == 'anime' %}
+                            <a href="{{ path('app_assign_anime_to_user', {'id': user.id}) }}" class="btn btn-primary">
+                                Attribuer cartes
+                            </a>
+                        {% else %}
+                            <a href="{{ path('app_assign_film_to_user', {'id': user.id}) }}" class="btn btn-success">
+                                Attribuer cartes
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% else %}
+                <p>Aucun joueur trouvé.</p>
+            {% endfor %}
+        </div>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="{{ path('app_assign_cards_choice') }}" class="btn btn-secondary">← Retour</a>
+        </div>
+    </div>
+</main>
+{% endblock %}

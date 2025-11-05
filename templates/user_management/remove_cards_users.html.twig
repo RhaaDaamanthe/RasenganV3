@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Retirer des cartes{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/admin.css') }}" />
+{% endblock %}
+
+{% block body %}
+<main>
+    <div class="admin-container">
+        <h1>❌ Retirer des cartes aux joueurs</h1>
+        <p class="subtitle">Sélectionnez le joueur dont vous voulez retirer des cartes</p>
+
+        <div class="card-grid">
+            {% for user in users %}
+                <div class="admin-card user-card">
+                    <div class="card-content">
+                        <h3>{{ user.pseudo }}</h3>
+                        <p><strong>Email:</strong> {{ user.email }}</p>
+                    </div>
+                    <div class="admin-card-actions">
+                        <a href="{{ path('app_remove_user_cards', {'id': user.id}) }}" class="btn btn-danger">
+                            Voir ses cartes
+                        </a>
+                    </div>
+                </div>
+            {% else %}
+                <p>Aucun joueur trouvé.</p>
+            {% endfor %}
+        </div>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="{{ path('app_admin') }}" class="btn btn-secondary">← Retour au tableau de bord</a>
+        </div>
+    </div>
+</main>
+{% endblock %}

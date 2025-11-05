@@ -1,0 +1,114 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Cartes de {{ user.pseudo }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/admin.css') }}" />
+{% endblock %}
+
+{% block body %}
+<main>
+    <div class="admin-container">
+        <h1>❌ Retirer des cartes à {{ user.pseudo }}</h1>
+
+        {% for message in app.flashes('success') %}
+            <div class="flash-message flash-success" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; padding: 1rem; border-radius: 12px; margin-bottom: 1rem;">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        <!-- Filtres -->
+        <div class="search-filters-container">
+            <form method="get" action="" class="search-form">
+                <div class="search-input-wrapper">
+                    <input type="text" name="search" placeholder="Rechercher une carte..." value="{{ search }}"/>
+                    <button type="submit" class="search-btn"><i class="fas fa-search"></i></button>
+                </div>
+                <div class="filters">
+                    <div class="filter-group">
+                        <select name="section" onchange="this.form.submit()">
+                            <option value="">Toutes les sections</option>
+                            <option value="anime" {% if selectedSection == 'anime' %}selected{% endif %}>Animés</option>
+                            <option value="film" {% if selectedSection == 'film' %}selected{% endif %}>Films</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Cartes d'animé -->
+        {% if userCardAnimes is not empty %}
+            <h2 style="margin-top: 30px;">🎴 Cartes d'animé</h2>
+            <div class="card-grid">
+                {% for userCard in userCardAnimes %}
+                    {% set card = userCard.cardAnime %}
+                    <div class="admin-card">
+                        <img src="{{ asset(card.imagePath) }}" alt="{{ card.nom }}" class="card-image">
+                        <div class="card-content">
+                            <h3>{{ card.nom }}</h3>
+                            <p><strong>Quantité:</strong> x{{ userCard.quantity }}</p>
+                            <p><strong>Animé:</strong> {{ card.anime ? card.anime.nom : 'Non lié' }}</p>
+                        </div>
+                        <div class="admin-card-actions" style="flex-direction: column; gap: 5px;">
+                            <form method="post" style="width: 100%;">
+                                <input type="hidden" name="user_card_id" value="{{ userCard.id }}">
+                                <input type="hidden" name="type" value="anime">
+                                <input type="hidden" name="action" value="remove_one">
+                                <button type="submit" class="btn btn-warning" style="width: 100%;" onclick="return confirm('Retirer 1 carte ?')">-1 carte</button>
+                            </form>
+                            <form method="post" style="width: 100%;">
+                                <input type="hidden" name="user_card_id" value="{{ userCard.id }}">
+                                <input type="hidden" name="type" value="anime">
+                                <input type="hidden" name="action" value="remove_all">
+                                <button type="submit" class="btn btn-danger" style="width: 100%;" onclick="return confirm('Retirer TOUTES les cartes ?')">Tout retirer</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Cartes de film -->
+        {% if userCardFilms is not empty %}
+            <h2 style="margin-top: 30px;">🎬 Cartes de film</h2>
+            <div class="card-grid">
+                {% for userCard in userCardFilms %}
+                    {% set card = userCard.cardFilm %}
+                    <div class="admin-card">
+                        <img src="{{ asset(card.imagePath) }}" alt="{{ card.nom }}" class="card-image">
+                        <div class="card-content">
+                            <h3>{{ card.nom }}</h3>
+                            <p><strong>Quantité:</strong> x{{ userCard.quantity }}</p>
+                            <p><strong>Film:</strong> {{ card.film ? card.film.nom : 'Non lié' }}</p>
+                        </div>
+                        <div class="admin-card-actions" style="flex-direction: column; gap: 5px;">
+                            <form method="post" style="width: 100%;">
+                                <input type="hidden" name="user_card_id" value="{{ userCard.id }}">
+                                <input type="hidden" name="type" value="film">
+                                <input type="hidden" name="action" value="remove_one">
+                                <button type="submit" class="btn btn-warning" style="width: 100%;" onclick="return confirm('Retirer 1 carte ?')">-1 carte</button>
+                            </form>
+                            <form method="post" style="width: 100%;">
+                                <input type="hidden" name="user_card_id" value="{{ userCard.id }}">
+                                <input type="hidden" name="type" value="film">
+                                <input type="hidden" name="action" value="remove_all">
+                                <button type="submit" class="btn btn-danger" style="width: 100%;" onclick="return confirm('Retirer TOUTES les cartes ?')">Tout retirer</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if userCardAnimes is empty and userCardFilms is empty %}
+            <p style="text-align: center; margin: 50px 0;">{{ user.pseudo }} n'a aucune carte.</p>
+        {% endif %}
+
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="{{ path('app_admin') }}" class="btn btn-secondary">← Retour au tableau de bord</a>
+        </div>
+    </div>
+</main>
+{% endblock %}

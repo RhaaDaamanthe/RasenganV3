@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des utilisateurs{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/admin.css') }}" />
+{% endblock %}
+
+{% block body %}
+<main>
+    <div class="admin-container">
+        <h1>👤 Gestion des utilisateurs</h1>
+        <p class="subtitle">Réinitialiser les mots de passe des joueurs</p>
+
+        {% for message in app.flashes('success') %}
+            <div class="flash-message flash-success" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; padding: 1rem; border-radius: 12px; margin-bottom: 1rem;">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        {% for message in app.flashes('error') %}
+            <div class="flash-message flash-error" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); color: white; padding: 1rem; border-radius: 12px; margin-bottom: 1rem;">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        <div class="card-grid">
+            {% for user in users %}
+                <div class="admin-card user-card">
+                    <div class="card-content">
+                        <h3>{{ user.pseudo }}</h3>
+                        <p><strong>Email:</strong> {{ user.email }}</p>
+                    </div>
+                    <form method="post" action="{{ path('app_reset_user_password', {'id': user.id}) }}" style="padding: 15px;">
+                        <label style="display: block; margin-bottom: 10px; font-weight: 600;">Nouveau mot de passe :</label>
+                        <input type="text" name="new_password" placeholder="Minimum 6 caractères" required 
+                               style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; margin-bottom: 10px;">
+                        <button type="submit" class="btn btn-primary" style="width: 100%;" onclick="return confirm('Réinitialiser le mot de passe de {{ user.pseudo }} ?')">
+                            🔑 Réinitialiser
+                        </button>
+                    </form>
+                </div>
+            {% else %}
+                <p>Aucun joueur trouvé.</p>
+            {% endfor %}
+        </div>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="{{ path('app_admin') }}" class="btn btn-secondary">← Retour au tableau de bord</a>
+        </div>
+    </div>
+</main>
+{% endblock %}

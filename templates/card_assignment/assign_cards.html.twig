@@ -1,0 +1,183 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Attribuer des cartes à {{ user.pseudo }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/admin.css') }}" />
+    <style>
+        .flash-message {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 12px;
+            font-weight: bold;
+            animation: slideIn 0.5s ease;
+        }
+
+        .flash-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(56, 239, 125, 0.3);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .card-assignment-form {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .quantity-input {
+            width: 80px;
+            padding: 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            margin-right: 10px;
+            font-size: 1rem;
+        }
+
+        .assign-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .assign-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<main>
+    <div class="admin-container">
+        <h1>🎁 Attribuer des cartes {{ type == 'anime' ? 'd\'animé' : 'de film' }} à {{ user.pseudo }}</h1>
+
+        {% for message in app.flashes('success') %}
+            <div class="flash-message flash-success">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        <!-- Barre de recherche -->
+        <div class="search-filters-container">
+            <form method="get" action="" class="search-form">
+                <div class="search-input-wrapper">
+                    <input 
+                        type="text" 
+                        name="search" 
+                        id="searchbar" 
+                        placeholder="Rechercher une carte..." 
+                        value="{{ search }}"
+                    />
+                    <button type="submit" class="search-btn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Pagination haut -->
+        {% if totalPages > 1 %}
+            <div class="pagination pagination-top">
+                {% if currentPage > 1 %}
+                    <a href="?page={{ currentPage - 1 }}{% if search %}&search={{ search }}{% endif %}" class="pagination-btn prev">← Précédent</a>
+                {% endif %}
+
+                <div class="pagination-numbers">
+                    {% for i in 1..totalPages %}
+                        {% if i == 1 or i == totalPages or (i >= currentPage - 2 and i <= currentPage + 2) %}
+                            <a href="?page={{ i }}{% if search %}&search={{ search }}{% endif %}" 
+                               class="page-number {% if i == currentPage %}active{% endif %}">
+                                {{ i }}
+                            </a>
+                        {% elseif i == currentPage - 3 or i == currentPage + 3 %}
+                            <span class="pagination-dots">...</span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                {% if currentPage < totalPages %}
+                    <a href="?page={{ currentPage + 1 }}{% if search %}&search={{ search }}{% endif %}" class="pagination-btn next">Suivant →</a>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <!-- Grille de cartes -->
+        <div class="card-grid">
+            {% for card in cards %}
+                <div class="admin-card">
+                    {% if card.imagePath %}
+                        <img src="{{ asset(card.imagePath) }}" alt="{{ card.nom }}" class="card-image">
+                    {% else %}
+                        <img src="{{ asset('images/placeholder.png') }}" alt="{{ card.nom }}" class="card-image">
+                    {% endif %}
+
+
+
+                    <form method="post" class="card-assignment-form">
+                        <input type="hidden" name="card_id" value="{{ card.id }}">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <input type="number" name="quantity" value="1" min="1" max="999" class="quantity-input">
+                                <button type="submit" class="assign-btn">✓ Attribuer</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            {% else %}
+                <p>Aucune carte trouvée.</p>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination bas -->
+        {% if totalPages > 1 %}
+            <div class="pagination pagination-bottom">
+                {% if currentPage > 1 %}
+                    <a href="?page={{ currentPage - 1 }}{% if search %}&search={{ search }}{% endif %}" class="pagination-btn prev">← Précédent</a>
+                {% endif %}
+
+                <div class="pagination-numbers">
+                    {% for i in 1..totalPages %}
+                        {% if i == 1 or i == totalPages or (i >= currentPage - 2 and i <= currentPage + 2) %}
+                            <a href="?page={{ i }}{% if search %}&search={{ search }}{% endif %}" 
+                               class="page-number {% if i == currentPage %}active{% endif %}">
+                                {{ i }}
+                            </a>
+                        {% elseif i == currentPage - 3 or i == currentPage + 3 %}
+                            <span class="pagination-dots">...</span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                {% if currentPage < totalPages %}
+                    <a href="?page={{ currentPage + 1 }}{% if search %}&search={{ search }}{% endif %}" class="pagination-btn next">Suivant →</a>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="{{ path(type == 'anime' ? 'app_assign_anime_users' : 'app_assign_film_users') }}" class="btn btn-secondary">← Retour à la liste des joueurs</a>
+        </div>
+    </div>
+</main>
+{% endblock %}
