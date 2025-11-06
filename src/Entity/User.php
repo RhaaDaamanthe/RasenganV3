@@ -245,4 +245,50 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
+    public function getTotalPoints(): int
+{
+    $points = 0;
+
+    // 🔹 Cartes d'animé
+    foreach ($this->getUserCardAnimes() as $userCard) {
+        $rarity = $userCard->getCardAnime()?->getRarity();
+        $quantity = $userCard->getQuantity();
+
+        if ($rarity) {
+            $pointsPerCard = match ($rarity->getLibelle()) {
+                'Communes' => 1,
+                'Rares' => 2,
+                'Épiques' => 3,
+                'Legendaires' => 4,
+                'Mythiques' => 5,
+                'Events' => 6,
+                default => 0,
+            };
+            $points += $pointsPerCard * $quantity;
+        }
+    }
+
+    // 🔹 Cartes de film
+    foreach ($this->getUserCardFilms() as $userCard) {
+        $rarity = $userCard->getCardFilm()?->getRarity();
+        $quantity = $userCard->getQuantity();
+
+        if ($rarity) {
+            $pointsPerCard = match ($rarity->getLibelle()) {
+                'Communes' => 1,
+                'Rares' => 2,
+                'Épiques' => 3,
+                'Legendaires' => 4,
+                'Mythiques' => 5,
+                'Events' => 6,
+                default => 0,
+            };
+            $points += $pointsPerCard * $quantity;
+        }
+    }
+
+    return $points;
+}
+
 }

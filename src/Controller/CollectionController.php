@@ -11,17 +11,74 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Annotation\Route;
 
 class CollectionController extends AbstractController
 {
     #[Route('/joueurs', name: 'app_players_list')]
-    public function showPlayersList(UserRepository $userRepository): Response
-    {
+    public function showPlayersList(
+        UserRepository $userRepository,
+        EntityManagerInterface $entityManager
+    ): Response {
+        // Récupère tous les utilisateurs
         $users = $userRepository->findAll();
 
+        // Variables pour le total des cartes
+        $playersWithPoints = [];
+        $totalCards = 0;
+        $totalAnimeCards = 0;
+        $totalFilmCards = 0;
+
+        foreach ($users as $user) {
+            // Calcul des cartes anime de l'utilisateur
+            $animeCount = $entityManager->getRepository(\App\Entity\UserCardAnime::class)
+                ->createQueryBuilder('uca')
+                ->select('SUM(uca.quantity)')
+                ->where('uca.user = :user')
+                ->setParameter('user', $user)
+                ->getQuery()
+                ->getSingleScalarResult();
+
+            // Calcul des cartes film de l'utilisateur
+            $filmCount = $entityManager->getRepository(\App\Entity\UserCardFilm::class)
+                ->createQueryBuilder('ucf')
+                ->select('SUM(ucf.quantity)')
+                ->where('ucf.user = :user')
+                ->setParameter('user', $user)
+                ->getQuery()
+                ->getSingleScalarResult();
+
+            // Calcul du total des points
+            $totalPoints = (int) $animeCount + (int) $filmCount;
+
+            // Ajouter l'utilisateur et ses points à la liste
+            $playersWithPoints[] = [
+                'user' => $user,
+                'points' => $totalPoints,
+            ];
+
+            // Mettre à jour les totaux
+            $totalAnimeCards += (int) $animeCount;
+            $totalFilmCards += (int) $filmCount;
+            $totalCards += (int) $animeCount + (int) $filmCount;
+        }
+
+        // Trier les utilisateurs par points, du plus grand au plus petit
+        usort($playersWithPoints, function ($a, $b) {
+            return $b['points'] - $a['points'];
+        });
+
+        // Extraire la liste triée des utilisateurs
+        $sortedUsers = array_map(function ($player) {
+            return $player['user'];
+        }, $playersWithPoints);
+
+        // Rendre la vue avec les données
         return $this->render('collection/players_list.html.twig', [
-            'users' => $users,
+            'users' => $sortedUsers,
+            'totalCards' => $totalCards,      // Total général des cartes
+            'animeCount' => $totalAnimeCards, // Total des cartes Anime
+            'filmCount' => $totalFilmCards,   // Total des cartes Film
         ]);
     }
 
@@ -52,12 +109,12 @@ class CollectionController extends AbstractController
             ->getQuery()
             ->getResult();
 
-        // Fusion des deux collections
+        // Fusionner les collections de cartes
         $allUserCards = array_merge($userCardAnimes, $userCardFilms);
 
         // Filtrage des cartes
         $filteredCards = array_filter($allUserCards, function ($userCard) use ($search, $selectedRarity, $selectedSection) {
-            // Détermine dynamiquement si c'est une carte Anime ou Film
+            // Déterminer dynamiquement si c'est une carte Anime ou Film
             if (method_exists($userCard, 'getCardAnime') && $userCard->getCardAnime()) {
                 $card = $userCard->getCardAnime();
                 $type = 'anime';
@@ -68,16 +125,16 @@ class CollectionController extends AbstractController
                 return false;
             }
 
-            // Filtre section (anime ou film)
+            // Filtrer selon la section (anime ou film)
             if ($selectedSection === 'anime' && $type !== 'anime') return false;
             if ($selectedSection === 'film' && $type !== 'film') return false;
 
-            // Filtre rareté
+            // Filtrer par rareté
             if ($selectedRarity && $card->getRarity() && $card->getRarity()->getLibelle() !== $selectedRarity) {
                 return false;
             }
 
-            // Filtre recherche texte
+            // Filtrer selon la recherche texte
             if ($search) {
                 $searchLower = mb_strtolower($search);
                 $cardName = mb_strtolower($card->getNom());

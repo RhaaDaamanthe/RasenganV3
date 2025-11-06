@@ -64,6 +64,43 @@
             padding: 50px 0;
         }
 
+        .global-stats {
+            text-align: center;
+            margin: 30px auto 50px;
+        }
+
+        .stats-card {
+            display: inline-block;
+            padding: 20px 40px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #ffd700, #ffb347);
+            color: #b36322;
+            font-family: "Poppins", sans-serif;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .stats-text {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .stats-subtext {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .count {
+            font-weight: 800;
+            color: #420502;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
         @media (max-width: 768px) {
             .catalogue {
                 grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -84,41 +121,45 @@
 {% endblock %}
 
 {% block body %}
-    <main>
-        <div class="content">
-            <h1 style="text-align: center; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">Collection des joueurs</h1>
-            <div class="catalogue">
-                {% for user in users %}
-                    <a href="{{ path('app_player_collection', {'id': user.id}) }}">
-                        <div class="card special-card modern-player-card">
-                            {% if user.imageCollection is not null %}
-                                <img src="{{ asset(user.imageCollection) }}" alt="{{ user.pseudo }}" class="player-profile-img">
-                            {% else %}
-                                <img src="{{ asset('images/default-profile.png') }}" alt="{{ user.pseudo }}" class="player-profile-img">
-                            {% endif %}
-                            <div class="card-content">
-                                <h2 class="card-title">{{ user.pseudo }}</h2>
-                            </div>
-                        </div>
-                    </a>
-                {% endfor %}
+<main>
+    <div class="content">
+
+        <!-- 🔥 Zone des statistiques globales -->
+        <section class="global-stats">
+            <div class="stats-card">
+                <p class="stats-text">
+                    <span id="totalCount" class="count" data-value="{{ totalCards }}">0</span> cartes collectées
+                </p>
+                <p class="stats-subtext">
+                    🍜 <span id="animeCount" class="count" data-value="{{ animeCount }}">0</span>
+                    &nbsp;🎬 <span id="filmCount" class="count" data-value="{{ filmCount }}">0</span>
+                </p>
             </div>
+        </section>
+
+        <div class="catalogue">
+            {% for user in users %}
+                <a href="{{ path('app_player_collection', {'id': user.id}) }}">
+                    <div class="card special-card modern-player-card">
+                        {% if user.imageCollection %}
+                            <img src="{{ asset(user.imageCollection) }}" alt="{{ user.pseudo }}" class="player-profile-img">
+                        {% else %}
+                            <img src="{{ asset('images/default-profile.png') }}" alt="{{ user.pseudo }}" class="player-profile-img">
+                        {% endif %}
+                        <div class="card-content">
+                            <h2 class="card-title">{{ user.pseudo }}</h2>
+                            <p class="player-points">⭐ {{ user.totalPoints }} points</p>
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
         </div>
-    </main>
+    </div>
+</main>
+
 
     {% block javascripts %}
         {{ parent() }}
-        <script>
-            document.addEventListener("DOMContentLoaded", () => {
-                document.querySelectorAll(".modern-player-card").forEach((card) => {
-                    card.addEventListener("click", () => {
-                        const link = card.closest("a");
-                        if (link) {
-                            window.location.href = link.getAttribute("href");
-                        }
-                    });
-                });
-            });
-        </script>
+        <script src="{{ asset('js/collection.js') }}"></script>
     {% endblock %}
 {% endblock %}

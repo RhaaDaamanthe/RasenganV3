@@ -264,12 +264,14 @@ select {
 }
 
 .search-form {
-    background: rgba(255, 255, 255, 0.95);
+    background: linear-gradient(to bottom, #e04e39, #ff7f32, #ffcc33); /* dégradé orange, jaune, rouge clair */
     backdrop-filter: blur(10px);
     border-radius: 20px;
     padding: 10px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
+
+
 
 .search-input-wrapper {
     position: relative;
@@ -288,7 +290,7 @@ select {
 
 #searchbar:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #ea8b66;
     background: white;
     box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
 }
@@ -298,7 +300,7 @@ select {
     right: 10px;
     top: 50%;
     transform: translateY(-50%);
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #d36e44 0%, #800020 100%); /* dégradé bordeaux, orange brûlé */
     color: white;
     border: none;
     padding: 12px 20px;
@@ -307,6 +309,7 @@ select {
     transition: all 0.3s ease;
     font-size: 1.1rem;
 }
+
 
 .search-btn:hover {
     transform: translateY(-50%) scale(1.05);
@@ -384,6 +387,33 @@ select {
     background: #ee5a52;
     transform: scale(1.05);
     box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+}
+
+/* ========================================= */
+/* COMPTEUR DE POINTS DU JOUEUR */
+/* ========================================= */
+
+.player-stats-inline {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #555;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.player-stats-inline .player-points {
+    color: #ffb300; /* doré élégant */
+    font-weight: 700;
+}
+
+.player-stats-inline .player-cards {
+    color: #b36322;
+    font-weight: 700;
 }
 
 /* ========================================= */

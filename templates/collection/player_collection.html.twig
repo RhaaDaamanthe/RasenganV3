@@ -56,8 +56,15 @@
                     </a>
                 {% endif %}
             </div>
+
+            <!-- 🟣 Compteur stylé intégré -->
+            <div class="player-stats-inline">
+                <span class="player-cards">🍜 {{ user.userCardAnimes|length }} cartes Anime</span>
+                <span class="player-cards">🎬 {{ user.userCardFilms|length }} cartes Film</span>
+            </div>
         </form>
     </div>
+
 
     <!-- Pagination (haut) -->
     {% if totalPages > 1 %}
