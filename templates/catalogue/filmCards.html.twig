@@ -132,6 +132,10 @@
                                     {% endif %}
                                 </ul>
                             {% endif %}
+
+                            <div class="card-description">
+                                <p>{{ card.description|default('') }}</p>
+                            </div>
                         </div>
                     </div>
                 {% endif %}

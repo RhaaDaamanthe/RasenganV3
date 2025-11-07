@@ -133,12 +133,17 @@
                                     {% endif %}
                                 </ul>
                             {% endif %}
+
+                            <!-- DESCRIPTION AJOUTÉE (Mythique, Légendaire, etc.) -->
+                            <div class="card-description">
+                                <p>{{ card.description|default('') }}</p>
+                            </div>
                         </div>
                     </div>
                 {% endif %}
             {% else %}
                 <div class="no-results">
-                    <p>😔 Aucune carte trouvée avec ces critères.</p>
+                    <p>Aucune carte trouvée avec ces critères.</p>
                     <a href="{{ path(app.request.attributes.get('_route'), app.request.attributes.get('_route_params')) }}">Réinitialiser les filtres</a>
                 </div>
             {% endfor %}

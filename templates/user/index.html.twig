@@ -1,17 +1,36 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Catalogue des Cartes{% endblock %}
+{% block title %}Mon Profil{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/profil.css') }}" />
 {% endblock %}
-
 
 {% block body %}
     <main class="profile-container">
+        {% if user.imageCollection %}
+            <img src="{{ asset(user.imageCollection) }}" alt="Avatar" class="profile-avatar">
+        {% endif %}
+
         <h1>Bienvenue sur ton profil, {{ user.pseudo }}</h1>
         <p>Gère tes informations ici et personnalise ta carte de profil.</p>
-        <a href="{{ path('app_profile_edit') }}" class="btn-edit-profile">Modifier ma carte de profil</a>
+
+        <a href="{{ path('app_profile_settings') }}" class="btn-edit-profile">
+            Modifier mes paramètres
+        </a>
+
+        <!-- Stats rapides (optionnel) -->
+        <div class="profile-stats">
+            <div class="stat-item">
+                <span class="stat-number">{{ user.userCardAnimes|length + user.userCardFilms|length }}</span>
+                <span class="stat-label">Cartes</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">{{ user.getTotalPoints }}</span>
+                <span class="stat-label">Points</span>
+            </div>
+        </div>
     </main>
 {% endblock %}

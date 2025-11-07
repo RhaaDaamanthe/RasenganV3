@@ -10,7 +10,7 @@
 {% block body %}
 <main class="main-collec-responsive">
 
-    <h2 id="Catalogue">Chez {{ user.pseudo }}</h2>
+    <h2 id="Catalogue">{{ user.titreCollection|default('Chez ' ~ user.pseudo) }}</h2>
 
     <!-- Barre de recherche + filtres -->
     <div class="search-filters-container">

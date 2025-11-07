@@ -48,9 +48,12 @@
 
                         {% if app.user %}
                             <li>
-                                <a href="{{ path('app_user_profile') }}" class="profile-link {% if app.request.attributes.get('_route') == 'app_user_profile' %}active{% endif %}">
-                                    <span>Profil</span>
-                                </a>
+                            <a 
+                                href="{{ path('app_user_profile') }}" 
+                                class="profile-link {% if app.request.attributes.get('_route') in ['app_user_profile', 'app_profile_settings'] %}active{% endif %}"
+                            >
+                                <span>Profil</span>
+                            </a>
                             </li>
                             <li>
                                 <span class="welcome-message">Bienvenue,

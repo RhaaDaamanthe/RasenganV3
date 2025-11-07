@@ -1,44 +1,200 @@
 {% extends 'base.html.twig' %}
 
+{% block title %}Accueil{% endblock %}
+
 {% block stylesheets %}
+    {{ parent() }}
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
+
+    <style>
+        /* ============= CONTENEUR SUPERPOSÉ ============= */
+        .hero-section {
+            position: relative;
+            width: 100%;
+            height: 600px; /* Ajuste selon besoin */
+            overflow: hidden;
+            margin: 0;
+        }
+
+        /* ============= BANNIÈRE EN ARRIÈRE-PLAN ============= */
+        .animecardcollection {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 80%;
+            z-index: 1;
+        }
+
+        .animecardcollection img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            /* filter: brightness(0.7); */
+        }
+
+        /* ============= CARROUSEL EN AVANT ============= */
+        .carousel-wrapper {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 1100px;
+            z-index: 5; /* ← CARROUSEL SOUS LA NAVBAR */
+            pointer-events: none;
+        }
+
+        .carousel-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.5);
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(3px);
+            pointer-events: auto;
+            z-index: 5; /* ← même */
+        }
+
+        .carousel-track {
+            display: flex;
+            transition: transform 0.8s ease-in-out;
+        }
+
+        .carousel-card {
+            flex: 0 0 20%;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .carousel-card img {
+            width: 100%;
+            height: 260px;
+            object-fit: cover;
+            border-radius: 14px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            transition: transform 0.5s ease, box-shadow 0.5s ease;
+        }
+
+        .carousel-card img:hover {
+            transform: scale(1.06);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .carousel-card { flex: 0 0 33.33%; }
+            .carousel-card img { height: 200px; }
+            .hero-section { height: 500px; }
+        }
+
+        @media (max-width: 600px) {
+            .carousel-card { flex: 0 0 50%; }
+            .carousel-card img { height: 160px; }
+            .hero-section { height: 450px; }
+        }
+
+        /* ============= SECTION EXPLICATION (en dessous) ============= */
+        .obtain-cards-container {
+            margin-top: 60px;
+            padding: 0 20px;
+            position: relative;
+            z-index: 5;
+        }
+    </style>
 {% endblock %}
 
 {% block body %}
-    <main>
+<main>
 
+    <!-- ============= SECTION SUPERPOSÉE : CARROUSEL + BANNIÈRE ============= -->
+    <section class="hero-section">
+
+        <!-- BANNIÈRE EN ARRIÈRE -->
         <div class="animecardcollection">
-            <img src="{{ asset('images/Anime Cards Collection.jpg') }}" alt="Image Description"/>
+            <img src="{{ asset('images/Anime Cards Collection.jpg') }}" alt="Anime Cards Collection"/>
         </div>
 
-        <div class="obtain-cards-container">
-            <h1 class="obtain-cards-title">Comment obtenir des cartes ?</h1>
-            <div class="methods-grid">
-                <div class="method-card">
-                    <h3 class="method-title">Events du serveur</h3>
-                    <p class="method-description">LA méthode pour gagner le plus de cartes. Participez régulièrement aux événements organisés sur notre serveur.</p>
-                </div>
-                <div class="method-card">
-                    <h3 class="method-title">Sessions vocales</h3>
-                    <p class="method-description">Participez aux paris et aux petits jeux organisés lors des sessions vocales.</p>
-                </div>
-                <div class="method-card">
-                    <h3 class="method-title">Système de niveaux</h3>
-                    <p class="method-description">Gagnez des niveaux en étant actif sur le serveur. Certains niveaux vous récompensent avec des cartes.</p>
-                </div>
-                <div class="method-card">
-                    <h3 class="method-title">Récompense hebdomadaire</h3>
-                    <p class="method-description">Réagissez au message épinglé une fois par semaine pour obtenir une carte aléatoire.</p>
-                </div>
-                <div class="method-card">
-                    <h3 class="method-title">Drops aléatoires</h3>
-                    <p class="method-description">Soyez le premier à réagir aux messages spéciaux dans le tchat général pour gagner une carte.</p>
-                </div>
-                <div class="method-card">
-                    <h3 class="method-title">Événements spéciaux</h3>
-                    <p class="method-description">Participez aux giveaways et n'oubliez pas d'enregistrer votre anniversaire avec /anniversaire définir pour recevoir un cadeau spécial.</p>
+        <!-- CARROUSEL EN AVANT (PAR-DESSUS) -->
+        <div class="carousel-wrapper">
+            <div class="carousel-container">
+                <div class="carousel-track" id="carouselTrack">
+                    {% if carouselImages is defined and carouselImages|length > 0 %}
+                        {% for image in carouselImages %}
+                            <div class="carousel-card">
+                                <img src="{{ asset(image) }}" alt="Carte {{ loop.index }}">
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="carousel-card">
+                            <img src="{{ asset('images/placeholder.png') }}" alt="Aucune image">
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
-    </main>
+
+    </section>
+
+    <!-- ============= SECTION EXPLICATION (après la superposition) ============= -->
+    <div class="obtain-cards-container">
+        <h1 class="obtain-cards-title">Comment obtenir des cartes ?</h1>
+        <div class="methods-grid">
+            <div class="method-card">
+                <h3 class="method-title">Events du serveur</h3>
+                <p class="method-description">LA méthode pour gagner le plus de cartes. Participez régulièrement aux événements organisés sur notre serveur.</p>
+            </div>
+            <div class="method-card">
+                <h3 class="method-title">Sessions vocales</h3>
+                <p class="method-description">Participez aux paris et aux petits jeux organisés lors des sessions vocales.</p>
+            </div>
+            <div class="method-card">
+                <h3 class="method-title">Système de niveaux</h3>
+                <p class="method-description">Gagnez des niveaux en étant actif sur le serveur. Certains niveaux vous récompensent avec des cartes.</p>
+            </div>
+            <div class="method-card">
+                <h3 class="method-title">Récompense hebdomadaire</h3>
+                <p class="method-description">Réagissez au message épinglé une fois par semaine pour obtenir une carte aléatoire.</p>
+            </div>
+            <div class="method-card">
+                <h3 class="method-title">Drops aléatoires</h3>
+                <p class="method-description">Soyez le premier à réagir aux messages spéciaux dans le tchat général pour gagner une carte.</p>
+            </div>
+            <div class="method-card">
+                <h3 class="method-title">Événements spéciaux</h3>
+                <p class="method-description">Participez aux giveaways et n'oubliez pas d'enregistrer votre anniversaire avec /anniversaire définir pour recevoir un cadeau spécial.</p>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<!-- ============= JAVASCRIPT CARROUSEL ============= -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const track = document.getElementById("carouselTrack");
+    if (!track) return;
+
+    const images = {{ carouselImages|json_encode|raw }};
+    const total = images.length;
+    const visible = 5;
+    const delay = 4000;
+
+    if (total <= visible) return;
+
+    setInterval(() => {
+        const first = track.firstElementChild;
+        const cardWidth = first.offsetWidth + 20; // padding inclus
+
+        track.style.transition = "transform 0.8s ease-in-out";
+        track.style.transform = `translateX(-${cardWidth}px)`;
+
+        setTimeout(() => {
+            track.appendChild(first);
+            track.style.transition = "none";
+            track.style.transform = "translateX(0)";
+        }, 850);
+    }, delay);
+});
+</script>
 {% endblock %}

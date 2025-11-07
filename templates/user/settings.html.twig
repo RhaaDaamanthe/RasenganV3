@@ -1,0 +1,96 @@
+{# templates/user/settings.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Paramètres - Mon Profil{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/profil.css') }}" />
+{% endblock %}
+
+{% block body %}
+<main class="profile-settings">
+    <div class="settings-container">
+        <h1 class="settings-title">Paramètres du Profil</h1>
+
+        <div class="settings-grid">
+            <!-- FORMULAIRE -->
+            <div class="settings-card">
+                {{ form_start(form, { 'attr': { 'class': 'profile-form' } }) }}
+                    <div class="form-group">
+                        {{ form_label(form.pseudo) }}
+                        {{ form_widget(form.pseudo) }}
+                        {{ form_errors(form.pseudo) }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(form.titreCollection) }}
+                        {{ form_widget(form.titreCollection) }}
+                        {{ form_errors(form.titreCollection) }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(form.plainPassword.first) }}
+                        {{ form_widget(form.plainPassword.first) }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(form.plainPassword.second) }}
+                        {{ form_widget(form.plainPassword.second) }}
+                        {{ form_errors(form.plainPassword) }}
+                    </div>
+
+                    {{ form_widget(form.imageCollection) }}
+
+                    <button type="submit" class="btn-primary">Sauvegarder tout</button>
+                {{ form_end(form) }}
+            </div>
+
+            <!-- SÉLECTEUR D'IMAGE PAR RARETÉ -->
+            <div class="settings-card">
+                <h3>Image de profil</h3>
+                <p class="text-muted">Clique sur une carte pour la choisir.</p>
+
+                <div class="card-selector">
+                    {% for rarity, cards in cardsByRarity %}
+                        <div class="rarity-section">
+                            <h4 class="rarity-title">
+                                <span class="rarity-badge rarity-{{ rarity|lower|replace({' ': '-', 'é': 'e'}) }}">
+                                    {{ rarity }}
+                                </span>
+                                ({{ cards|length }})
+                            </h4>
+                            <div class="rarity-grid">
+                                {% for card in cards %}
+                                    <div class="card-item {% if card.imagePath == currentImage %}selected{% endif %}"
+                                         data-path="{{ card.imagePath }}">
+                                        <img src="{{ asset(card.imagePath) }}" alt="{{ card.nom }}" />
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Aucune carte disponible.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const items = document.querySelectorAll('.card-item');
+    const input = document.getElementById('profile_settings_imageCollection');
+
+    items.forEach(item => {
+        item.addEventListener('click', () => {
+            items.forEach(i => i.classList.remove('selected'));
+            item.classList.add('selected');
+            input.value = item.dataset.path;
+        });
+    });
+});
+</script>
+{% endblock %}
