@@ -22,11 +22,7 @@ class UserManagementController extends AbstractController
     #[Route('/remove-cards', name: 'app_remove_cards_users')]
     public function removeCardsUsersList(UserRepository $userRepository): Response
     {
-        $users = $userRepository->createQueryBuilder('u')
-            ->where('u.isAdmin = false')
-            ->orderBy('u.pseudo', 'ASC')
-            ->getQuery()
-            ->getResult();
+        $users = $userRepository->findBy([], ['pseudo' => 'ASC']);
 
         return $this->render('user_management/remove_cards_users.html.twig', [
             'users' => $users,
