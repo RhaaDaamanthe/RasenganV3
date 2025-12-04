@@ -12,14 +12,13 @@
             margin-bottom: 1rem;
             border-radius: 8px;
             font-weight: bold;
+            text-align: center;
         }
-
         .flash-success {
             background-color: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
         }
-
         .flash-error {
             background-color: #f8d7da;
             color: #721c24;
@@ -32,7 +31,6 @@
 <main>
     <div class="admin-container">
         <h1>Gérer les animés</h1>
-
         {% for message in app.flashes('success') %}
             <div class="flash-message flash-success">
                 {{ message }}
@@ -45,10 +43,16 @@
         {% endfor %}
 
         <div class="actions-header">
-            <a href="{{ path('app_anime_new') }}" class="btn btn-action">Créer un nouvel animé</a>
+            <a href="{{ path('app_anime_new') }}" class="btn btn-action">
+                Créer un nouvel animé
+            </a>
             
             <div class="search-container">
-                <input type="text" id="card-search" placeholder="Rechercher un animé..." aria-label="Rechercher un animé" onkeyup="filterCards()">
+                <input type="text"
+                       id="card-search"
+                       placeholder="Rechercher un animé..."
+                       aria-label="Rechercher un animé"
+                       onkeyup="filterCards()">
                 <i class="fas fa-search"></i>
             </div>
         </div>
@@ -62,12 +66,14 @@
                     
                     <div class="card-content">
                         <h3>{{ anime.nom }}</h3>
-                        <p><strong>ID:</strong> {{ anime.id }}</p>
+                        <p><strong>ID :</strong> {{ anime.id }}</p>
                     </div>
                     
                     <div class="admin-card-actions">
                         <a href="{{ path('app_anime_edit', {'id': anime.id}) }}" class="btn btn-warning">Modifier</a>
-                        <form method="post" action="{{ path('app_anime_delete', {'id': anime.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet animé ?');">
+                        <form method="post"
+                              action="{{ path('app_anime_delete', {'id': anime.id}) }}"
+                              onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet animé ?');">
                             <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ anime.id) }}">
                             <button type="submit" class="btn btn-danger">Supprimer</button>
                         </form>
@@ -77,7 +83,11 @@
                 <p id="no-cards-message">Aucun animé trouvé.</p>
             {% endfor %}
         </div>
-        <p id="no-results-message" style="display: none; text-align: center; margin-top: 20px;">Aucun résultat ne correspond à votre recherche.</p>
+
+        <p id="no-results-message"
+           style="display: none; text-align: center; margin-top: 20px; color: #999; font-style: italic;">
+            Aucun résultat ne correspond à votre recherche.
+        </p>
     </div>
 </main>
 {% endblock %}

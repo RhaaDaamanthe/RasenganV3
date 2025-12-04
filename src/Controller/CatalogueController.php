@@ -47,7 +47,7 @@ class CatalogueController extends AbstractController
     public function showAnimeCards(Anime $anime, Request $request, EntityManagerInterface $entityManager): Response
     {
         $page = max(1, $request->query->getInt('page', 1));
-        $limit = 80;
+        $limit = 100;
         $offset = ($page - 1) * $limit;
 
         // Récupération des paramètres de recherche et filtrage
@@ -107,7 +107,7 @@ class CatalogueController extends AbstractController
     public function showAllAnimeCards(Request $request, EntityManagerInterface $entityManager): Response
     {
         $page = max(1, $request->query->getInt('page', 1));
-        $limit = 80;
+        $limit = 100;
         $offset = ($page - 1) * $limit;
 
         // Récupération des paramètres de recherche et filtrage
@@ -165,7 +165,7 @@ class CatalogueController extends AbstractController
     public function showFilmCards(Film $film, Request $request, EntityManagerInterface $entityManager): Response
     {
         $page = max(1, $request->query->getInt('page', 1));
-        $limit = 80;
+        $limit = 100;
         $offset = ($page - 1) * $limit;
 
         // Récupération des paramètres de recherche et filtrage
@@ -225,7 +225,7 @@ class CatalogueController extends AbstractController
     public function showAllFilmCards(Request $request, EntityManagerInterface $entityManager): Response
     {
         $page = max(1, $request->query->getInt('page', 1));
-        $limit = 80;
+        $limit = 100;
         $offset = ($page - 1) * $limit;
 
         // Récupération des paramètres de recherche et filtrage

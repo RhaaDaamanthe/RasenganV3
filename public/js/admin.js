@@ -1,37 +1,51 @@
-    // Barre de recherche admin
-    function filterCards() {
-        const input = document.getElementById('card-search');
-        const filter = input.value.toLowerCase();
-        const grid = document.getElementById('card-grid');
-        const cards = grid.getElementsByClassName('admin-card');
-        const noResultsMessage = document.getElementById('no-results-message');
-        let visibleCount = 0;
+// admin.js – Recherche instantanée admin (animés, films, cartes, etc.)
+function filterCards() {
+    const input = document.getElementById('card-search');
+    if (!input) return; // Sécurité si la page n'a pas de barre
 
-        for (let i = 0; i < cards.length; i++) {
-            const card = cards[i];
-            const name = card.getAttribute('data-name');
-            const description = card.getAttribute('data-description');
-            const anime = card.getAttribute('data-anime');
-            
-            // Vérifie si le filtre correspond au nom, à la description ou à l'animé
-            if (name.includes(filter) || description.includes(filter) || anime.includes(filter)) {
-                card.style.display = "";
-                visibleCount++;
-            } else {
-                card.style.display = "none";
-            }
-        }
+    const filter = input.value.toLowerCase().trim();
+    const cards = document.querySelectorAll('.admin-card');
+    const noResults = document.getElementById('no-results-message');
+    const noCardsMessage = document.getElementById('no-cards-message');
 
-        // Afficher/Masquer le message "Aucun résultat"
-        if (visibleCount === 0 && cards.length > 0) {
-            noResultsMessage.style.display = "block";
+    let visibleCount = 0;
+
+    cards.forEach(card => {
+        // On récupère TOUS les data-attributes possibles
+        const text = [
+            card.getAttribute('data-name'),
+            card.getAttribute('data-description'),
+            card.getAttribute('data-anime'),  // pour les pages animés
+            card.getAttribute('data-film'),   // pour les pages films
+            card.getAttribute('data-card'),   // bonus futur
+            card.getAttribute('data-user')    // bonus futur
+        ]
+        .filter(Boolean) // enlève les null/undefined
+        .join(' ')
+        .toLowerCase();
+
+        if (filter === '' || text.includes(filter)) {
+            card.style.display = '';
+            visibleCount++;
         } else {
-            noResultsMessage.style.display = "none";
+            card.style.display = 'none';
         }
-        
-        // Gère le cas où il n'y a aucune carte dans la base (message "Aucune carte d'animé trouvée.")
-        const initialMessage = document.getElementById('no-cards-message');
-        if (initialMessage) {
-            initialMessage.style.display = (cards.length === 0) ? "block" : "none";
-        }
+    });
+
+    // Gestion propre des messages
+    if (noResults) {
+        noResults.style.display = (filter !== '' && visibleCount === 0) ? 'block' : 'none';
     }
+
+    if (noCardsMessage) {
+        noCardsMessage.style.display = (cards.length === 0 && filter === '') ? 'block' : 'none';
+    }
+}
+
+// Optionnel : déclencher la recherche au chargement si un terme est déjà dans l'URL
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('card-search');
+    if (searchInput && searchInput.value) {
+        filterCards();
+    }
+});
