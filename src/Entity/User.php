@@ -55,6 +55,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: UserCardFilm::class, mappedBy: 'user')]
     private Collection $userCardFilms;
 
+    /**
+     * @var Collection<int, Badge>
+     */
+    #[ORM\ManyToMany(targetEntity: Badge::class, inversedBy: 'users')]
+    private Collection $badges;
+
     // Ajout du constructeur
     public function __construct()
     {
@@ -64,6 +70,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->isAdmin = false;
         $this->userCardAnimes = new ArrayCollection();
         $this->userCardFilms = new ArrayCollection();
+        $this->badges = new ArrayCollection();
     }
 
     // -----------------------
@@ -290,5 +297,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     return $points;
 }
+
+    /**
+     * @return Collection<int, Badge>
+     */
+    public function getBadges(): Collection
+    {
+        return $this->badges;
+    }
+
+    public function addBadge(Badge $badge): static
+    {
+        if (!$this->badges->contains($badge)) {
+            $this->badges->add($badge);
+        }
+
+        return $this;
+    }
+
+    public function removeBadge(Badge $badge): static
+    {
+        $this->badges->removeElement($badge);
+
+        return $this;
+    }
 
 }

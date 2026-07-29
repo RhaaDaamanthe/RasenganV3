@@ -139,6 +139,99 @@
     margin-top: 5px;
 }
 
+/* ==================== BADGES SUR LE PROFIL ==================== */
+
+.badges-section {
+    padding: 30px 20px;
+    background: rgba(160, 160, 160, 0.92);
+    border-radius: 20px;
+    margin: 40px 20px 20px;
+    border: 2px solid #e76d0a;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    backdrop-filter: blur(10px);
+}
+
+.badges-section h3 {
+    margin: 0 0 20px 0;
+    font-size: 1.8rem;
+    color: #e76d0a;
+}
+
+.badges-section .badge-count {
+    font-size: 1rem;
+    color: #c45a00;
+    font-weight: 600;
+}
+
+.badges-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    padding: 10px 0;
+}
+
+.badge-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.badge-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 16px;
+    border: 4px solid #333;
+    box-shadow: 0 6px 20px rgba(12, 76, 194, 0.3);
+    transition: all 0.4s ease;
+    object-fit: contain;
+}
+
+.badge-icon:hover {
+    transform: translateY(-15px) scale(1.25);
+    border-color: #420502 !important;
+    box-shadow: 0 20px 40px rgba(255, 215, 0, 0.6);
+}
+
+.badge-icon.rare {
+    border-color: #e76d0a;
+    box-shadow: 0 0 25px #e76d0a;
+}
+
+/* Tooltip propre et classe */
+.badge-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+    color: white;
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 100;
+    border: 1px solid #ffd700;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    margin-bottom: 12px;
+}
+
+.badge-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -8px;
+    border: 8px solid transparent;
+    border-top-color: #ffd700;
+}
+
+.badge-wrapper:hover .badge-tooltip {
+    opacity: 1;
+}
+
 /* ============== PAGE PARAMÈTRES (settings.html.twig) ============== */
 
 .profile-settings {

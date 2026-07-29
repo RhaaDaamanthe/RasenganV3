@@ -10,10 +10,12 @@
 
 {% block body %}
     <main class="profile-container">
+        <!-- Avatar -->
         {% if user.imageCollection %}
             <img src="{{ asset(user.imageCollection) }}" alt="Avatar" class="profile-avatar">
         {% endif %}
 
+        <!-- Titre -->
         <h1>Bienvenue sur ton profil, {{ user.pseudo }}</h1>
         <p>Gère tes informations ici et personnalise ta carte de profil.</p>
 
@@ -21,7 +23,7 @@
             Modifier mes paramètres
         </a>
 
-        <!-- Stats rapides (optionnel) -->
+        <!-- Stats rapides -->
         <div class="profile-stats">
             <div class="stat-item">
                 <span class="stat-number">{{ user.userCardAnimes|length + user.userCardFilms|length }}</span>
@@ -31,6 +33,41 @@
                 <span class="stat-number">{{ user.getTotalPoints }}</span>
                 <span class="stat-label">Points</span>
             </div>
+        </div>
+
+        <!-- NOUVELLE SECTION BADGES (juste après les stats) -->
+        <div class="badges-section mt-5">
+            <h3 class="text-center mb-4 text-gold">
+                <i class="fas fa-medal"></i> Mes Badges
+                {% if user.badges|length > 0 %}
+                    <span class="badge-count">({{ user.badges|length }})</span>
+                {% endif %}
+            </h3>
+
+            {% if user.badges|length > 0 %}
+                <div class="badges-container">
+                    {% for badge in user.badges %}
+                        <div class="badge-wrapper" data-name="{{ badge.name }}">
+                            <img src="{{ asset('images/badges/' ~ badge.icon) }}"
+                                 alt="{{ badge.name }}"
+                                 class="badge-icon
+                                    {% if badge.name in ['Noël 2025', 'Légende', 'Anniversaire'] %}rare{% endif %}"
+                                 loading="lazy">
+                            <div class="badge-tooltip">
+                                <strong>{{ badge.name }}</strong>
+                                {% if badge.description %}
+                                    <br><small>{{ badge.description }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-center text-muted">
+                    <em>Aucun badge débloqué pour le moment...<br>
+                    Continue à jouer, ils arriveront !</em>
+                </p>
+            {% endif %}
         </div>
     </main>
 {% endblock %}
