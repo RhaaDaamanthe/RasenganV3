@@ -52,6 +52,10 @@
             </form>
         </div>
 
+        <p class="cards-count">
+            <span class="cards-count-badge">{{ totalCards }} carte{{ totalCards > 1 ? 's' : '' }} trouvée{{ totalCards > 1 ? 's' : '' }}</span>
+        </p>
+
         <!-- Pagination du haut -->
         {% if totalPages > 1 %}
             <div class="pagination pagination-top">

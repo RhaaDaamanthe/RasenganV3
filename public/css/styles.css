@@ -367,6 +367,30 @@ select {
     padding: 0 20px;
 }
 
+.cards-count {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.cards-count-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #d36e44 0%, #800020 100%);
+    color: white;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    padding: 10px 24px;
+    border-radius: 999px;
+    box-shadow: 0 6px 16px rgba(128, 0, 32, 0.35);
+}
+
+.cards-count-badge::before {
+    content: "🎴";
+    font-size: 1rem;
+}
+
 .search-form {
     background: linear-gradient(to bottom, #e04e39, #ff7f32, #ffcc33); /* dégradé orange, jaune, rouge clair */
     backdrop-filter: blur(10px);

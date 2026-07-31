@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Roue d'attribution — Choisir un joueur{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/admin.css') }}" />
+{% endblock %}
+
+{% block body %}
+<main>
+    <div class="admin-container users-list-page">
+        <div class="dashboard-hero">
+            <h1>🎡 Roue d'attribution — {{ type == 'anime' ? 'Cartes d\'animé' : 'Cartes de film' }}</h1>
+        </div>
+
+        <div class="user-grid">
+            {% for user in users %}
+                <div class="user-card">
+                    <span class="user-card-name">{{ user.pseudo }}</span>
+                    <a href="{{ path(type == 'anime' ? 'app_wheel_anime_user' : 'app_wheel_film_user', {id: user.id}) }}" class="btn btn-primary">
+                        Lancer la roue
+                    </a>
+                </div>
+            {% else %}
+                <p>Aucun joueur trouvé.</p>
+            {% endfor %}
+        </div>
+
+        <div class="users-list-footer">
+            <a href="{{ path('app_admin') }}" class="btn btn-secondary">← Retour au tableau de bord</a>
+        </div>
+    </div>
+</main>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Roue d'attribution — {{ user.pseudo }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/admin.css') }}" />
+{% endblock %}
+
+{% block body %}
+<main>
+    <div class="admin-container">
+        <div
+            class="wheel-page"
+            data-type="{{ type }}"
+            data-rarities="{{ rarities|json_encode|e('html_attr') }}"
+            data-csrf="{{ csrf_token('wheel-action') }}"
+            data-spin-rarity-url="{{ path('app_wheel_spin_rarity') }}"
+            data-spin-card-url="{{ path(type == 'anime' ? 'app_wheel_anime_spin_card' : 'app_wheel_film_spin_card', {id: user.id}) }}"
+            data-confirm-url="{{ path(type == 'anime' ? 'app_wheel_anime_confirm' : 'app_wheel_film_confirm', {id: user.id}) }}"
+        >
+            <div class="dashboard-hero">
+                <h1>🎡 Roue pour {{ user.pseudo }}</h1>
+            </div>
+
+            <section class="wheel-step" id="step-rarity">
+                <h2>1. Rareté</h2>
+                <div class="wheel-viewport">
+                    <div class="wheel-strip" id="rarity-strip"></div>
+                </div>
+                <button type="button" id="spin-rarity-btn" class="btn btn-action">Lancer la roue des raretés</button>
+            </section>
+
+            <section class="wheel-step wheel-collapsible" id="step-card">
+                <h2>2. Carte <span class="wheel-rarity-tag" id="rarity-result-label"></span></h2>
+                <div class="wheel-viewport">
+                    <div class="wheel-strip" id="card-strip"></div>
+                </div>
+                <button type="button" id="spin-card-btn" class="btn btn-action">Lancer la roue des cartes</button>
+                <p class="wheel-message wheel-message-error" id="card-error-message" style="display:none;"></p>
+            </section>
+
+            <section class="wheel-result wheel-collapsible" id="wheel-result">
+                <h2>Résultat</h2>
+                <div class="wheel-result-card">
+                    <img id="result-image" src="" alt="" style="display:none;">
+                    <p id="result-name"></p>
+                </div>
+                <div class="wheel-result-actions" id="wheel-decision-actions">
+                    <button type="button" id="cancel-btn" class="btn btn-danger">✖ Annuler</button>
+                    <button type="button" id="confirm-btn" class="btn btn-success">✔ Attribuer la carte</button>
+                </div>
+                <div class="wheel-result-actions" id="wheel-after-actions" style="display:none;">
+                    <button type="button" id="retry-btn" class="btn btn-secondary">Nouveau tirage</button>
+                </div>
+                <p class="wheel-message" id="wheel-status-message"></p>
+            </section>
+
+            <a href="{{ path(type == 'anime' ? 'app_wheel_anime_users' : 'app_wheel_film_users') }}" class="btn btn-secondary wheel-back-link">← Retour à la liste des joueurs</a>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/wheel.js') }}"></script>
+{% endblock %}

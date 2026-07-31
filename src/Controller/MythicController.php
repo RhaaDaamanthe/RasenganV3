@@ -104,7 +104,7 @@ class MythicController extends AbstractController
             ->getSingleScalarResult();
 
         if ($totalDistributed >= $card->getQuantity()) {
-            return $this->json(['success' => false, 'message' => 'Cette carte mythique est en rupture de stock.'], 400);
+            return $this->json(['success' => false, 'message' => 'Cette carte mythique n\'est plus disponible.'], 400);
         }
 
         if ($existing !== null) {
@@ -214,7 +214,7 @@ class MythicController extends AbstractController
             ->getSingleScalarResult();
 
         if ($totalDistributed >= $card->getQuantity()) {
-            return $this->json(['success' => false, 'message' => 'Cette carte mythique est en rupture de stock.'], 400);
+            return $this->json(['success' => false, 'message' => 'Cette carte mythique n\'est plus disponible.'], 400);
         }
 
         if ($existing !== null) {
