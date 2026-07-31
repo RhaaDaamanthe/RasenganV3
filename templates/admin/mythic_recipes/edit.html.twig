@@ -1,0 +1,387 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Combinaison pour {{ card.nom }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/admin.css') }}" />
+    <style>
+        .flash-message { padding: 1rem; margin-bottom: 1.5rem; border-radius: 8px; font-weight: bold; }
+        .flash-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        .recipe-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .recipe-header-thumb {
+            width: 64px;
+            height: 64px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 2px solid #fa9d11;
+            flex-shrink: 0;
+        }
+
+        .recipe-header h1 {
+            font-size: 1.6em;
+            margin: 0;
+        }
+
+        .recipe-header .recipe-subtitle {
+            color: #777;
+            font-size: 0.9em;
+            margin-top: 4px;
+        }
+
+        .recipe-layout {
+            display: grid;
+            grid-template-columns: minmax(280px, 340px) 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .recipe-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .recipe-panel {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            border: 1px solid #eee;
+            padding: 22px;
+        }
+
+        .recipe-panel h2 {
+            font-size: 1.1em;
+            color: #333;
+            margin: 0 0 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #fce3c2;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .recipe-panel h2 .count-badge {
+            background: #fa9d11;
+            color: white;
+            font-size: 0.75em;
+            font-weight: 700;
+            border-radius: 999px;
+            padding: 2px 9px;
+        }
+
+        /* Panneau gauche : combinaison */
+        #selected-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .requirement-edit-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 6px 10px;
+        }
+
+        .requirement-edit-row img {
+            width: 34px;
+            height: 34px;
+            object-fit: cover;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        .requirement-nom {
+            flex: 1;
+            font-size: 0.9em;
+            color: #333;
+            line-height: 1.25;
+        }
+
+        .requirement-edit-row input[type="number"] {
+            width: 56px;
+            padding: 5px 6px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            text-align: center;
+            background: #fff;
+        }
+
+        .requirement-edit-row input[type="number"]:focus {
+            border-color: #ff8c00;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.15);
+        }
+
+        .remove-row-btn {
+            background: none;
+            border: none;
+            color: #c0392b;
+            font-size: 1em;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 6px;
+            line-height: 1;
+        }
+
+        .remove-row-btn:hover {
+            background: #fdecea;
+        }
+
+        #no-selected-message {
+            color: #999;
+            font-style: italic;
+            text-align: center;
+            padding: 20px 0;
+            margin: 0;
+        }
+
+        .btn-save {
+            box-sizing: border-box;
+            display: block;
+            width: 100%;
+            margin-top: 18px;
+            padding: 12px 20px;
+            font-size: 1.02em;
+            font-weight: 700;
+            border-radius: 8px;
+            background-color: #ff8c00;
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-save:hover {
+            background-color: #e07b00;
+            box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4);
+        }
+
+        .btn-back {
+            box-sizing: border-box;
+            display: block;
+            width: 100%;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        /* Panneau droit : recherche */
+        .recipe-panel .search-container {
+            max-width: none;
+            margin-bottom: 18px;
+        }
+
+        .candidate-card {
+            cursor: pointer;
+            position: relative;
+        }
+
+        .candidate-card .selected-badge {
+            display: none;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #2ecc71;
+            color: white;
+            font-size: 0.75em;
+            font-weight: 700;
+            border-radius: 999px;
+            padding: 3px 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .candidate-card.selected-candidate {
+            outline: 3px solid #2ecc71;
+            outline-offset: -3px;
+        }
+
+        .candidate-card.selected-candidate .selected-badge {
+            display: block;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<main>
+    <div class="admin-container">
+        <div class="recipe-header">
+            {% if card.imagePath %}
+                <img src="{{ asset(card.imagePath) }}" alt="{{ card.nom }}" class="recipe-header-thumb">
+            {% endif %}
+            <div>
+                <h1>Combinaison — {{ card.nom }}</h1>
+                <div class="recipe-subtitle">{{ type == 'anime' ? 'Carte d\'animé' : 'Carte de film' }} · Mythique</div>
+            </div>
+        </div>
+
+        {% for message in app.flashes('error') %}
+            <div class="flash-message flash-error">{{ message }}</div>
+        {% endfor %}
+
+        <form method="post" action="{{ path(type == 'anime' ? 'app_mythic_recipe_edit_anime' : 'app_mythic_recipe_edit_film', {id: card.id}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('mythic-recipe-edit' ~ card.id) }}">
+
+            <div class="recipe-layout">
+                <section class="recipe-panel">
+                    <h2>Cartes sélectionnées <span class="count-badge" id="selected-count">{{ card.requirements|length }}</span></h2>
+
+                    <div id="selected-list">
+                        {% for requirement in card.requirements %}
+                            <div class="requirement-edit-row" data-id="{{ requirement.requiredCard.id }}">
+                                {% if requirement.requiredCard.imagePath %}
+                                    <img src="{{ asset(requirement.requiredCard.imagePath) }}" alt="">
+                                {% endif %}
+                                <input type="hidden" name="required[]" value="{{ requirement.requiredCard.id }}">
+                                <span class="requirement-nom">
+                                    {{ requirement.requiredCard.nom }}<br>
+                                    <small>{{ type == 'anime' ? (requirement.requiredCard.anime ? requirement.requiredCard.anime.nom : '?') : (requirement.requiredCard.film ? requirement.requiredCard.film.nom : '?') }}</small>
+                                </span>
+                                <input type="number" name="qty[]" min="1" value="{{ requirement.quantityRequired }}">
+                                <button type="button" class="remove-row-btn" title="Retirer">✖</button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <p id="no-selected-message" style="{% if card.requirements|length > 0 %}display:none;{% endif %}">Aucune carte sélectionnée pour le moment.</p>
+
+                    <button type="submit" class="btn-save">Enregistrer la combinaison</button>
+                    <a href="{{ path('app_mythic_recipe_index') }}" class="btn btn-secondary btn-back">← Retour à la liste</a>
+                </section>
+
+                <section class="recipe-panel recipe-browser">
+                    <h2>Ajouter des cartes</h2>
+
+                    <div class="search-container">
+                        <input type="text" id="card-search" placeholder="Rechercher par nom ou univers..." aria-label="Rechercher une carte" onkeyup="filterCards()">
+                        <i class="fas fa-search"></i>
+                    </div>
+
+                    <div class="card-grid" id="candidate-grid">
+                        {% for candidate in candidates %}
+                            {% set univers = type == 'anime' ? (candidate.anime ? candidate.anime.nom : '?') : (candidate.film ? candidate.film.nom : '?') %}
+                            <div class="admin-card candidate-card"
+                                 data-id="{{ candidate.id }}"
+                                 data-nom="{{ candidate.nom }}"
+                                 data-univers="{{ univers }}"
+                                 data-image="{{ candidate.imagePath ? asset(candidate.imagePath) : '' }}"
+                                 data-name="{{ (candidate.nom ~ ' ' ~ univers)|lower }}">
+                                <span class="selected-badge">✓ Ajoutée</span>
+                                {% if candidate.imagePath %}
+                                    <img src="{{ asset(candidate.imagePath) }}" alt="{{ candidate.nom }}" class="card-image">
+                                {% endif %}
+                                <div class="card-content">
+                                    <h3>{{ candidate.nom }}</h3>
+                                    <p><strong>{{ type == 'anime' ? 'Animé' : 'Film' }} :</strong> {{ univers }}</p>
+                                    <p><strong>Rareté :</strong> {{ candidate.rarity.libelle }}</p>
+                                </div>
+                            </div>
+                        {% else %}
+                            <p id="no-cards-message">Aucune carte disponible.</p>
+                        {% endfor %}
+                    </div>
+                    <p id="no-results-message" style="display: none; text-align: center; margin-top: 20px;">Aucun résultat ne correspond à votre recherche.</p>
+                </section>
+            </div>
+        </form>
+    </div>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const grid = document.getElementById('candidate-grid');
+        const selectedList = document.getElementById('selected-list');
+        const noSelected = document.getElementById('no-selected-message');
+        const countBadge = document.getElementById('selected-count');
+
+        function updateSelectedState() {
+            const count = selectedList.children.length;
+            if (noSelected) {
+                noSelected.style.display = count === 0 ? 'block' : 'none';
+            }
+            if (countBadge) {
+                countBadge.textContent = count;
+            }
+        }
+
+        function addRow(id, nom, univers, image, qty) {
+            const row = document.createElement('div');
+            row.className = 'requirement-edit-row';
+            row.dataset.id = id;
+            row.innerHTML = `
+                ${image ? `<img src="${image}" alt="">` : ''}
+                <input type="hidden" name="required[]" value="${id}">
+                <span class="requirement-nom">${nom}<br><small>${univers}</small></span>
+                <input type="number" name="qty[]" min="1" value="${qty}">
+                <button type="button" class="remove-row-btn" title="Retirer">✖</button>
+            `;
+            selectedList.appendChild(row);
+        }
+
+        function removeRow(id) {
+            const row = selectedList.querySelector('.requirement-edit-row[data-id="' + id + '"]');
+            if (row) {
+                row.remove();
+            }
+        }
+
+        // Marque les cartes déjà présentes dans la combinaison
+        selectedList.querySelectorAll('.requirement-edit-row').forEach(row => {
+            const card = grid.querySelector('.candidate-card[data-id="' + row.dataset.id + '"]');
+            if (card) {
+                card.classList.add('selected-candidate');
+            }
+        });
+        updateSelectedState();
+
+        grid.addEventListener('click', (e) => {
+            const card = e.target.closest('.candidate-card');
+            if (!card) {
+                return;
+            }
+
+            const id = card.dataset.id;
+            const isSelected = card.classList.toggle('selected-candidate');
+
+            if (isSelected) {
+                addRow(id, card.dataset.nom, card.dataset.univers, card.dataset.image, 1);
+            } else {
+                removeRow(id);
+            }
+            updateSelectedState();
+        });
+
+        selectedList.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('remove-row-btn')) {
+                return;
+            }
+
+            const row = e.target.closest('.requirement-edit-row');
+            const id = row.dataset.id;
+            row.remove();
+
+            const card = grid.querySelector('.candidate-card[data-id="' + id + '"]');
+            if (card) {
+                card.classList.remove('selected-candidate');
+            }
+            updateSelectedState();
+        });
+    });
+</script>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/admin.js') }}"></script>
+{% endblock %}

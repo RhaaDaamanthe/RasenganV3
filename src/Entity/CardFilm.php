@@ -40,9 +40,16 @@ class CardFilm
     #[ORM\OneToMany(targetEntity: UserCardFilm::class, mappedBy: 'cardFilm')]
     private Collection $userCardFilms;
 
+    /**
+     * @var Collection<int, CardFilmRequirement>
+     */
+    #[ORM\OneToMany(targetEntity: CardFilmRequirement::class, mappedBy: 'mythicCard', orphanRemoval: true)]
+    private Collection $requirements;
+
     public function __construct()
     {
         $this->userCardFilms = new ArrayCollection();
+        $this->requirements = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -146,6 +153,35 @@ class CardFilm
             // set the owning side to null (unless already changed)
             if ($userCardFilm->getCardFilm() === $this) {
                 $userCardFilm->setCardFilm(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CardFilmRequirement>
+     */
+    public function getRequirements(): Collection
+    {
+        return $this->requirements;
+    }
+
+    public function addRequirement(CardFilmRequirement $requirement): static
+    {
+        if (!$this->requirements->contains($requirement)) {
+            $this->requirements->add($requirement);
+            $requirement->setMythicCard($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRequirement(CardFilmRequirement $requirement): static
+    {
+        if ($this->requirements->removeElement($requirement)) {
+            if ($requirement->getMythicCard() === $this) {
+                $requirement->setMythicCard(null);
             }
         }
 

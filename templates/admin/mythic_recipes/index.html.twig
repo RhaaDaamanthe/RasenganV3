@@ -1,0 +1,77 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Combinaisons Mythiques{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/admin.css') }}" />
+    <style>
+        .flash-message { padding: 1rem; margin-bottom: 1rem; border-radius: 8px; font-weight: bold; }
+        .flash-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .flash-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+{% endblock %}
+
+{% block body %}
+<main>
+    <div class="admin-container">
+        <div class="dashboard-hero">
+            <h1>🧬 Combinaisons Mythiques</h1>
+        </div>
+
+        {% for message in app.flashes('success') %}
+            <div class="flash-message flash-success">{{ message }}</div>
+        {% endfor %}
+        {% for message in app.flashes('error') %}
+            <div class="flash-message flash-error">{{ message }}</div>
+        {% endfor %}
+
+        <h2>Cartes d'animé</h2>
+        <div class="card-grid">
+            {% for card in mythicAnimeCards %}
+                <div class="admin-card">
+                    {% if card.imagePath %}
+                        <img src="{{ asset(card.imagePath) }}" alt="{{ card.nom }}" class="card-image">
+                    {% endif %}
+                    <div class="card-content">
+                        <h3>{{ card.nom }}</h3>
+                        <p><strong>Animé :</strong> {{ card.anime ? card.anime.nom : 'Non lié' }}</p>
+                        <p><strong>Cartes requises :</strong> {{ card.requirements|length }}</p>
+                    </div>
+                    <div class="admin-card-actions">
+                        <a href="{{ path('app_mythic_recipe_edit_anime', {id: card.id}) }}" class="btn btn-warning">Configurer</a>
+                    </div>
+                </div>
+            {% else %}
+                <p>Aucune carte mythique d'animé pour le moment.</p>
+            {% endfor %}
+        </div>
+
+        <h2>Cartes de film</h2>
+        <div class="card-grid">
+            {% for card in mythicFilmCards %}
+                <div class="admin-card">
+                    {% if card.imagePath %}
+                        <img src="{{ asset(card.imagePath) }}" alt="{{ card.nom }}" class="card-image">
+                    {% endif %}
+                    <div class="card-content">
+                        <h3>{{ card.nom }}</h3>
+                        <p><strong>Film :</strong> {{ card.film ? card.film.nom : 'Non lié' }}</p>
+                        <p><strong>Cartes requises :</strong> {{ card.requirements|length }}</p>
+                    </div>
+                    <div class="admin-card-actions">
+                        <a href="{{ path('app_mythic_recipe_edit_film', {id: card.id}) }}" class="btn btn-warning">Configurer</a>
+                    </div>
+                </div>
+            {% else %}
+                <p>Aucune carte mythique de film pour le moment.</p>
+            {% endfor %}
+        </div>
+
+        <div class="media-list-page-footer">
+            <a href="{{ path('app_admin') }}" class="btn btn-secondary">← Retour au tableau de bord</a>
+        </div>
+    </div>
+</main>
+{% endblock %}

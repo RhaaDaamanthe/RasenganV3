@@ -87,7 +87,7 @@
         <div class="catalogue2">
             {% for card in cards %}
                 {% if card.anime is not null %}
-                    <div class="card" data-anime="{{ card.anime.nom }}" data-rarete="{{ card.rarity.libelle }}">
+                    <div class="card{% if card.rarity.id == 5 %} mythic-card{% endif %}" data-anime="{{ card.anime.nom }}" data-rarete="{{ card.rarity.libelle }}" {% if card.rarity.id == 5 %}data-mythic-id="{{ card.id }}"{% endif %}>
                         {% if card.imagePath %}
                             {% set is_webp = card.imagePath|last(5) == '.webp' %}
                             <picture>
@@ -178,10 +178,13 @@
                 {% endif %}
             </div>
         {% endif %}
+
+        {% include 'catalogue/_mythic_modal.html.twig' with { type: 'anime' } %}
     </main>
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('js/utilisateurs_cartes.js') }}"></script>
+    <script src="{{ asset('js/mythic_combo.js') }}"></script>
 {% endblock %}

@@ -42,9 +42,16 @@ class CardAnime
     #[ORM\Column]
     private ?int $quantity = null;
 
+    /**
+     * @var Collection<int, CardAnimeRequirement>
+     */
+    #[ORM\OneToMany(targetEntity: CardAnimeRequirement::class, mappedBy: 'mythicCard', orphanRemoval: true)]
+    private Collection $requirements;
+
     public function __construct()
     {
         $this->userCardAnimes = new ArrayCollection();
+        $this->requirements = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -165,5 +172,34 @@ class CardAnime
         }
 
         return $owners;
+    }
+
+    /**
+     * @return Collection<int, CardAnimeRequirement>
+     */
+    public function getRequirements(): Collection
+    {
+        return $this->requirements;
+    }
+
+    public function addRequirement(CardAnimeRequirement $requirement): static
+    {
+        if (!$this->requirements->contains($requirement)) {
+            $this->requirements->add($requirement);
+            $requirement->setMythicCard($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRequirement(CardAnimeRequirement $requirement): static
+    {
+        if ($this->requirements->removeElement($requirement)) {
+            if ($requirement->getMythicCard() === $this) {
+                $requirement->setMythicCard(null);
+            }
+        }
+
+        return $this;
     }
 }
