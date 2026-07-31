@@ -10,35 +10,32 @@
 
 {% block body %}
 <main>
-    <div class="admin-container">
-        <h1>👥 Choisir un joueur</h1>
-        <p class="subtitle">Sélectionnez le joueur à qui vous voulez attribuer des cartes {{ type == 'anime' ? 'd\'animé' : 'de film' }}</p>
+    <div class="admin-container users-list-page">
+        <div class="dashboard-hero">
+            <h1>👥 Choisir un joueur</h1>
+        </div>
 
-        <div class="card-grid">
+        <div class="user-grid">
             {% for user in users %}
-                <div class="admin-card user-card">
-                    <div class="card-content">
-                        <h3>{{ user.pseudo }}</h3>
-                    </div>
-                    <div class="admin-card-actions">
-                        {% if type == 'anime' %}
-                            <a href="{{ path('app_assign_anime_to_user', {'id': user.id}) }}" class="btn btn-primary">
-                                Attribuer cartes
-                            </a>
-                        {% else %}
-                            <a href="{{ path('app_assign_film_to_user', {'id': user.id}) }}" class="btn btn-success">
-                                Attribuer cartes
-                            </a>
-                        {% endif %}
-                    </div>
+                <div class="user-card">
+                    <span class="user-card-name">{{ user.pseudo }}</span>
+                    {% if type == 'anime' %}
+                        <a href="{{ path('app_assign_anime_to_user', {'id': user.id}) }}" class="btn btn-primary">
+                            Attribuer cartes
+                        </a>
+                    {% else %}
+                        <a href="{{ path('app_assign_film_to_user', {'id': user.id}) }}" class="btn btn-primary">
+                            Attribuer cartes
+                        </a>
+                    {% endif %}
                 </div>
             {% else %}
                 <p>Aucun joueur trouvé.</p>
             {% endfor %}
         </div>
 
-        <div style="text-align: center; margin-top: 40px;">
-            <a href="{{ path('app_assign_cards_choice') }}" class="btn btn-secondary">← Retour</a>
+        <div class="users-list-footer">
+            <a href="{{ path('app_admin') }}" class="btn btn-secondary">← Retour au tableau de bord</a>
         </div>
     </div>
 </main>

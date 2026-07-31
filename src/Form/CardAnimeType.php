@@ -10,7 +10,6 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
-use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\File;
@@ -35,15 +34,6 @@ class CardAnimeType extends AbstractType
                     'placeholder' => 'Décrivez la carte...',
                     'rows' => 2,
                     'class' => 'form-control',
-                ]
-            ])
-            ->add('quantity', IntegerType::class, [
-                'label' => 'Quantité',
-                'data' => 1,
-                'attr' => [
-                    'min' => 1,
-                    'value' => 1,
-                    'class' => 'form-control'
                 ]
             ])
             ->add('imagePath', FileType::class, [

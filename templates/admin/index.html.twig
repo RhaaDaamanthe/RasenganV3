@@ -14,7 +14,6 @@
         <!-- Hero Section -->
         <div class="dashboard-hero">
             <h1>🎯 Administration</h1>
-            <p>Gérez votre collection de cartes comme un chef</p>
         </div>
 
         <!-- Grid moderne -->
@@ -55,34 +54,34 @@
                 </div>
                 <div class="section-content">
                     <div class="admin-buttons">
-                        <a href="{{ path('app_assign_anime_users') }}" class="btn btn-primary">Attribuer des cartes d'animés</a>
-                        <a href="{{ path('app_assign_film_users') }}" class="btn btn-primary">Attribuer des cartes de films</a>
+                        <a href="{{ path('app_assign_anime_users') }}" class="btn btn-violet">Attribuer des cartes d'animés</a>
+                        <a href="{{ path('app_assign_film_users') }}" class="btn btn-violet">Attribuer des cartes de films</a>
                     </div>
                 </div>
             </div>
 
             <!-- Section Désattribution -->
             <div class="admin-section">
-                <div class="section-header" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);">
+                <div class="section-header danger">
                     <h2>❌ Retirer des cartes</h2>
                     <p>Supprimer des cartes de l'inventaire des joueurs</p>
                 </div>
                 <div class="section-content">
                     <div class="admin-buttons">
-                        <a href="{{ path('app_remove_cards_users') }}" class="btn btn-danger" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);">Retirer des cartes</a>
+                        <a href="{{ path('app_remove_cards_users') }}" class="btn btn-danger">Retirer des cartes</a>
                     </div>
                 </div>
             </div>
 
             <!-- Section Gestion utilisateurs -->
             <div class="admin-section">
-                <div class="section-header" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="section-header users">
                     <h2>👤 Gestion des utilisateurs</h2>
                     <p>Réinitialiser les mots de passe et gérer les comptes</p>
                 </div>
                 <div class="section-content">
                     <div class="admin-buttons">
-                        <a href="{{ path('app_manage_users') }}" class="btn btn-primary" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">Gérer les utilisateurs</a>
+                        <a href="{{ path('app_manage_users') }}" class="btn btn-purple">Gérer les utilisateurs</a>
                     </div>
                 </div>
             </div>

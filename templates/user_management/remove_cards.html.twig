@@ -6,15 +6,30 @@
     {{ parent() }}
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}" />
+    <style>
+        .flash-message {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        .flash-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
 {% endblock %}
 
 {% block body %}
 <main>
-    <div class="admin-container">
-        <h1>❌ Retirer des cartes à {{ user.pseudo }}</h1>
+    <div class="admin-container remove-cards-page">
+        <div class="dashboard-hero">
+            <h1>❌ Retirer des cartes à {{ user.pseudo }}</h1>
+        </div>
 
         {% for message in app.flashes('success') %}
-            <div class="flash-message flash-success" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; padding: 1rem; border-radius: 12px; margin-bottom: 1rem;">
+            <div class="flash-message flash-success">
                 {{ message }}
             </div>
         {% endfor %}
@@ -40,7 +55,7 @@
 
         <!-- Cartes d'animé -->
         {% if userCardAnimes is not empty %}
-            <h2 style="margin-top: 30px;">🎴 Cartes d'animé</h2>
+            <h2 class="section-title">🎴 Cartes d'animé</h2>
             <div class="card-grid">
                 {% for userCard in userCardAnimes %}
                     {% set card = userCard.cardAnime %}
@@ -51,18 +66,18 @@
                             <p><strong>Quantité:</strong> x{{ userCard.quantity }}</p>
                             <p><strong>Animé:</strong> {{ card.anime ? card.anime.nom : 'Non lié' }}</p>
                         </div>
-                        <div class="admin-card-actions" style="flex-direction: column; gap: 5px;">
-                            <form method="post" style="width: 100%;">
+                        <div class="admin-card-actions admin-card-actions-column">
+                            <form method="post">
                                 <input type="hidden" name="user_card_id" value="{{ userCard.id }}">
                                 <input type="hidden" name="type" value="anime">
                                 <input type="hidden" name="action" value="remove_one">
-                                <button type="submit" class="btn btn-warning" style="width: 100%;" onclick="return confirm('Retirer 1 carte ?')">-1 carte</button>
+                                <button type="submit" class="btn btn-warning" onclick="return confirm('Retirer 1 carte ?')">-1 carte</button>
                             </form>
-                            <form method="post" style="width: 100%;">
+                            <form method="post">
                                 <input type="hidden" name="user_card_id" value="{{ userCard.id }}">
                                 <input type="hidden" name="type" value="anime">
                                 <input type="hidden" name="action" value="remove_all">
-                                <button type="submit" class="btn btn-danger" style="width: 100%;" onclick="return confirm('Retirer TOUTES les cartes ?')">Tout retirer</button>
+                                <button type="submit" class="btn btn-danger" onclick="return confirm('Retirer TOUTES les cartes ?')">Tout retirer</button>
                             </form>
                         </div>
                     </div>
@@ -72,7 +87,7 @@
 
         <!-- Cartes de film -->
         {% if userCardFilms is not empty %}
-            <h2 style="margin-top: 30px;">🎬 Cartes de film</h2>
+            <h2 class="section-title">🎬 Cartes de film</h2>
             <div class="card-grid">
                 {% for userCard in userCardFilms %}
                     {% set card = userCard.cardFilm %}
@@ -83,18 +98,18 @@
                             <p><strong>Quantité:</strong> x{{ userCard.quantity }}</p>
                             <p><strong>Film:</strong> {{ card.film ? card.film.nom : 'Non lié' }}</p>
                         </div>
-                        <div class="admin-card-actions" style="flex-direction: column; gap: 5px;">
-                            <form method="post" style="width: 100%;">
+                        <div class="admin-card-actions admin-card-actions-column">
+                            <form method="post">
                                 <input type="hidden" name="user_card_id" value="{{ userCard.id }}">
                                 <input type="hidden" name="type" value="film">
                                 <input type="hidden" name="action" value="remove_one">
-                                <button type="submit" class="btn btn-warning" style="width: 100%;" onclick="return confirm('Retirer 1 carte ?')">-1 carte</button>
+                                <button type="submit" class="btn btn-warning" onclick="return confirm('Retirer 1 carte ?')">-1 carte</button>
                             </form>
-                            <form method="post" style="width: 100%;">
+                            <form method="post">
                                 <input type="hidden" name="user_card_id" value="{{ userCard.id }}">
                                 <input type="hidden" name="type" value="film">
                                 <input type="hidden" name="action" value="remove_all">
-                                <button type="submit" class="btn btn-danger" style="width: 100%;" onclick="return confirm('Retirer TOUTES les cartes ?')">Tout retirer</button>
+                                <button type="submit" class="btn btn-danger" onclick="return confirm('Retirer TOUTES les cartes ?')">Tout retirer</button>
                             </form>
                         </div>
                     </div>
@@ -106,7 +121,7 @@
             <p style="text-align: center; margin: 50px 0;">{{ user.pseudo }} n'a aucune carte.</p>
         {% endif %}
 
-        <div style="text-align: center; margin-top: 40px;">
+        <div class="media-list-page-footer">
             <a href="{{ path('app_admin') }}" class="btn btn-secondary">← Retour au tableau de bord</a>
         </div>
     </div>

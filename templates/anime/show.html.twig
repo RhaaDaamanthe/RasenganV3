@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ anime.nom }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/admin.css') }}" />
+{% endblock %}
+
+{% block body %}
+<main>
+    <div class="admin-container">
+        <div class="dashboard-hero">
+            <h1>🎬 {{ anime.nom }}</h1>
+        </div>
+
+        <div class="card-grid">
+            {% for card in anime.cards %}
+                <div class="admin-card">
+                    {% if card.imagePath %}
+                        <img src="{{ asset(card.imagePath) }}" alt="{{ card.nom }}" class="card-image">
+                    {% endif %}
+                    <div class="card-content">
+                        <h3>{{ card.nom }}</h3>
+                        <p class="rarity-label">{{ card.rarity ? card.rarity.libelle : 'N/A' }}</p>
+                    </div>
+                    <div class="admin-card-actions">
+                        <a href="{{ path('app_card_anime_edit', {'id': card.id}) }}" class="btn btn-warning">Modifier</a>
+                    </div>
+                </div>
+            {% else %}
+                <p>Aucune carte associée à cet animé.</p>
+            {% endfor %}
+        </div>
+
+        <div class="media-list-page-footer">
+            <a href="{{ path('app_anime_index') }}" class="btn btn-secondary">← Retour à la liste des animés</a>
+        </div>
+    </div>
+</main>
+{% endblock %}

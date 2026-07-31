@@ -18,6 +18,9 @@ class Rarities
     #[ORM\Column(length: 30)]
     private ?string $libelle = null;
 
+    #[ORM\Column]
+    private ?int $quantiteParDefaut = 1;
+
     /**
      * @var Collection<int, CardAnime>
      */
@@ -49,6 +52,18 @@ class Rarities
     public function setLibelle(string $libelle): static
     {
         $this->libelle = $libelle;
+
+        return $this;
+    }
+
+    public function getQuantiteParDefaut(): ?int
+    {
+        return $this->quantiteParDefaut;
+    }
+
+    public function setQuantiteParDefaut(int $quantiteParDefaut): static
+    {
+        $this->quantiteParDefaut = $quantiteParDefaut;
 
         return $this;
     }

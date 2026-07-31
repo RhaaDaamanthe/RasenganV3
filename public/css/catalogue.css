@@ -19,6 +19,27 @@ h1 {
   color: white;
 }
 
+.catalogue-title {
+  margin-top: 120px;
+  margin-bottom: 0;
+  text-align: center;
+  font-size: 2.6rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #fff;
+  text-shadow: 0 2px 20px rgba(255, 140, 0, 0.6), 0 0 40px rgba(255, 200, 0, 0.25);
+}
+
+.catalogue-title::after {
+  content: '';
+  display: block;
+  width: 80px;
+  height: 4px;
+  margin: 16px auto 0;
+  background: linear-gradient(90deg, #ff8c00, #ffcc33);
+  border-radius: 2px;
+}
+
 main {
   display: flex;
   flex-direction: column;
@@ -34,7 +55,7 @@ main {
 .main-catalogue {
   display: flex;
   justify-content: center;
-  gap: 300px;
+  gap: 60px;
   flex-wrap: wrap;
   margin-top: 20px;
 }
@@ -171,6 +192,11 @@ main {
 
   h1 {
     font-size: 22px;
+    margin-top: 20px;
+  }
+
+  .catalogue-title {
+    font-size: 1.6rem;
     margin-top: 20px;
   }
 }

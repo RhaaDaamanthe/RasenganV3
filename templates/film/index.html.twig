@@ -28,8 +28,10 @@
 
 {% block body %}
 <main>
-    <div class="admin-container">
-        <h1>Gérer les films</h1>
+    <div class="admin-container media-list-page">
+        <div class="dashboard-hero">
+            <h1>🎞️ Gérer les films</h1>
+        </div>
         {% for message in app.flashes('success') %}
             <div class="flash-message flash-success">
                 {{ message }}
@@ -46,33 +48,29 @@
                 Créer un nouveau film
             </a>
             
-            <div class="search-container">
-                <input type="text" 
-                       id="card-search" 
-                       placeholder="Rechercher un film..." 
-                       aria-label="Rechercher un film" 
-                       onkeyup="filterCards()">
+            <form method="get" action="{{ path('app_film_index') }}" class="search-container">
+                <input type="text"
+                       name="search"
+                       value="{{ search }}"
+                       placeholder="Rechercher un film..."
+                       aria-label="Rechercher un film">
                 <i class="fas fa-search"></i>
-            </div>
+            </form>
         </div>
 
-        <div class="card-grid" id="card-grid">
+        <div class="card-grid">
             {% for film in films %}
-                <div class="admin-card"
-                     data-name="{{ film.nom|lower }}"
-                     data-description="{{ film.nom|lower }}"
-                     data-film="{{ film.nom|lower }}">
-                    
+                <div class="admin-card">
                     <div class="card-content">
                         <h3>{{ film.nom }}</h3>
                         <p><strong>ID:</strong> {{ film.id }}</p>
                     </div>
-                    
+
                     <div class="admin-card-actions">
                         <a href="{{ path('app_film_show', {'id': film.id}) }}" class="btn btn-info">Voir</a>
                         <a href="{{ path('app_film_edit', {'id': film.id}) }}" class="btn btn-warning">Modifier</a>
-                        <form method="post" 
-                              action="{{ path('app_film_delete', {'id': film.id}) }}" 
+                        <form method="post"
+                              action="{{ path('app_film_delete', {'id': film.id}) }}"
                               onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce film ?');">
                             <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ film.id) }}">
                             <button type="submit" class="btn btn-danger">Supprimer</button>
@@ -80,18 +78,27 @@
                     </div>
                 </div>
             {% else %}
-                <p id="no-cards-message">Aucun film trouvé.</p>
+                <p>
+                    {% if search %}Aucun résultat ne correspond à "{{ search }}".{% else %}Aucun film trouvé.{% endif %}
+                </p>
             {% endfor %}
         </div>
 
-        <p id="no-results-message" style="display: none; text-align: center; margin-top: 20px; color: #999;">
-            Aucun résultat ne correspond à votre recherche.
-        </p>
+        {% if films.pageCount > 1 %}
+            <div class="pagination-bar">
+                {% if films.currentPageNumber > 1 %}
+                    <a href="{{ path('app_film_index', {page: films.currentPageNumber - 1, search: search}) }}" class="btn btn-secondary">← Précédent</a>
+                {% endif %}
+                <span class="pagination-info">Page {{ films.currentPageNumber }} / {{ films.pageCount }}</span>
+                {% if films.currentPageNumber < films.pageCount %}
+                    <a href="{{ path('app_film_index', {page: films.currentPageNumber + 1, search: search}) }}" class="btn btn-secondary">Suivant →</a>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <div class="media-list-page-footer">
+            <a href="{{ path('app_admin') }}" class="btn btn-secondary">← Retour au tableau de bord</a>
+        </div>
     </div>
 </main>
-{% endblock %}
-
-{% block javascripts %}
-    {{ parent() }}
-    <script src="{{ asset('js/admin.js') }}"></script>
 {% endblock %}

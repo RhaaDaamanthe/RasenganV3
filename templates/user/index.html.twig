@@ -10,9 +10,13 @@
 
 {% block body %}
     <main class="profile-container">
+        <div class="profile-hero"></div>
+
         <!-- Avatar -->
         {% if user.imageCollection %}
             <img src="{{ asset(user.imageCollection) }}" alt="Avatar" class="profile-avatar">
+        {% else %}
+            <div class="profile-avatar profile-avatar-placeholder">{{ user.pseudo|first|upper }}</div>
         {% endif %}
 
         <!-- Titre -->
@@ -25,11 +29,13 @@
 
         <!-- Stats rapides -->
         <div class="profile-stats">
-            <div class="stat-item">
+            <div class="stat-item stat-cards">
+                <span class="stat-icon">🎴</span>
                 <span class="stat-number">{{ user.userCardAnimes|length + user.userCardFilms|length }}</span>
                 <span class="stat-label">Cartes</span>
             </div>
-            <div class="stat-item">
+            <div class="stat-item stat-points">
+                <span class="stat-icon">⭐</span>
                 <span class="stat-number">{{ user.getTotalPoints }}</span>
                 <span class="stat-label">Points</span>
             </div>

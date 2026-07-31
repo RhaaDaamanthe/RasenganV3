@@ -6,6 +6,7 @@ use App\Entity\Anime;
 use App\Form\AnimeType;
 use App\Repository\AnimeRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,10 +18,27 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class AnimeController extends AbstractController
 {
     #[Route(name: 'app_anime_index', methods: ['GET'])]
-    public function index(AnimeRepository $animeRepository): Response
+    public function index(AnimeRepository $animeRepository, PaginatorInterface $paginator, Request $request): Response
     {
+        $search = trim($request->query->get('search', ''));
+
+        $qb = $animeRepository->createQueryBuilder('a')
+            ->orderBy('a.nom', 'ASC');
+
+        if ($search !== '') {
+            $qb->andWhere('a.nom LIKE :search')
+                ->setParameter('search', '%'.$search.'%');
+        }
+
+        $animes = $paginator->paginate(
+            $qb->getQuery(),
+            $request->query->getInt('page', 1),
+            30
+        );
+
         return $this->render('anime/index.html.twig', [
-            'animes' => $animeRepository->findAll(),
+            'animes' => $animes,
+            'search' => $search,
         ]);
     }
 

@@ -6,6 +6,7 @@ use App\Entity\Film;
 use App\Form\FilmType;
 use App\Repository\FilmRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,10 +18,27 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class FilmController extends AbstractController
 {
     #[Route(name: 'app_film_index', methods: ['GET'])]
-    public function index(FilmRepository $filmRepository): Response
+    public function index(FilmRepository $filmRepository, PaginatorInterface $paginator, Request $request): Response
     {
+        $search = trim($request->query->get('search', ''));
+
+        $qb = $filmRepository->createQueryBuilder('f')
+            ->orderBy('f.nom', 'ASC');
+
+        if ($search !== '') {
+            $qb->andWhere('f.nom LIKE :search')
+                ->setParameter('search', '%'.$search.'%');
+        }
+
+        $films = $paginator->paginate(
+            $qb->getQuery(),
+            $request->query->getInt('page', 1),
+            30
+        );
+
         return $this->render('film/index.html.twig', [
-            'films' => $filmRepository->findAll(),
+            'films' => $films,
+            'search' => $search,
         ]);
     }
 

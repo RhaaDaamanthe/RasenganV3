@@ -10,7 +10,7 @@
 
 {% block body %}
     <main>
-        <h1>Catalogue des cartes</h1>
+        <h1 class="catalogue-title">Catalogue des cartes</h1>
         <div class="main-catalogue">
             <div class="card" data-url="{{ path('app_catalogue_all_anime_cards') }}">
                 <img src="{{ asset('images/anime_catalogue.jpg') }}" alt="Animés"/>
@@ -22,6 +22,12 @@
                 <img src="{{ asset('images/film_catalogue.jpg') }}" alt="Films & séries" />
                 <div class="card-content">
                     <h2 class="card-title">Cartes films & séries</h2>
+                </div>
+            </div>
+            <div class="card">
+                <img src="{{ asset('images/Anime.png') }}" alt="?????" />
+                <div class="card-content">
+                    <h2 class="card-title">?????</h2>
                 </div>
             </div>
         </div>

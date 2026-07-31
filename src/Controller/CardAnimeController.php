@@ -64,6 +64,9 @@ final class CardAnimeController extends AbstractController
             /** @var UploadedFile|null $imageFile */
             $imageFile = $form->get('imagePath')->getData();
 
+            // Quantité déterminée automatiquement par la rareté choisie
+            $cardAnime->setQuantity($cardAnime->getRarity()?->getQuantiteParDefaut() ?? 1);
+
             // Persister l'entité pour obtenir l'ID (utile même si l'ID n'est pas dans le nom)
             $entityManager->persist($cardAnime);
             $entityManager->flush();
@@ -147,6 +150,9 @@ final class CardAnimeController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Quantité déterminée automatiquement par la rareté choisie
+            $cardAnime->setQuantity($cardAnime->getRarity()?->getQuantiteParDefaut() ?? 1);
+
             $entityManager->flush();
             $this->addFlash('success', 'La carte a été modifiée avec succès !');
 
@@ -179,6 +185,6 @@ final class CardAnimeController extends AbstractController
 
         }
 
-        return $this->redirectToRoute('app_card_anime_new', [], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('app_card_anime_index', [], Response::HTTP_SEE_OTHER);
     }
 }

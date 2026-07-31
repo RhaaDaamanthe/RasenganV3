@@ -29,8 +29,10 @@
 
 {% block body %}
 <main>
-    <div class="admin-container">
-        <h1>Gérer les animés</h1>
+    <div class="admin-container media-list-page">
+        <div class="dashboard-hero">
+            <h1>🎬 Gérer les animés</h1>
+        </div>
         {% for message in app.flashes('success') %}
             <div class="flash-message flash-success">
                 {{ message }}
@@ -47,29 +49,26 @@
                 Créer un nouvel animé
             </a>
             
-            <div class="search-container">
+            <form method="get" action="{{ path('app_anime_index') }}" class="search-container">
                 <input type="text"
-                       id="card-search"
+                       name="search"
+                       value="{{ search }}"
                        placeholder="Rechercher un animé..."
-                       aria-label="Rechercher un animé"
-                       onkeyup="filterCards()">
+                       aria-label="Rechercher un animé">
                 <i class="fas fa-search"></i>
-            </div>
+            </form>
         </div>
 
-        <div class="card-grid" id="card-grid">
+        <div class="card-grid">
             {% for anime in animes %}
-                <div class="admin-card"
-                     data-name="{{ anime.nom|lower }}"
-                     data-description="{{ anime.nom|lower }}"
-                     data-anime="{{ anime.nom|lower }}">
-                    
+                <div class="admin-card">
                     <div class="card-content">
                         <h3>{{ anime.nom }}</h3>
                         <p><strong>ID :</strong> {{ anime.id }}</p>
                     </div>
-                    
+
                     <div class="admin-card-actions">
+                        <a href="{{ path('app_anime_show', {'id': anime.id}) }}" class="btn btn-info">Voir</a>
                         <a href="{{ path('app_anime_edit', {'id': anime.id}) }}" class="btn btn-warning">Modifier</a>
                         <form method="post"
                               action="{{ path('app_anime_delete', {'id': anime.id}) }}"
@@ -80,19 +79,27 @@
                     </div>
                 </div>
             {% else %}
-                <p id="no-cards-message">Aucun animé trouvé.</p>
+                <p>
+                    {% if search %}Aucun résultat ne correspond à "{{ search }}".{% else %}Aucun animé trouvé.{% endif %}
+                </p>
             {% endfor %}
         </div>
 
-        <p id="no-results-message"
-           style="display: none; text-align: center; margin-top: 20px; color: #999; font-style: italic;">
-            Aucun résultat ne correspond à votre recherche.
-        </p>
+        {% if animes.pageCount > 1 %}
+            <div class="pagination-bar">
+                {% if animes.currentPageNumber > 1 %}
+                    <a href="{{ path('app_anime_index', {page: animes.currentPageNumber - 1, search: search}) }}" class="btn btn-secondary">← Précédent</a>
+                {% endif %}
+                <span class="pagination-info">Page {{ animes.currentPageNumber }} / {{ animes.pageCount }}</span>
+                {% if animes.currentPageNumber < animes.pageCount %}
+                    <a href="{{ path('app_anime_index', {page: animes.currentPageNumber + 1, search: search}) }}" class="btn btn-secondary">Suivant →</a>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <div class="media-list-page-footer">
+            <a href="{{ path('app_admin') }}" class="btn btn-secondary">← Retour au tableau de bord</a>
+        </div>
     </div>
 </main>
-{% endblock %}
-
-{% block javascripts %}
-    {{ parent() }}
-    <script src="{{ asset('js/admin.js') }}"></script>
 {% endblock %}

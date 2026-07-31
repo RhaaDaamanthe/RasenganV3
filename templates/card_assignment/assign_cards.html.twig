@@ -10,67 +10,53 @@
         .flash-message {
             padding: 1rem;
             margin-bottom: 1rem;
-            border-radius: 12px;
+            border-radius: 8px;
             font-weight: bold;
-            animation: slideIn 0.5s ease;
         }
 
         .flash-success {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(56, 239, 125, 0.3);
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateY(-20px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
         }
 
         .card-assignment-form {
-            background: white;
-            padding: 15px;
-            border-radius: 12px;
-            margin-top: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 12px 15px;
         }
 
         .quantity-input {
-            width: 80px;
-            padding: 8px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            margin-right: 10px;
-            font-size: 1rem;
+            width: 70px;
+            padding: 7px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            margin-right: 8px;
+            font-size: 0.9rem;
         }
 
         .assign-btn {
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 8px 16px;
+            background: #ff8c00;
             color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 6px;
             font-weight: 600;
+            font-size: 0.85rem;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: background-color 0.2s ease;
         }
 
         .assign-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            background: #e07b00;
         }
     </style>
 {% endblock %}
 
 {% block body %}
 <main>
-    <div class="admin-container">
-        <h1>🎁 Attribuer des cartes {{ type == 'anime' ? 'd\'animé' : 'de film' }} à {{ user.pseudo }}</h1>
+    <div class="admin-container assign-cards-page">
+        <div class="dashboard-hero">
+            <h1>🎁 Attribuer des cartes {{ type == 'anime' ? 'd\'animé' : 'de film' }} à {{ user.pseudo }}</h1>
+        </div>
 
         {% for message in app.flashes('success') %}
             <div class="flash-message flash-success">
@@ -82,11 +68,11 @@
         <div class="search-filters-container">
             <form method="get" action="" class="search-form">
                 <div class="search-input-wrapper">
-                    <input 
-                        type="text" 
-                        name="search" 
-                        id="searchbar" 
-                        placeholder="Rechercher une carte..." 
+                    <input
+                        type="text"
+                        name="search"
+                        id="searchbar"
+                        placeholder="Rechercher une carte..."
                         value="{{ search }}"
                     />
                     <button type="submit" class="search-btn">
@@ -128,20 +114,12 @@
                 <div class="admin-card">
                     {% if card.imagePath %}
                         <img src="{{ asset(card.imagePath) }}" alt="{{ card.nom }}" class="card-image">
-                    {% else %}
-                        <img src="{{ asset('images/placeholder.png') }}" alt="{{ card.nom }}" class="card-image">
                     {% endif %}
-
-
 
                     <form method="post" class="card-assignment-form">
                         <input type="hidden" name="card_id" value="{{ card.id }}">
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
-                            <div>
-                                <input type="number" name="quantity" value="1" min="1" max="999" class="quantity-input">
-                                <button type="submit" class="assign-btn">✓ Attribuer</button>
-                            </div>
-                        </div>
+                        <input type="number" name="quantity" value="1" min="1" max="999" class="quantity-input">
+                        <button type="submit" class="assign-btn">✓ Attribuer</button>
                     </form>
                 </div>
             {% else %}
@@ -175,7 +153,7 @@
             </div>
         {% endif %}
 
-        <div style="text-align: center; margin-top: 40px;">
+        <div class="media-list-page-footer">
             <a href="{{ path(type == 'anime' ? 'app_assign_anime_users' : 'app_assign_film_users') }}" class="btn btn-secondary">← Retour à la liste des joueurs</a>
         </div>
     </div>
