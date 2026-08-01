@@ -190,6 +190,7 @@ class WheelController extends AbstractController
             $userCard->setQuantity(1);
             $entityManager->persist($userCard);
         }
+        $userCard->setObtainedAt(new \DateTimeImmutable());
 
         $entityManager->flush();
         $badgeService->refreshCollectorBadges($user);
@@ -235,6 +236,7 @@ class WheelController extends AbstractController
             $userCard->setQuantity(1);
             $entityManager->persist($userCard);
         }
+        $userCard->setObtainedAt(new \DateTimeImmutable());
 
         $entityManager->flush();
         $badgeService->refreshCollectorBadges($user);

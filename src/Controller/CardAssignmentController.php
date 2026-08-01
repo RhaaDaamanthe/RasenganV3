@@ -118,6 +118,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
                         $userCard->setQuantity($quantity);
                         $entityManager->persist($userCard);
                     }
+                    $userCard->setObtainedAt(new \DateTimeImmutable());
 
                     $entityManager->flush();
                     $badgeService->refreshCollectorBadges($user);
@@ -195,6 +196,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
                         $userCard->setQuantity($quantity);
                         $entityManager->persist($userCard);
                     }
+                    $userCard->setObtainedAt(new \DateTimeImmutable());
 
                     $entityManager->flush();
                     $badgeService->refreshCollectorBadges($user);

@@ -22,6 +22,9 @@ class UserCardFilm
     #[ORM\Column]
     private ?int $quantity = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $obtainedAt = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -59,6 +62,18 @@ class UserCardFilm
     public function setQuantity(int $quantity): static
     {
         $this->quantity = $quantity;
+
+        return $this;
+    }
+
+    public function getObtainedAt(): ?\DateTimeImmutable
+    {
+        return $this->obtainedAt;
+    }
+
+    public function setObtainedAt(\DateTimeImmutable $obtainedAt): static
+    {
+        $this->obtainedAt = $obtainedAt;
 
         return $this;
     }

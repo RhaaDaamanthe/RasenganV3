@@ -57,7 +57,8 @@ class CardController extends AbstractController
             $userCard->setQuantity(1);
             $entityManager->persist($userCard);
         }
-        
+        $userCard->setObtainedAt(new \DateTimeImmutable());
+
         $entityManager->flush();
         $badgeService->refreshCollectorBadges($user);
 

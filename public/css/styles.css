@@ -27,7 +27,7 @@ body {
 
   main {
     padding: 80px 50px 50px;
-    background-image: url(../Images/bodyimage.png);
+    background-image: url(../images/bodyimage.png);
     background-repeat: no-repeat;
     background-size: cover;
     flex-grow: 1;

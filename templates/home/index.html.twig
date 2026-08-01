@@ -93,6 +93,131 @@
             .hero-section { height: 450px; }
         }
 
+        /* ============= HISTORIQUE DES DERNIERS DROPS ============= */
+        .recent-drops-container {
+            max-width: 800px;
+            margin: 2rem auto 3rem;
+            padding: 0 2rem;
+        }
+
+        .recent-drops-toggle {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(135deg, #f6f8ff 0%, #ffffff 100%);
+            border: none;
+            border-radius: 16px;
+            padding: 16px 22px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2d3748;
+            cursor: pointer;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.2s ease;
+        }
+
+        .recent-drops-toggle:hover {
+            box-shadow: 0 10px 34px rgba(0, 0, 0, 0.15);
+        }
+
+        .recent-drops-chevron {
+            transition: transform 0.3s ease;
+        }
+
+        .recent-drops-toggle[aria-expanded="true"] .recent-drops-chevron {
+            transform: rotate(180deg);
+        }
+
+        .recent-drops-panel {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            background: #fff;
+            border-radius: 0 0 16px 16px;
+        }
+
+        .recent-drops-panel.expanded {
+            max-height: 700px;
+        }
+
+        .recent-drops-list {
+            list-style: none;
+            margin: 0;
+            padding: 6px 22px 18px;
+        }
+
+        .recent-drop-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f2f5;
+        }
+
+        .recent-drop-item:last-child {
+            border-bottom: none;
+        }
+
+        .recent-drop-item img {
+            width: 42px;
+            height: 42px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #fa9d11;
+            flex-shrink: 0;
+        }
+
+        .recent-drop-info {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .recent-drop-name {
+            font-weight: 700;
+            color: #2d3748;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .recent-drop-meta {
+            font-size: 0.85rem;
+            color: #718096;
+        }
+
+        .recent-drop-time {
+            font-size: 0.8rem;
+            color: #a0aec0;
+            white-space: nowrap;
+        }
+
+        .recent-drop-empty {
+            text-align: center;
+            color: #999;
+            padding: 20px 0;
+        }
+
+        .recent-drop-type {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 1px 7px;
+            border-radius: 999px;
+            margin-right: 6px;
+            color: #fff;
+        }
+
+        .recent-drop-type-anime {
+            background: #4299e1;
+        }
+
+        .recent-drop-type-film {
+            background: #9f7aea;
+        }
     </style>
 {% endblock %}
 
@@ -142,6 +267,35 @@
         </div>
     </div>
 
+    <!-- ============= HISTORIQUE DES DERNIERS DROPS ============= -->
+    <div class="recent-drops-container">
+        <button type="button" class="recent-drops-toggle" id="recentDropsToggle" aria-expanded="false" aria-controls="recentDropsPanel">
+            <span>🕓 Derniers drops</span>
+            <span class="recent-drops-chevron">▾</span>
+        </button>
+        <div class="recent-drops-panel" id="recentDropsPanel">
+            <ul class="recent-drops-list">
+                {% for drop in recentDrops %}
+                    <li class="recent-drop-item">
+                        {% if drop.imagePath %}
+                            <img src="{{ asset(drop.imagePath) }}" alt="{{ drop.nom }}">
+                        {% endif %}
+                        <div class="recent-drop-info">
+                            <span class="recent-drop-name">{{ drop.nom }}</span>
+                            <span class="recent-drop-meta">
+                                <span class="recent-drop-type recent-drop-type-{{ drop.type|lower }}">{{ drop.type }}</span>
+                                {{ drop.rarite }} · obtenue par <strong>{{ drop.pseudo }}</strong>
+                            </span>
+                        </div>
+                        <span class="recent-drop-time">{{ drop.relative }}</span>
+                    </li>
+                {% else %}
+                    <li class="recent-drop-empty">Aucun drop récent pour le moment.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
 </main>
 
 <!-- ============= JAVASCRIPT CARROUSEL ============= -->
@@ -170,6 +324,18 @@ document.addEventListener("DOMContentLoaded", () => {
             track.style.transform = "translateX(0)";
         }, 850);
     }, delay);
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    const dropsToggle = document.getElementById("recentDropsToggle");
+    const dropsPanel = document.getElementById("recentDropsPanel");
+
+    if (!dropsToggle || !dropsPanel) return;
+
+    dropsToggle.addEventListener("click", () => {
+        const expanded = dropsPanel.classList.toggle("expanded");
+        dropsToggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+    });
 });
 </script>
 {% endblock %}

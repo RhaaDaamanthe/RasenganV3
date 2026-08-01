@@ -45,7 +45,7 @@ main {
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
-  background: url("../Images/inscription.jpg") no-repeat;
+  background: url("../images/inscription.jpg") no-repeat;
   background-size: cover;
   background-position: center;
 }

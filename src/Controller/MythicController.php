@@ -117,6 +117,7 @@ class MythicController extends AbstractController
             $existing->setQuantity(1);
             $entityManager->persist($existing);
         }
+        $existing->setObtainedAt(new \DateTimeImmutable());
 
         $entityManager->flush();
         $badgeService->refreshCollectorBadges($user);
@@ -228,6 +229,7 @@ class MythicController extends AbstractController
             $existing->setQuantity(1);
             $entityManager->persist($existing);
         }
+        $existing->setObtainedAt(new \DateTimeImmutable());
 
         $entityManager->flush();
         $badgeService->refreshCollectorBadges($user);
