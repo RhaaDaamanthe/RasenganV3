@@ -253,7 +253,21 @@
     box-shadow: 0 20px 40px rgba(255, 215, 0, 0.6);
 }
 
-.badge-icon.rare {
+.badge-icon.rarity-commune {
+    border-color: #333;
+}
+
+.badge-icon.rarity-rare {
+    border-color: #2673b3;
+    box-shadow: 0 0 25px #4fa3e3;
+}
+
+.badge-icon.rarity-epique {
+    border-color: #7e2fc2;
+    box-shadow: 0 0 25px #b06fe0;
+}
+
+.badge-icon.rarity-legendaire {
     border-color: #e76d0a;
     box-shadow: 0 0 25px #e76d0a;
 }

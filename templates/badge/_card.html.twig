@@ -1,0 +1,24 @@
+<div class="badge-admin-card">
+    <div class="badge-admin-icon">
+        <img src="{{ asset('images/badges/' ~ badge.icon) }}" alt="{{ badge.name }}"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <span class="badge-admin-icon-fallback">🏅</span>
+    </div>
+
+    <div class="badge-admin-body">
+        <h3>{{ badge.name }}</h3>
+        <div class="badge-admin-tags">
+            <span class="rarity-pill {{ badge.rarity }}">{{ badge.rarity|capitalize }}</span>
+            <span class="badge-admin-players">👥 {{ badge.users|length }}</span>
+        </div>
+    </div>
+
+    <div class="admin-card-actions">
+        <a href="{{ path('app_badge_assign', {id: badge.id}) }}" class="btn btn-success">Attribuer</a>
+        <a href="{{ path('app_badge_edit', {id: badge.id}) }}" class="btn btn-warning">Modifier</a>
+        <form method="post" action="{{ path('app_badge_delete', {id: badge.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce badge ? Il sera retiré de tous les joueurs qui le possèdent.');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ badge.id) }}">
+            <button type="submit" class="btn btn-danger">Supprimer</button>
+        </form>
+    </div>
+</div>

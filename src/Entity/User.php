@@ -59,6 +59,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var Collection<int, Badge>
      */
     #[ORM\ManyToMany(targetEntity: Badge::class, inversedBy: 'users')]
+    #[ORM\OrderBy(['position' => 'ASC'])]
     private Collection $badges;
 
     // Ajout du constructeur

@@ -30,6 +30,12 @@
                             </a>
                         </li>
 
+                        <li>
+                            <a href="{{ path('app_rules') }}" class="{% if app.request.attributes.get('_route') == 'app_rules' %}active{% endif %}">
+                                Règles
+                            </a>
+                        </li>
+
                         {% if is_granted('ROLE_ADMIN') %}
                             <li>
                                 <a href="{{ path('app_admin') }}" class="{% if app.request.attributes.get('_route') starts with 'app_admin' %}active{% endif %}">

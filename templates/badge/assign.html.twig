@@ -1,0 +1,191 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Attribuer {{ badge.name }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/admin.css') }}" />
+    <style>
+        .flash-message { padding: 1rem; margin-bottom: 1rem; border-radius: 8px; font-weight: bold; }
+        .flash-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .flash-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        .assign-grid {
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 16px;
+        }
+
+        .assign-user-card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 22px 14px 18px;
+            cursor: pointer;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+        }
+
+        .assign-user-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .assign-user-card input[type="checkbox"] {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 18px;
+            height: 18px;
+            accent-color: #16a34a;
+            cursor: pointer;
+        }
+
+        .assign-check-badge {
+            display: none;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #16a34a;
+            color: white;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            box-shadow: 0 2px 6px rgba(22, 163, 74, 0.4);
+        }
+
+        .assign-user-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2em;
+            color: white;
+            background: linear-gradient(135deg, #ff8c00, #e07b00);
+        }
+
+        .assign-user-name {
+            font-weight: 700;
+            color: #333;
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .assign-user-card.checked {
+            border-color: #16a34a;
+            background: linear-gradient(160deg, #f0fdf4, #ffffff);
+        }
+
+        .assign-user-card.checked .assign-check-badge {
+            display: flex;
+        }
+
+        .assign-user-card.checked .assign-user-avatar {
+            background: linear-gradient(135deg, #16a34a, #15803d);
+        }
+
+        .assign-submit-bar {
+            position: sticky;
+            bottom: 0;
+            background: #fff;
+            padding: 16px;
+            margin-top: 24px;
+            border-radius: 10px;
+            border: 1px solid #eee;
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .assign-selected-count {
+            display: block;
+            margin-bottom: 10px;
+            color: #555;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<main>
+    <div class="admin-container">
+        <div class="dashboard-hero">
+            <h1>🏅 Attribuer « {{ badge.name }} »</h1>
+        </div>
+
+        {% for message in app.flashes('success') %}
+            <div class="flash-message flash-success">{{ message }}</div>
+        {% endfor %}
+        {% for message in app.flashes('error') %}
+            <div class="flash-message flash-error">{{ message }}</div>
+        {% endfor %}
+
+        <div class="search-container" style="margin: 0 auto 20px;">
+            <input type="text" id="card-search" placeholder="Rechercher un joueur..." aria-label="Rechercher un joueur" onkeyup="filterCards()">
+            <i class="fas fa-search"></i>
+        </div>
+
+        <form method="post" id="assign-form">
+            <input type="hidden" name="_token" value="{{ csrf_token('assign-badge' ~ badge.id) }}">
+
+            <div class="card-grid assign-grid" id="card-grid">
+                {% for user in users %}
+                    {% set owns = badge.users.contains(user) %}
+                    <label class="admin-card assign-user-card{% if owns %} checked{% endif %}" data-name="{{ user.pseudo|lower }}">
+                        <input type="checkbox" name="user_ids[]" value="{{ user.id }}" {% if owns %}checked{% endif %}>
+                        <span class="assign-check-badge">✓</span>
+                        <span class="assign-user-avatar">{{ user.pseudo|first|upper }}</span>
+                        <span class="assign-user-name">{{ user.pseudo }}</span>
+                    </label>
+                {% else %}
+                    <p id="no-cards-message">Aucun joueur trouvé.</p>
+                {% endfor %}
+            </div>
+            <p id="no-results-message" style="display: none; text-align: center; margin-top: 20px;">Aucun résultat ne correspond à votre recherche.</p>
+
+            <div class="assign-submit-bar">
+                <span class="assign-selected-count" id="selected-count"></span>
+                <button type="submit" class="btn btn-action">Enregistrer l'attribution</button>
+            </div>
+        </form>
+
+        <div class="media-list-page-footer">
+            <a href="{{ path('app_badge_index') }}" class="btn btn-secondary">← Retour à la liste des badges</a>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/admin.js') }}"></script>
+    <script>
+        const assignForm = document.getElementById('assign-form');
+        const selectedCount = document.getElementById('selected-count');
+
+        function updateSelectedCount() {
+            const count = assignForm.querySelectorAll('input[type="checkbox"]:checked').length;
+            selectedCount.textContent = count + ' joueur' + (count > 1 ? 's' : '') + ' sélectionné' + (count > 1 ? 's' : '');
+        }
+
+        assignForm.addEventListener('change', (e) => {
+            if (e.target.matches('input[type="checkbox"]')) {
+                e.target.closest('.assign-user-card').classList.toggle('checked', e.target.checked);
+                updateSelectedCount();
+            }
+        });
+
+        updateSelectedCount();
+    </script>
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Règles{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
+{% endblock %}
+
+{% block body %}
+<main>
+    <div class="obtain-cards-container">
+        <h1 class="obtain-cards-title">Comment obtenir des cartes ?</h1>
+        <div class="methods-grid">
+            <div class="method-card accent-gold">
+                <h3 class="method-title">🎉 Events du serveur</h3>
+                <p class="method-description">LA méthode pour gagner le plus de cartes. Participez régulièrement aux événements organisés sur notre serveur.</p>
+                <div class="rarity-odds">
+                    <span class="tag-pill gold">Le plus efficace</span>
+                </div>
+            </div>
+            <div class="method-card accent-blue">
+                <h3 class="method-title">🎙️ Sessions vocales</h3>
+                <p class="method-description">Participez aux paris et aux petits jeux organisés lors des sessions vocales.</p>
+                <div class="rarity-odds">
+                    <span class="tag-pill blue">Occasionnel</span>
+                </div>
+            </div>
+            <div class="method-card accent-green">
+                <h3 class="method-title">📈 Système de niveaux</h3>
+                <p class="method-description">Gagnez des niveaux en étant actif sur le serveur. Certains niveaux vous récompensent avec des cartes.</p>
+                <div class="rarity-odds">
+                    <span class="tag-pill green">Progression continue</span>
+                </div>
+            </div>
+            <div class="method-card accent-purple">
+                <h3 class="method-title">📅 Récompense hebdomadaire</h3>
+                <p class="method-description">Réagissez au message épinglé une fois par semaine pour obtenir une carte aléatoire.</p>
+                <div class="rarity-odds">
+                    <span class="tag-pill purple">Chaque semaine</span>
+                </div>
+            </div>
+            <div class="method-card accent-pink">
+                <h3 class="method-title">🎲 Drops aléatoires</h3>
+                <p class="method-description">Soyez le premier à réagir aux messages spéciaux dans le tchat général pour gagner une carte.</p>
+                <div class="rarity-odds">
+                    <span class="tag-pill pink">Aléatoire</span>
+                </div>
+            </div>
+            <div class="method-card accent-gray">
+                <h3 class="method-title">🎁 Événements spéciaux</h3>
+                <p class="method-description">Participez aux giveaways et n'oubliez pas d'enregistrer votre anniversaire avec /anniversaire définir pour recevoir un cadeau spécial.</p>
+                <div class="rarity-odds">
+                    <span class="tag-pill gray">Ponctuel</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="obtain-cards-container">
+        <h1 class="obtain-cards-title">Les types de tirage</h1>
+        <p class="rules-intro">Selon la façon dont vous obtenez une carte, le tirage qui détermine sa rareté (et parfois l'univers) peut être différent. Voici le détail de chaque type.</p>
+        <div class="methods-grid">
+            <div class="method-card">
+                <h3 class="method-title">Carte normale</h3>
+                <p class="method-description">Vous choisissez d'abord la catégorie — Anime ou Film &amp; Séries — puis une carte est tirée au hasard parmi <strong>toutes les séries</strong> de cette catégorie.</p>
+                <div class="rarity-odds">
+                    <span class="rarity-pill commune">Commune 40%</span>
+                    <span class="rarity-pill rare">Rare 35%</span>
+                    <span class="rarity-pill epique">Épique 20%</span>
+                    <span class="rarity-pill legendaire">Légendaire 5%</span>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <h3 class="method-title">Carte titre au choix</h3>
+                <p class="method-description">Comme la carte normale, mais vous choisissez précisément <strong>l'anime ou le film</strong> dans lequel piocher, plutôt que de laisser la série au hasard.</p>
+                <div class="rarity-odds">
+                    <span class="rarity-pill commune">Commune 40%</span>
+                    <span class="rarity-pill rare">Rare 35%</span>
+                    <span class="rarity-pill epique">Épique 20%</span>
+                    <span class="rarity-pill legendaire">Légendaire 5%</span>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <h3 class="method-title">Carte minimum <span class="upcoming-tag">Probabilités variables</span></h3>
+                <p class="method-description">Certaines récompenses garantissent une rareté plancher — par exemple une <strong>carte minimum épique</strong> ne peut sortir qu'Épique ou Légendaire, jamais moins. On la retrouve pour l'anniversaire, certains paliers de niveau ou événements. Les probabilités exactes entre les raretés garanties dépendent de l'occasion.</p>
+            </div>
+
+            <div class="method-card">
+                <h3 class="method-title">Carte quitte ou double</h3>
+                <p class="method-description">Vous partez d'une carte Commune. Vous pouvez tenter votre chance pour la faire monter en rareté, au risque de la perdre :</p>
+                <div class="rarity-odds">
+                    <span class="rarity-pill rare">50% → Rare</span>
+                    <span class="rarity-pill epique">puis 25% → Épique</span>
+                </div>
+                <p class="method-description">En cas d'échec à une étape, la carte est perdue.</p>
+            </div>
+
+            <div class="method-card">
+                <h3 class="method-title">Carte 333</h3>
+                <p class="method-description">Comme la carte normale (vous choisissez Anime ou Film &amp; Séries), mais avec des probabilités quasi égales entre les raretés (hors Légendaire, toujours plus rare).</p>
+                <div class="rarity-odds">
+                    <span class="rarity-pill commune">Commune 33%</span>
+                    <span class="rarity-pill rare">Rare 33%</span>
+                    <span class="rarity-pill epique">Épique 33%</span>
+                    <span class="rarity-pill legendaire">Légendaire 1%</span>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <h3 class="method-title">Carte 333 titre au choix</h3>
+                <p class="method-description">Le principe de la Carte 333, mais vous choisissez précisément l'anime ou le film dans lequel piocher.</p>
+                <div class="rarity-odds">
+                    <span class="rarity-pill commune">Commune 33%</span>
+                    <span class="rarity-pill rare">Rare 33%</span>
+                    <span class="rarity-pill epique">Épique 33%</span>
+                    <span class="rarity-pill legendaire">Légendaire 1%</span>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <h3 class="method-title">Carte reroll</h3>
+                <p class="method-description">Si vous obtenez une carte Commune ou Rare, vous pouvez la relancer jusqu'à <strong>3 fois</strong> si elle ne vous convient pas (<strong>2 fois</strong> pour une Épique). Attention : à chaque relance, la carte précédente est perdue — seule la dernière obtenue est conservée.</p>
+            </div>
+
+            <div class="method-card">
+                <h3 class="method-title">Jeton d'échange</h3>
+                <p class="method-description">Échangez une carte que vous possédez déjà contre une autre carte aléatoire de la <strong>même rareté</strong>. Fonctionne sur les Communes, Rares et Épiques — ne fonctionne pas sur les Légendaires (ni sur les Mythiques et les Events, qui suivent leurs propres règles).</p>
+            </div>
+
+            <div class="method-card upcoming">
+                <h3 class="method-title">Fragment de carte <span class="upcoming-tag">Bientôt disponible</span></h3>
+                <p class="method-description">Une mécanique prévue pour de futurs événements (par exemple Halloween) : des fragments seront disséminés un peu partout à récolter pour reconstituer une carte. Les détails seront communiqués au lancement de l'événement concerné.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="obtain-cards-container">
+        <h1 class="obtain-cards-title">Légende des raretés</h1>
+        <p class="rules-intro">Les Mythiques et les Events ne se tirent pas au hasard : les Mythiques se débloquent en réunissant une combinaison de cartes précise (visible en cliquant sur la carte dans le <a href="{{ path('app_catalogue') }}">catalogue</a>), les Events sont distribuées ponctuellement lors d'occasions spéciales.</p>
+        <div class="rarity-odds" style="justify-content: center;">
+            <span class="rarity-pill commune">Commune</span>
+            <span class="rarity-pill rare">Rare</span>
+            <span class="rarity-pill epique">Épique</span>
+            <span class="rarity-pill legendaire">Légendaire</span>
+            <span class="rarity-pill mythique">Mythique</span>
+            <span class="rarity-pill event">Event</span>
+        </div>
+    </div>
+</main>
+{% endblock %}

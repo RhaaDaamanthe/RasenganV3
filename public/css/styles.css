@@ -111,9 +111,17 @@ input#searchbar::placeholder {
   background: white;
   padding: 1.5rem;
   border-radius: 12px;
+  border-left: 4px solid transparent;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s ease;
 }
+
+.method-card.accent-green { border-left-color: #1e8449; }
+.method-card.accent-blue { border-left-color: #2673b3; }
+.method-card.accent-purple { border-left-color: #7e2fc2; }
+.method-card.accent-gold { border-left-color: #e0972a; }
+.method-card.accent-pink { border-left-color: #b3123a; }
+.method-card.accent-gray { border-left-color: #2b2b2b; }
 
 .method-card:hover {
   transform: translateY(-5px);
@@ -129,6 +137,115 @@ input#searchbar::placeholder {
 .method-description {
   color: #4a5568;
   line-height: 1.6;
+}
+
+/* ========================================= */
+/* PAGE RÈGLES - TYPES DE TIRAGE */
+/* ========================================= */
+
+.rarity-odds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 0.9rem;
+}
+
+.rarity-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.rarity-pill.commune {
+  background: linear-gradient(135deg, #4ec97a, #1e8449);
+}
+
+.rarity-pill.rare {
+  background: linear-gradient(135deg, #4fa3e3, #2673b3);
+}
+
+.rarity-pill.epique {
+  background: linear-gradient(135deg, #b06fe0, #7e2fc2);
+}
+
+.rarity-pill.legendaire {
+  background: linear-gradient(135deg, #ffcc33, #e0972a);
+}
+
+.rarity-pill.mythique {
+  background: linear-gradient(135deg, #ff5e7e, #b3123a);
+}
+
+.rarity-pill.event {
+  background: linear-gradient(135deg, #6c6c6c, #2b2b2b);
+}
+
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.tag-pill.green {
+  background: linear-gradient(135deg, #4ec97a, #1e8449);
+}
+
+.tag-pill.blue {
+  background: linear-gradient(135deg, #4fa3e3, #2673b3);
+}
+
+.tag-pill.purple {
+  background: linear-gradient(135deg, #b06fe0, #7e2fc2);
+}
+
+.tag-pill.gold {
+  background: linear-gradient(135deg, #ffcc33, #e0972a);
+}
+
+.tag-pill.pink {
+  background: linear-gradient(135deg, #ff5e7e, #b3123a);
+}
+
+.tag-pill.gray {
+  background: linear-gradient(135deg, #6c6c6c, #2b2b2b);
+}
+
+.method-card.upcoming {
+  opacity: 0.7;
+  border: 2px dashed #cbd5e0;
+  box-shadow: none;
+}
+
+.upcoming-tag {
+  display: inline-block;
+  background: #cbd5e0;
+  color: #2d3748;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 999px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.rules-intro {
+  max-width: 800px;
+  margin: 0 auto 1rem;
+  padding: 0 2rem;
+  text-align: center;
+  color: #555;
 }
 
 /* Filtre cartes */

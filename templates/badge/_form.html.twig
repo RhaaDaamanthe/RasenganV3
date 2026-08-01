@@ -1,0 +1,74 @@
+{{ form_start(form, {'attr': {'enctype': 'multipart/form-data', 'class': 'form-upload'}}) }}
+    <div class="badge-form-section">
+        <div class="form-group">
+            {{ form_label(form.name) }}
+            {{ form_widget(form.name, {'attr': {'class': 'form-control'}}) }}
+        </div>
+        <div class="form-group">
+            {{ form_label(form.description) }}
+            {{ form_widget(form.description, {'attr': {'class': 'form-control'}}) }}
+        </div>
+    </div>
+
+    <div class="badge-form-section">
+        <div class="form-row">
+            <div class="form-group">
+                {{ form_label(form.type) }}
+                {{ form_widget(form.type, {'attr': {'class': 'form-control'}}) }}
+            </div>
+            <div class="form-group">
+                {{ form_label(form.rarity) }}
+                {{ form_widget(form.rarity, {'attr': {'class': 'form-control'}}) }}
+            </div>
+        </div>
+    </div>
+
+    <div class="badge-form-section">
+        <p class="badge-form-section-title">Ordre &amp; paliers automatiques</p>
+        <small class="form-text text-muted">Le niveau et l'objectif ne servent que pour les types Collectionneur (nombre de cartes) et Ancienneté (jours depuis l'inscription).</small>
+        <div class="form-row">
+            <div class="form-group">
+                {{ form_label(form.position) }}
+                {{ form_widget(form.position, {'attr': {'class': 'form-control'}}) }}
+            </div>
+            <div class="form-group">
+                {{ form_label(form.level) }}
+                {{ form_widget(form.level, {'attr': {'class': 'form-control'}}) }}
+            </div>
+            <div class="form-group">
+                {{ form_label(form.objective) }}
+                {{ form_widget(form.objective, {'attr': {'class': 'form-control'}}) }}
+            </div>
+        </div>
+    </div>
+
+    <div class="badge-form-section">
+        {% if badge is defined and badge.icon %}
+            <div class="badge-icon-current">
+                <img src="{{ asset('images/badges/' ~ badge.icon) }}" alt="{{ badge.name }}">
+                <span>Icône actuelle : <strong>{{ badge.icon }}</strong></span>
+            </div>
+        {% endif %}
+
+        <div class="form-group">
+            {{ form_label(form.icon) }}
+            {{ form_widget(form.icon, {'attr': {'class': 'form-control-file', 'onchange': 'previewBadgeIcon(this)'}}) }}
+            <small class="form-text text-muted">JPG, PNG ou WEBP, 5MB max.{% if badge is defined %} Laisser vide pour garder l'icône actuelle.{% endif %}</small>
+            <img id="badge-icon-preview" alt="Aperçu" style="display:none;">
+        </div>
+    </div>
+
+    <button class="btn btn-primary" type="submit">{{ button_label|default('Créer') }}</button>
+{{ form_end(form) }}
+
+<script>
+    function previewBadgeIcon(input) {
+        const preview = document.getElementById('badge-icon-preview');
+        if (input.files && input.files[0]) {
+            preview.src = URL.createObjectURL(input.files[0]);
+            preview.style.display = 'inline-block';
+        } else {
+            preview.style.display = 'none';
+        }
+    }
+</script>

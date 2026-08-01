@@ -12,7 +12,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
     name: 'app:badges:recalculate-collector',
-    description: 'Recalcule le badge collectionneur de chaque utilisateur en fonction de son nombre de cartes.',
+    description: 'Recalcule les badges automatiques (collectionneur + ancienneté) de chaque utilisateur.',
 )]
 class RecalculateCollectorBadgesCommand extends Command
 {
@@ -29,10 +29,11 @@ class RecalculateCollectorBadgesCommand extends Command
 
         foreach ($users as $user) {
             $this->badgeService->refreshCollectorBadges($user);
+            $this->badgeService->refreshSeniorityBadges($user);
             $output->writeln("{$user->getPseudo()} : {$user->getTotalCardsCount()} cartes.");
         }
 
-        $output->writeln(sprintf('Badges collectionneur recalculés pour %d utilisateur(s).', count($users)));
+        $output->writeln(sprintf('Badges collectionneur et ancienneté recalculés pour %d utilisateur(s).', count($users)));
 
         return Command::SUCCESS;
     }

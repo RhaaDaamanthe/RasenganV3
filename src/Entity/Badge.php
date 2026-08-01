@@ -33,6 +33,12 @@ class Badge
     #[ORM\Column]
     private ?int $objective = 0;
 
+    #[ORM\Column(length: 20)]
+    private ?string $rarity = 'commune';
+
+    #[ORM\Column]
+    private ?int $position = 0;
+
     /**
      * @var Collection<int, User>
      */
@@ -117,6 +123,30 @@ class Badge
     public function setObjective(int $objective): static
     {
         $this->objective = $objective;
+
+        return $this;
+    }
+
+    public function getRarity(): ?string
+    {
+        return $this->rarity;
+    }
+
+    public function setRarity(string $rarity): static
+    {
+        $this->rarity = $rarity;
+
+        return $this;
+    }
+
+    public function getPosition(): ?int
+    {
+        return $this->position;
+    }
+
+    public function setPosition(int $position): static
+    {
+        $this->position = $position;
 
         return $this;
     }

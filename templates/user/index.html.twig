@@ -56,8 +56,7 @@
                         <div class="badge-wrapper" data-name="{{ badge.name }}">
                             <img src="{{ asset('images/badges/' ~ badge.icon) }}"
                                  alt="{{ badge.name }}"
-                                 class="badge-icon
-                                    {% if badge.name in ['Noël 2025', 'Légende', 'Anniversaire'] %}rare{% endif %}"
+                                 class="badge-icon rarity-{{ badge.rarity }}"
                                  loading="lazy">
                             <div class="badge-tooltip">
                                 <strong>{{ badge.name }}</strong>

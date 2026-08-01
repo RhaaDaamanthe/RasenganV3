@@ -146,6 +146,15 @@ main {
     background: #db2777;
 }
 
+.admin-buttons .btn-teal {
+    background: #0d9488;
+    color: white;
+}
+
+.admin-buttons .btn-teal:hover {
+    background: #0f766e;
+}
+
 /* ===== Choix d'un joueur (attribution de cartes) ===== */
 
 .users-list-page .user-grid {
@@ -640,15 +649,19 @@ h1 {
 
 .admin-card-actions a,
 .admin-card-actions form {
-    flex: 1; 
+    flex: 1;
+    min-width: 0;
 }
 
-.admin-card-actions a, 
+.admin-card-actions a,
 .admin-card-actions form button {
-    display: block; 
-    width: 100%; 
+    display: block;
+    width: 100%;
     padding: 6px 8px;
     border-radius: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font-size: 0.75em;
     font-weight: 600;
     text-align: center;
@@ -1043,4 +1056,153 @@ h1 {
 .wheel-back-link {
     display: inline-block;
     margin-top: 10px;
+}
+
+/* ========================================= */
+/* FORMULAIRE DE BADGE */
+/* ========================================= */
+
+.badge-form-section {
+    padding: 18px 0;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 4px;
+}
+
+.badge-form-section:last-of-type {
+    border-bottom: none;
+}
+
+.badge-form-section-title {
+    font-weight: 700;
+    color: #333;
+    margin: 0 0 4px;
+}
+
+.badge-icon-current {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    font-size: 0.9em;
+    color: #555;
+}
+
+.badge-icon-current img {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    border-radius: 8px;
+    background: #fff;
+    border: 1px solid #eee;
+}
+
+#badge-icon-preview {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    border-radius: 8px;
+    border: 2px solid #ff8c00;
+    margin-top: 10px;
+    background: #fff;
+}
+
+/* ========================================= */
+/* LISTE DES BADGES (admin) */
+/* ========================================= */
+
+.badge-admin-section {
+    margin-bottom: 36px;
+}
+
+.badge-admin-section .card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.badge-admin-section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.3em;
+    color: #333;
+    margin: 0 0 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #fce3c2;
+}
+
+.badge-admin-section-count {
+    background: #ff8c00;
+    color: white;
+    font-size: 0.65em;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 2px 10px;
+}
+
+.badge-admin-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+}
+
+.badge-admin-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.badge-admin-icon {
+    position: relative;
+    height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(160deg, #fff7ec, #ffe8cc);
+}
+
+.badge-admin-icon img {
+    max-width: 72px;
+    max-height: 72px;
+    object-fit: contain;
+}
+
+.badge-admin-icon-fallback {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2em;
+    opacity: 0.5;
+}
+
+.badge-admin-body {
+    padding: 12px 14px 4px;
+    flex-grow: 1;
+}
+
+.badge-admin-body h3 {
+    margin: 0 0 8px;
+    font-size: 1.05em;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.badge-admin-tags {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.badge-admin-players {
+    font-size: 0.8em;
+    color: #777;
+    font-weight: 600;
 }
