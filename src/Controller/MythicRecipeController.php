@@ -68,22 +68,31 @@ final class MythicRecipeController extends AbstractController
 
             $requiredIds = $request->request->all('required');
             $quantities = $request->request->all('qty');
+            $placeholders = $request->request->all('placeholder');
 
             foreach ($requiredIds as $index => $requiredId) {
-                if ($requiredId === '' || $requiredId === null || (int) $requiredId === $card->getId()) {
-                    continue;
-                }
+                $requiredId = trim((string) $requiredId);
+                $placeholderNom = trim((string) ($placeholders[$index] ?? ''));
 
-                $requiredCard = $entityManager->getRepository(CardAnime::class)->find($requiredId);
-                if ($requiredCard === null) {
-                    continue;
-                }
+                if ($requiredId !== '' && (int) $requiredId !== $card->getId()) {
+                    $requiredCard = $entityManager->getRepository(CardAnime::class)->find($requiredId);
+                    if ($requiredCard === null) {
+                        continue;
+                    }
 
-                $requirement = new CardAnimeRequirement();
-                $requirement->setMythicCard($card);
-                $requirement->setRequiredCard($requiredCard);
-                $requirement->setQuantityRequired(max(1, (int) ($quantities[$index] ?? 1)));
-                $entityManager->persist($requirement);
+                    $requirement = new CardAnimeRequirement();
+                    $requirement->setMythicCard($card);
+                    $requirement->setRequiredCard($requiredCard);
+                    $requirement->setQuantityRequired(max(1, (int) ($quantities[$index] ?? 1)));
+                    $entityManager->persist($requirement);
+                } elseif ($placeholderNom !== '') {
+                    $requirement = new CardAnimeRequirement();
+                    $requirement->setMythicCard($card);
+                    $requirement->setRequiredCard(null);
+                    $requirement->setPlaceholderNom($placeholderNom);
+                    $requirement->setQuantityRequired(max(1, (int) ($quantities[$index] ?? 1)));
+                    $entityManager->persist($requirement);
+                }
             }
 
             $entityManager->flush();
@@ -125,22 +134,31 @@ final class MythicRecipeController extends AbstractController
 
             $requiredIds = $request->request->all('required');
             $quantities = $request->request->all('qty');
+            $placeholders = $request->request->all('placeholder');
 
             foreach ($requiredIds as $index => $requiredId) {
-                if ($requiredId === '' || $requiredId === null || (int) $requiredId === $card->getId()) {
-                    continue;
-                }
+                $requiredId = trim((string) $requiredId);
+                $placeholderNom = trim((string) ($placeholders[$index] ?? ''));
 
-                $requiredCard = $entityManager->getRepository(CardFilm::class)->find($requiredId);
-                if ($requiredCard === null) {
-                    continue;
-                }
+                if ($requiredId !== '' && (int) $requiredId !== $card->getId()) {
+                    $requiredCard = $entityManager->getRepository(CardFilm::class)->find($requiredId);
+                    if ($requiredCard === null) {
+                        continue;
+                    }
 
-                $requirement = new CardFilmRequirement();
-                $requirement->setMythicCard($card);
-                $requirement->setRequiredCard($requiredCard);
-                $requirement->setQuantityRequired(max(1, (int) ($quantities[$index] ?? 1)));
-                $entityManager->persist($requirement);
+                    $requirement = new CardFilmRequirement();
+                    $requirement->setMythicCard($card);
+                    $requirement->setRequiredCard($requiredCard);
+                    $requirement->setQuantityRequired(max(1, (int) ($quantities[$index] ?? 1)));
+                    $entityManager->persist($requirement);
+                } elseif ($placeholderNom !== '') {
+                    $requirement = new CardFilmRequirement();
+                    $requirement->setMythicCard($card);
+                    $requirement->setRequiredCard(null);
+                    $requirement->setPlaceholderNom($placeholderNom);
+                    $requirement->setQuantityRequired(max(1, (int) ($quantities[$index] ?? 1)));
+                    $entityManager->persist($requirement);
+                }
             }
 
             $entityManager->flush();

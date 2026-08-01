@@ -18,8 +18,11 @@ class CardFilmRequirement
     private ?CardFilm $mythicCard = null;
 
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?CardFilm $requiredCard = null;
+
+    #[ORM\Column(length: 150, nullable: true)]
+    private ?string $placeholderNom = null;
 
     #[ORM\Column]
     private int $quantityRequired = 1;
@@ -49,6 +52,18 @@ class CardFilmRequirement
     public function setRequiredCard(?CardFilm $requiredCard): static
     {
         $this->requiredCard = $requiredCard;
+
+        return $this;
+    }
+
+    public function getPlaceholderNom(): ?string
+    {
+        return $this->placeholderNom;
+    }
+
+    public function setPlaceholderNom(?string $placeholderNom): static
+    {
+        $this->placeholderNom = $placeholderNom;
 
         return $this;
     }

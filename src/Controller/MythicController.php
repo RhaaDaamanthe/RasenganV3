@@ -34,6 +34,18 @@ class MythicController extends AbstractController
         foreach ($card->getRequirements() as $requirement) {
             $requiredCard = $requirement->getRequiredCard();
 
+            if ($requiredCard === null) {
+                $canUnlock = false;
+                $requirements[] = [
+                    'placeholder' => true,
+                    'nom' => $requirement->getPlaceholderNom() ?? 'Carte à venir',
+                    'needed' => $requirement->getQuantityRequired(),
+                    'owned' => 0,
+                    'ok' => false,
+                ];
+                continue;
+            }
+
             $owned = $entityManager->getRepository(UserCardAnime::class)->findOneBy([
                 'user' => $user,
                 'cardAnime' => $requiredCard,
@@ -85,9 +97,15 @@ class MythicController extends AbstractController
         }
 
         foreach ($card->getRequirements() as $requirement) {
+            $requiredCard = $requirement->getRequiredCard();
+
+            if ($requiredCard === null) {
+                return $this->json(['success' => false, 'message' => "Cette carte n'est pas encore complètement configurée."], 400);
+            }
+
             $owned = $entityManager->getRepository(UserCardAnime::class)->findOneBy([
                 'user' => $user,
-                'cardAnime' => $requirement->getRequiredCard(),
+                'cardAnime' => $requiredCard,
             ]);
             $ownedQuantity = $owned?->getQuantity() ?? 0;
 
@@ -146,6 +164,18 @@ class MythicController extends AbstractController
         foreach ($card->getRequirements() as $requirement) {
             $requiredCard = $requirement->getRequiredCard();
 
+            if ($requiredCard === null) {
+                $canUnlock = false;
+                $requirements[] = [
+                    'placeholder' => true,
+                    'nom' => $requirement->getPlaceholderNom() ?? 'Carte à venir',
+                    'needed' => $requirement->getQuantityRequired(),
+                    'owned' => 0,
+                    'ok' => false,
+                ];
+                continue;
+            }
+
             $owned = $entityManager->getRepository(UserCardFilm::class)->findOneBy([
                 'user' => $user,
                 'cardFilm' => $requiredCard,
@@ -197,9 +227,15 @@ class MythicController extends AbstractController
         }
 
         foreach ($card->getRequirements() as $requirement) {
+            $requiredCard = $requirement->getRequiredCard();
+
+            if ($requiredCard === null) {
+                return $this->json(['success' => false, 'message' => "Cette carte n'est pas encore complètement configurée."], 400);
+            }
+
             $owned = $entityManager->getRepository(UserCardFilm::class)->findOneBy([
                 'user' => $user,
-                'cardFilm' => $requirement->getRequiredCard(),
+                'cardFilm' => $requiredCard,
             ]);
             $ownedQuantity = $owned?->getQuantity() ?? 0;
 

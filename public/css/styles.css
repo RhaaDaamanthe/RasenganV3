@@ -430,6 +430,12 @@ select {
   color: #922b21;
 }
 
+.requirement-row.upcoming {
+  background: rgba(250, 157, 17, 0.12);
+  color: #a3690a;
+  font-style: italic;
+}
+
 .requirement-nom {
   flex: 1;
 }

@@ -44,14 +44,28 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        let hasUpcoming = false;
+
         data.requirements.forEach(req => {
             const li = document.createElement("li");
-            li.className = "requirement-row " + (req.ok ? "ok" : "missing");
-            li.innerHTML = `
-                <span class="requirement-status">${req.ok ? "✓" : "✗"}</span>
-                <span class="requirement-nom">${req.nom}</span>
-                <span class="requirement-count">${req.owned} / ${req.needed}</span>
-            `;
+
+            if (req.placeholder) {
+                hasUpcoming = true;
+                li.className = "requirement-row upcoming";
+                li.innerHTML = `
+                    <span class="requirement-status">🔒</span>
+                    <span class="requirement-nom">${req.nom}</span>
+                    <span class="requirement-count">À venir</span>
+                `;
+            } else {
+                li.className = "requirement-row " + (req.ok ? "ok" : "missing");
+                li.innerHTML = `
+                    <span class="requirement-status">${req.ok ? "✓" : "✗"}</span>
+                    <span class="requirement-nom">${req.nom}</span>
+                    <span class="requirement-count">${req.owned} / ${req.needed}</span>
+                `;
+            }
+
             listEl.appendChild(li);
         });
 
@@ -61,6 +75,9 @@ document.addEventListener("DOMContentLoaded", () => {
         } else if (data.canUnlock) {
             statusEl.textContent = "Combinaison complète !";
             unlockBtn.disabled = false;
+        } else if (hasUpcoming) {
+            statusEl.textContent = "Cette combinaison n'est pas encore complète : des cartes sont à venir.";
+            unlockBtn.disabled = true;
         } else {
             statusEl.textContent = "Il vous manque des cartes pour débloquer cette mythique.";
             unlockBtn.disabled = true;

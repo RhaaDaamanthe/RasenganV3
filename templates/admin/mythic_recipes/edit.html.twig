@@ -211,6 +211,56 @@
         .candidate-card.selected-candidate .selected-badge {
             display: block;
         }
+
+        .recipe-panel h2 .btn-add-placeholder {
+            margin-left: auto;
+            background: #fff3e0;
+            color: #e07b00;
+            border: 1px solid #fa9d11;
+            border-radius: 999px;
+            padding: 4px 12px;
+            font-size: 0.8em;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .recipe-panel h2 .btn-add-placeholder:hover {
+            background: #fa9d11;
+            color: white;
+        }
+
+        .requirement-edit-row--placeholder {
+            background: #fff8ec;
+            border: 1px dashed #fa9d11;
+        }
+
+        .requirement-icon {
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1em;
+            border-radius: 6px;
+            background: #fef1da;
+            border: 1px solid #fa9d11;
+            flex-shrink: 0;
+        }
+
+        .placeholder-input {
+            flex: 1;
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9em;
+            background: #fff;
+        }
+
+        .placeholder-input:focus {
+            border-color: #ff8c00;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.15);
+        }
     </style>
 {% endblock %}
 
@@ -236,22 +286,36 @@
 
             <div class="recipe-layout">
                 <section class="recipe-panel">
-                    <h2>Cartes sélectionnées <span class="count-badge" id="selected-count">{{ card.requirements|length }}</span></h2>
+                    <h2>
+                        Cartes sélectionnées <span class="count-badge" id="selected-count">{{ card.requirements|length }}</span>
+                        <button type="button" id="add-placeholder-btn" class="btn-add-placeholder">+ Carte à venir</button>
+                    </h2>
 
                     <div id="selected-list">
                         {% for requirement in card.requirements %}
-                            <div class="requirement-edit-row" data-id="{{ requirement.requiredCard.id }}">
-                                {% if requirement.requiredCard.imagePath %}
-                                    <img src="{{ asset(requirement.requiredCard.imagePath) }}" alt="">
-                                {% endif %}
-                                <input type="hidden" name="required[]" value="{{ requirement.requiredCard.id }}">
-                                <span class="requirement-nom">
-                                    {{ requirement.requiredCard.nom }}<br>
-                                    <small>{{ type == 'anime' ? (requirement.requiredCard.anime ? requirement.requiredCard.anime.nom : '?') : (requirement.requiredCard.film ? requirement.requiredCard.film.nom : '?') }}</small>
-                                </span>
-                                <input type="number" name="qty[]" min="1" value="{{ requirement.quantityRequired }}">
-                                <button type="button" class="remove-row-btn" title="Retirer">✖</button>
-                            </div>
+                            {% if requirement.requiredCard %}
+                                <div class="requirement-edit-row" data-id="{{ requirement.requiredCard.id }}">
+                                    {% if requirement.requiredCard.imagePath %}
+                                        <img src="{{ asset(requirement.requiredCard.imagePath) }}" alt="">
+                                    {% endif %}
+                                    <input type="hidden" name="required[]" value="{{ requirement.requiredCard.id }}">
+                                    <input type="hidden" name="placeholder[]" value="">
+                                    <span class="requirement-nom">
+                                        {{ requirement.requiredCard.nom }}<br>
+                                        <small>{{ type == 'anime' ? (requirement.requiredCard.anime ? requirement.requiredCard.anime.nom : '?') : (requirement.requiredCard.film ? requirement.requiredCard.film.nom : '?') }}</small>
+                                    </span>
+                                    <input type="number" name="qty[]" min="1" value="{{ requirement.quantityRequired }}">
+                                    <button type="button" class="remove-row-btn" title="Retirer">✖</button>
+                                </div>
+                            {% else %}
+                                <div class="requirement-edit-row requirement-edit-row--placeholder" data-id="">
+                                    <span class="requirement-icon">🔒</span>
+                                    <input type="hidden" name="required[]" value="">
+                                    <input type="text" name="placeholder[]" class="placeholder-input" placeholder="Nom de la carte à venir" value="{{ requirement.placeholderNom }}">
+                                    <input type="number" name="qty[]" min="1" value="{{ requirement.quantityRequired }}">
+                                    <button type="button" class="remove-row-btn" title="Retirer">✖</button>
+                                </div>
+                            {% endif %}
                         {% endfor %}
                     </div>
                     <p id="no-selected-message" style="{% if card.requirements|length > 0 %}display:none;{% endif %}">Aucune carte sélectionnée pour le moment.</p>
@@ -322,11 +386,33 @@
             row.innerHTML = `
                 ${image ? `<img src="${image}" alt="">` : ''}
                 <input type="hidden" name="required[]" value="${id}">
+                <input type="hidden" name="placeholder[]" value="">
                 <span class="requirement-nom">${nom}<br><small>${univers}</small></span>
                 <input type="number" name="qty[]" min="1" value="${qty}">
                 <button type="button" class="remove-row-btn" title="Retirer">✖</button>
             `;
             selectedList.appendChild(row);
+        }
+
+        function addPlaceholderRow() {
+            const row = document.createElement('div');
+            row.className = 'requirement-edit-row requirement-edit-row--placeholder';
+            row.dataset.id = '';
+            row.innerHTML = `
+                <span class="requirement-icon">🔒</span>
+                <input type="hidden" name="required[]" value="">
+                <input type="text" name="placeholder[]" class="placeholder-input" placeholder="Nom de la carte à venir">
+                <input type="number" name="qty[]" min="1" value="1">
+                <button type="button" class="remove-row-btn" title="Retirer">✖</button>
+            `;
+            selectedList.appendChild(row);
+            updateSelectedState();
+            row.querySelector('.placeholder-input').focus();
+        }
+
+        const addPlaceholderBtn = document.getElementById('add-placeholder-btn');
+        if (addPlaceholderBtn) {
+            addPlaceholderBtn.addEventListener('click', addPlaceholderRow);
         }
 
         function removeRow(id) {
