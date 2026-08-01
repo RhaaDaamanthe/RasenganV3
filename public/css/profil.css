@@ -591,8 +591,8 @@
 
 .rarity-badge.rarity-commun { background: #95a5a6; }
 .rarity-badge.rarity-rare { background: #3498db; }
-.rarity-badge.rarity-épique { background: #9b59b6; }
-.rarity-badge.rarity-légendaire { background: #f39c12; }
+.rarity-badge.rarity-epique { background: #9b59b6; }
+.rarity-badge.rarity-legendaire { background: #f39c12; }
 
 .rarity-grid {
     display: grid;

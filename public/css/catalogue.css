@@ -166,13 +166,6 @@ main {
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* Total cards styling */
-.total-cards {
-  margin-top: 10px;
-  font-size: 1.2em;
-  color: #e76d0a;
-}
-
 /* Responsive */
 
 @media (max-width: 599px) {

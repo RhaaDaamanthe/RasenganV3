@@ -105,23 +105,6 @@ main {
   text-decoration: underline;
 }
 
-.register-link {
-  font-size: 14.5px;
-  text-align: center;
-  margin-top: 20px;
-}
-
-.register-link p a {
-  color: #fff;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.register-link p a:hover {
-  text-decoration: underline;
-}
-
-
 /* Styles pour les médias sociaux */
 .social-media {
     margin-top: 20px;

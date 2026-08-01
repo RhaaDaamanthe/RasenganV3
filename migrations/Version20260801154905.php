@@ -29,7 +29,7 @@ final class Version20260801154905 extends AbstractMigration
         $this->addSql("INSERT INTO badge (name, description, icon, type, level, objective, rarity, position) VALUES
             ('Ancienneté I', 'Membre depuis 1 mois.', 'Anciennete1.png', 'anciennete', 1, 30, 'commune', 71),
             ('Ancienneté II', 'Membre depuis 6 mois.', 'Anciennete2.png', 'anciennete', 2, 182, 'commune', 72),
-            ('Ancienneté III', 'Membre depuis 1 an.', 'Anciennete3.png', 'anciennete', 3, 365, 'rare', 73),
+            ('Ancienneté III', 'Membre depuis 1 an.', 'Anciennete3.png', 'anciennete', 3, 365, 'commune', 73),
             ('Ancienneté IV', 'Membre depuis 2 ans.', 'Anciennete4.png', 'anciennete', 4, 730, 'rare', 74),
             ('Ancienneté V', 'Membre depuis 3 ans.', 'Anciennete5.png', 'anciennete', 5, 1095, 'epique', 75),
             ('Ancienneté VI', 'Membre depuis 5 ans.', 'Anciennete6.png', 'anciennete', 6, 1825, 'epique', 76),

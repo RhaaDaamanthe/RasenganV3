@@ -250,11 +250,6 @@ input#searchbar::placeholder {
 
 /* Filtre cartes */
 
-.filters-container {
-  display: flex;
-  justify-content: center;
-}
-
 .filter-group {
   margin-bottom: 5px;
   display: flex;
@@ -343,10 +338,6 @@ select {
   color: #555;
 }
 
-#main-compte {
-  padding: 130px 0px;
-}
-
 /* Utilisateurs cartes */
 
 .card-content p {
@@ -355,20 +346,12 @@ select {
   margin: 5px 0;
   text-align: center;
 }
-.card.expanded .card-content {
-  height: auto;
-  padding-bottom: 20px;
-  background: linear-gradient(white 75%, #fa9d11);
-}
 .owners-list {
   display: none;
   color: #808080;
   font-size: 14px;
   text-align: center;
   padding: 10px 0;
-}
-.card.expanded .owners-list {
-  display: block;
 }
 
 /* ========================================= */
