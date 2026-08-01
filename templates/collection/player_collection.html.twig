@@ -5,12 +5,33 @@
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/profil.css') }}">
 {% endblock %}
 
 {% block body %}
 <main class="main-collec-responsive">
 
     <h2 id="Catalogue">{{ user.titreCollection|default('Chez ' ~ user.pseudo) }}</h2>
+
+    <!-- Onglets -->
+    <div class="profile-tabs">
+        <button type="button" class="profile-tab-btn active" data-tab="cartes">
+            <span class="tab-btn-inner">🎴 Cartes</span>
+        </button>
+        <button type="button" class="profile-tab-btn" data-tab="badges">
+            <span class="tab-btn-inner">🎖️ Badges</span>
+        </button>
+        <button type="button" class="profile-tab-btn" data-tab="vitrine">
+            <span class="tab-btn-inner">🖼️ Vitrine</span>
+            <span class="tab-soon">Bientôt</span>
+        </button>
+        <button type="button" class="profile-tab-btn" data-tab="wishlist">
+            <span class="tab-btn-inner">💖 Wishlist</span>
+            <span class="tab-soon">Bientôt</span>
+        </button>
+    </div>
+
+    <div class="profile-tab-panel" data-tab-panel="cartes">
 
     <!-- Barre de recherche + filtres -->
     <div class="search-filters-container">
@@ -59,8 +80,8 @@
 
             <!-- 🟣 Compteur stylé intégré -->
             <div class="player-stats-inline">
-                <span class="player-cards">🍜 {{ user.userCardAnimes|length }} cartes Anime</span>
-                <span class="player-cards">🎬 {{ user.userCardFilms|length }} cartes Film</span>
+                <span class="player-cards">🍜 {{ user.getTotalCardAnimeCount }} cartes Anime</span>
+                <span class="player-cards">🎬 {{ user.getTotalCardFilmCount }} cartes Film</span>
             </div>
         </form>
     </div>
@@ -159,6 +180,57 @@
             {% endif %}
         </div>
     {% endif %}
+
+    </div>
+
+    <div class="profile-tab-panel" data-tab-panel="badges" hidden>
+        <div class="badges-panel-light">
+            <h3>
+                🎖️ Badges de {{ user.pseudo }}
+                {% if user.badges|length > 0 %}
+                    <span class="badge-count">({{ user.badges|length }})</span>
+                {% endif %}
+            </h3>
+
+            {% if user.badges|length > 0 %}
+                <div class="badges-container">
+                    {% for badge in user.badges %}
+                        <div class="badge-wrapper" data-name="{{ badge.name }}">
+                            <img src="{{ asset('images/badges/' ~ badge.icon) }}"
+                                 alt="{{ badge.name }}"
+                                 class="badge-icon
+                                    {% if badge.name in ['Noël 2025', 'Légende', 'Anniversaire'] %}rare{% endif %}"
+                                 loading="lazy">
+                            <div class="badge-tooltip">
+                                <strong>{{ badge.name }}</strong>
+                                {% if badge.description %}
+                                    <br><small>{{ badge.description }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p><em>{{ user.pseudo }} n'a débloqué aucun badge pour le moment.</em></p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="profile-tab-panel" data-tab-panel="vitrine" hidden>
+        <div class="profile-tab-panel-soon">
+            <span class="soon-icon">🖼️</span>
+            <h3>Vitrine à venir</h3>
+            <p>{{ user.pseudo }} pourra bientôt mettre en avant ses cartes préférées ici.</p>
+        </div>
+    </div>
+
+    <div class="profile-tab-panel" data-tab-panel="wishlist" hidden>
+        <div class="profile-tab-panel-soon">
+            <span class="soon-icon">💖</span>
+            <h3>Wishlist à venir</h3>
+            <p>{{ user.pseudo }} pourra bientôt lister les cartes qu'il recherche ici.</p>
+        </div>
+    </div>
 </main>
 {% endblock %}
 
@@ -166,4 +238,19 @@
     {{ parent() }}
     {# PAS de filtre_cartes.js - tout est géré en PHP maintenant #}
     <script src="{{ asset('js/utilisateurs_cartes.js') }}"></script>
+    <script>
+        document.querySelectorAll('.profile-tab-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var target = btn.dataset.tab;
+
+                document.querySelectorAll('.profile-tab-btn').forEach(function (b) {
+                    b.classList.toggle('active', b === btn);
+                });
+
+                document.querySelectorAll('.profile-tab-panel').forEach(function (panel) {
+                    panel.hidden = panel.dataset.tabPanel !== target;
+                });
+            });
+        });
+    </script>
 {% endblock %}

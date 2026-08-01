@@ -253,6 +253,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getTotalCardAnimeCount(): int
+    {
+        $count = 0;
+
+        foreach ($this->getUserCardAnimes() as $userCard) {
+            $count += $userCard->getQuantity();
+        }
+
+        return $count;
+    }
+
+    public function getTotalCardFilmCount(): int
+    {
+        $count = 0;
+
+        foreach ($this->getUserCardFilms() as $userCard) {
+            $count += $userCard->getQuantity();
+        }
+
+        return $count;
+    }
+
+    public function getTotalCardsCount(): int
+    {
+        return $this->getTotalCardAnimeCount() + $this->getTotalCardFilmCount();
+    }
+
     public function getTotalPoints(): int
 {
     $points = 0;

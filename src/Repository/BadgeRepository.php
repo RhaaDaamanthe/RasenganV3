@@ -16,6 +16,14 @@ class BadgeRepository extends ServiceEntityRepository
         parent::__construct($registry, Badge::class);
     }
 
+    /**
+     * @return Badge[]
+     */
+    public function findCollectorBadgesOrderedByLevel(): array
+    {
+        return $this->findBy(['type' => 'collectionneur'], ['level' => 'ASC']);
+    }
+
     //    /**
     //     * @return Badge[] Returns an array of Badge objects
     //     */

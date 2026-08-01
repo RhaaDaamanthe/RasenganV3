@@ -10,6 +10,7 @@ use App\Entity\UserCardFilm;
 use App\Repository\UserRepository;
 use App\Repository\CardAnimeRepository;
 use App\Repository\CardFilmRepository;
+use App\Service\BadgeService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -64,7 +65,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
         User $user,
         Request $request,
         CardAnimeRepository $cardAnimeRepository,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        BadgeService $badgeService
     ): Response {
         $search = $request->query->get('search', '');
         $page = max(1, $request->query->getInt('page', 1));
@@ -118,6 +120,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
                     }
 
                     $entityManager->flush();
+                    $badgeService->refreshCollectorBadges($user);
                     $this->addFlash('success', "✅ {$quantity}x {$card->getNom()} attribuée(s) à {$user->getPseudo()} !");
                 }
             }
@@ -139,7 +142,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
         User $user,
         Request $request,
         CardFilmRepository $cardFilmRepository,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        BadgeService $badgeService
     ): Response {
         $search = $request->query->get('search', '');
         $page = max(1, $request->query->getInt('page', 1));
@@ -193,6 +197,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
                     }
 
                     $entityManager->flush();
+                    $badgeService->refreshCollectorBadges($user);
                     $this->addFlash('success', "✅ {$quantity}x {$card->getNom()} attribuée(s) à {$user->getPseudo()} !");
                 }
             }

@@ -9,6 +9,7 @@ use App\Entity\User;
 use App\Entity\UserCardAnime;
 use App\Entity\UserCardFilm;
 use App\Repository\UserRepository;
+use App\Service\BadgeService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Asset\Packages;
@@ -152,7 +153,7 @@ class WheelController extends AbstractController
     }
 
     #[Route('/anime/user/{id}/attribuer', name: 'app_wheel_anime_confirm', methods: ['POST'])]
-    public function animeConfirm(User $user, Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function animeConfirm(User $user, Request $request, EntityManagerInterface $entityManager, BadgeService $badgeService): JsonResponse
     {
         if (!$this->isCsrfTokenValid('wheel-action', (string) $request->request->get('_token'))) {
             return $this->json(['success' => false, 'message' => 'Jeton de sécurité invalide.'], 400);
@@ -191,12 +192,13 @@ class WheelController extends AbstractController
         }
 
         $entityManager->flush();
+        $badgeService->refreshCollectorBadges($user);
 
         return $this->json(['success' => true, 'message' => "✅ {$card->getNom()} attribuée à {$user->getPseudo()} !"]);
     }
 
     #[Route('/film/user/{id}/attribuer', name: 'app_wheel_film_confirm', methods: ['POST'])]
-    public function filmConfirm(User $user, Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function filmConfirm(User $user, Request $request, EntityManagerInterface $entityManager, BadgeService $badgeService): JsonResponse
     {
         if (!$this->isCsrfTokenValid('wheel-action', (string) $request->request->get('_token'))) {
             return $this->json(['success' => false, 'message' => 'Jeton de sécurité invalide.'], 400);
@@ -235,6 +237,7 @@ class WheelController extends AbstractController
         }
 
         $entityManager->flush();
+        $badgeService->refreshCollectorBadges($user);
 
         return $this->json(['success' => true, 'message' => "✅ {$card->getNom()} attribuée à {$user->getPseudo()} !"]);
     }

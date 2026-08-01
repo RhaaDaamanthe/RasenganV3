@@ -24,6 +24,15 @@ class Badge
     #[ORM\Column(length: 255)]
     private ?string $icon = null;
 
+    #[ORM\Column(length: 50)]
+    private ?string $type = null;
+
+    #[ORM\Column]
+    private ?int $level = 0;
+
+    #[ORM\Column]
+    private ?int $objective = 0;
+
     /**
      * @var Collection<int, User>
      */
@@ -72,6 +81,42 @@ class Badge
     public function setIcon(string $icon): static
     {
         $this->icon = $icon;
+
+        return $this;
+    }
+
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+
+    public function setType(string $type): static
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+
+    public function getLevel(): ?int
+    {
+        return $this->level;
+    }
+
+    public function setLevel(int $level): static
+    {
+        $this->level = $level;
+
+        return $this;
+    }
+
+    public function getObjective(): ?int
+    {
+        return $this->objective;
+    }
+
+    public function setObjective(int $objective): static
+    {
+        $this->objective = $objective;
 
         return $this;
     }

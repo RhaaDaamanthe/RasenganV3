@@ -31,7 +31,7 @@
         <div class="profile-stats">
             <div class="stat-item stat-cards">
                 <span class="stat-icon">🎴</span>
-                <span class="stat-number">{{ user.userCardAnimes|length + user.userCardFilms|length }}</span>
+                <span class="stat-number">{{ user.getTotalCardsCount }}</span>
                 <span class="stat-label">Cartes</span>
             </div>
             <div class="stat-item stat-points">

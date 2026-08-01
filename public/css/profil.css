@@ -293,6 +293,146 @@
     opacity: 1;
 }
 
+/* ==================== ONGLETS (profil public d'un joueur) ==================== */
+
+.profile-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin: 10px auto 30px;
+    width: 100%;
+    max-width: 900px;
+}
+
+.profile-tab-btn {
+    position: relative;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+.tab-btn-inner {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    background: linear-gradient(160deg, #4a0e0a 0%, #2e0503 100%);
+    color: #cdbfba;
+    border: 2px solid rgba(231, 109, 10, 0.35);
+    border-radius: 50px;
+    padding: 14px 30px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    overflow: hidden;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.tab-btn-inner::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    transition: 0.6s;
+}
+
+.profile-tab-btn:hover .tab-btn-inner {
+    color: #fff;
+    border-color: #ff8c42;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(231, 109, 10, 0.35);
+}
+
+.profile-tab-btn:hover .tab-btn-inner::before {
+    left: 100%;
+}
+
+.profile-tab-btn.active .tab-btn-inner {
+    background: linear-gradient(135deg, #e76d0a, #ff6b00);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 10px 30px rgba(231, 109, 10, 0.5);
+    transform: translateY(-2px);
+}
+
+.profile-tab-btn .tab-soon {
+    position: absolute;
+    top: -10px;
+    right: -8px;
+    background: #ffd700;
+    color: #2e0503;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 20px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+}
+
+.profile-tab-panel[hidden] {
+    display: none;
+}
+
+.badges-panel-light {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 10px 0 40px;
+    text-align: center;
+}
+
+.badges-panel-light h3 {
+    margin: 0 0 24px;
+    font-size: 1.4rem;
+    color: #ff8c42;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.badges-panel-light .badge-count {
+    font-size: 0.95rem;
+    color: #ffb066;
+    font-weight: 600;
+}
+
+.badges-panel-light p {
+    color: #cdbfba;
+}
+
+.profile-tab-panel-soon {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 60px 20px;
+    text-align: center;
+    color: #cdbfba;
+    background: linear-gradient(160deg, #4a0e0a 0%, #2e0503 100%);
+    border-radius: 20px;
+    border: 1px solid rgba(231, 109, 10, 0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.profile-tab-panel-soon .soon-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 15px;
+}
+
+.profile-tab-panel-soon h3 {
+    color: #ff8c42;
+    font-size: 1.5rem;
+    margin: 0 0 10px;
+}
+
 /* ============== PAGE PARAMÈTRES (settings.html.twig) ============== */
 
 .profile-settings {
