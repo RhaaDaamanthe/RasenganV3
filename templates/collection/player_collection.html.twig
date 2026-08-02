@@ -11,7 +11,11 @@
 {% block body %}
 <main class="main-collec-responsive">
 
-    <h2 id="Catalogue">{{ user.titreCollection|default('Chez ' ~ user.pseudo) }}</h2>
+    <div class="player-collection-title-wrap">
+        <span class="title-flourish"></span>
+        <h2 id="Catalogue" class="player-collection-title">{{ user.titreCollection|default('Chez ' ~ user.pseudo) }}</h2>
+        <span class="title-flourish"></span>
+    </div>
 
     <!-- Onglets -->
     <div class="profile-tabs">

@@ -292,13 +292,57 @@ select {
   padding-top: 50px;
 }
 
-#Catalogue {
-  font-size: 2em;
+.player-collection-title-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding-top: 25px;
+  margin: 0 0 22px;
+}
+
+.player-collection-title {
+  font-size: 2.1rem;
+  font-weight: 800;
   text-align: center;
-  color: white;
-  padding-top: 20px;
-  text-shadow: -2px -2px 0 #420502, 2px -2px 0 #420502, -2px 2px 0 #420502,
-    2px 2px 0 #420502;
+  margin: 0;
+  padding-top: 0;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  color: #fff8ec;
+  text-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.65),
+    0 0 24px rgba(255, 140, 66, 0.5);
+}
+
+.title-flourish {
+  flex: 0 0 70px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #ff8c42);
+  position: relative;
+}
+
+.title-flourish::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  background: #ff8c42;
+  border-radius: 2px;
+  transform: translate(50%, -50%) rotate(45deg);
+  box-shadow: 0 0 8px rgba(255, 140, 66, 0.7);
+}
+
+.title-flourish:last-child {
+  background: linear-gradient(90deg, #ff8c42, transparent);
+}
+
+.title-flourish:last-child::after {
+  left: 0;
+  right: auto;
+  transform: translate(-50%, -50%) rotate(45deg);
 }
 
 .card {
@@ -803,8 +847,13 @@ select {
     padding-top: 20px;
   }
 
-  #Catalogue {
-    font-size: 1.2em;
+  .player-collection-title {
+    font-size: 1.3rem;
+    white-space: normal;
+  }
+
+  .title-flourish {
+    flex-basis: 24px;
   }
 
   .card {

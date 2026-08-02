@@ -6,115 +6,166 @@
     {{ parent() }}
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
     <style>
-        .modern-player-card {
-            background: linear-gradient(145deg, #fff7ea, #ffddaa);
-            border: none;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            overflow: hidden;
-            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            text-decoration: none;
-            color: #333;
+        .global-stats {
+            text-align: center;
+            margin: 20px auto 45px;
+        }
+
+        .global-stats-grid {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .global-stat-tile {
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 25px 15px;
+            gap: 4px;
+            min-width: 150px;
+            padding: 22px 34px;
+            border-radius: 16px;
+            background: linear-gradient(160deg, #4a0e0a 0%, #2e0503 100%);
+            border: 1px solid rgba(231, 109, 10, 0.25);
+            border-top: 3px solid #e76d0a;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .modern-player-card:hover {
-            transform: translateY(-12px) scale(1.05);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+        .global-stat-tile:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
         }
 
-        .player-profile-img {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 5px solid #ff9933;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            transition: transform 0.4s ease, border-color 0.3s;
-        }
-        
-        .modern-player-card:hover .player-profile-img {
-            transform: scale(1.1);
-            border-color: #ff6600;
-        }
-
-        .card-content {
-            padding: 15px 0 0;
-            width: 100%;
-            text-align: center;
-        }
-
-        .card-title {
+        .global-stat-icon {
             font-size: 1.6rem;
-            margin: 10px 0 0;
+        }
+
+        .global-stat-value {
+            font-size: 2rem;
             font-weight: 700;
-            color: #420502;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            color: #ff8c42;
+        }
+
+        .global-stat-label {
+            font-size: 0.85rem;
+            color: #cdbfba;
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .catalogue {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 35px;
+            gap: 28px;
             justify-content: center;
-            padding: 50px 0;
+            padding: 20px 0 50px;
         }
 
-        .global-stats {
+        .player-card-link {
+            display: block;
+        }
+
+        .modern-player-card {
+            position: relative;
+            background: linear-gradient(160deg, #4a0e0a 0%, #2e0503 100%);
+            border: 1px solid rgba(231, 109, 10, 0.25);
+            border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+            overflow: hidden;
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), border-color 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 15px 24px;
+        }
+
+        .modern-player-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 16px 40px rgba(231, 109, 10, 0.35);
+            border-color: #ff8c42;
+        }
+
+        .player-rank-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            font-size: 1.5rem;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+        }
+
+        .modern-player-card.rank-1 {
+            border-color: rgba(255, 215, 0, 0.5);
+        }
+
+        .modern-player-card.rank-1:hover {
+            box-shadow: 0 16px 40px rgba(255, 215, 0, 0.4);
+            border-color: #ffd700;
+        }
+
+        .player-profile-img {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #e76d0a;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            transition: transform 0.4s ease, border-color 0.3s ease;
+        }
+
+        .modern-player-card:hover .player-profile-img {
+            transform: scale(1.08);
+            border-color: #ff8c42;
+        }
+
+        .card-content {
+            padding: 16px 0 0;
+            width: 100%;
             text-align: center;
-            margin: 30px auto 50px;
         }
 
-        .stats-card {
-            display: inline-block;
-            padding: 20px 40px;
-            border-radius: 20px;
-            background: linear-gradient(135deg, #ffd700, #ffb347);
-            color: #b36322;
-            font-family: "Poppins", sans-serif;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .stats-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-        }
-
-        .stats-text {
-            font-size: 1.8rem;
+        .card-title {
+            font-size: 1.3rem;
+            margin: 0;
             font-weight: 700;
-            margin-bottom: 6px;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .stats-subtext {
-            font-size: 1.2rem;
-            opacity: 0.9;
+        .player-points {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 10px;
+            padding: 4px 14px;
+            border-radius: 999px;
+            background: rgba(255, 140, 66, 0.15);
+            color: #ffb066;
+            font-size: 0.9rem;
+            font-weight: 600;
         }
 
-        .count {
-            font-weight: 800;
-            color: #420502;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-        }
         @media (max-width: 768px) {
             .catalogue {
                 grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
                 gap: 20px;
             }
             .modern-player-card {
-                padding: 15px;
+                padding: 22px 12px 18px;
             }
             .player-profile-img {
                 width: 90px;
                 height: 90px;
             }
             .card-title {
-                font-size: 1.2rem;
+                font-size: 1.1rem;
+            }
+            .global-stat-tile {
+                padding: 18px 24px;
             }
         }
     </style>
@@ -126,21 +177,32 @@
 
         <!-- 🔥 Zone des statistiques globales -->
         <section class="global-stats">
-            <div class="stats-card">
-                <p class="stats-text">
-                    <span id="totalCount" class="count" data-value="{{ totalCards }}">0</span> cartes collectées
-                </p>
-                <p class="stats-subtext">
-                    🍜 <span id="animeCount" class="count" data-value="{{ animeCount }}">0</span>
-                    &nbsp;🎬 <span id="filmCount" class="count" data-value="{{ filmCount }}">0</span>
-                </p>
+            <div class="global-stats-grid">
+                <div class="global-stat-tile">
+                    <span class="global-stat-icon">🎴</span>
+                    <span id="totalCount" class="count global-stat-value" data-value="{{ totalCards }}">0</span>
+                    <span class="global-stat-label">Cartes collectées</span>
+                </div>
+                <div class="global-stat-tile">
+                    <span class="global-stat-icon">🍜</span>
+                    <span id="animeCount" class="count global-stat-value" data-value="{{ animeCount }}">0</span>
+                    <span class="global-stat-label">Cartes Anime</span>
+                </div>
+                <div class="global-stat-tile">
+                    <span class="global-stat-icon">🎬</span>
+                    <span id="filmCount" class="count global-stat-value" data-value="{{ filmCount }}">0</span>
+                    <span class="global-stat-label">Cartes Film</span>
+                </div>
             </div>
         </section>
 
         <div class="catalogue">
             {% for user in users %}
-                <a href="{{ path('app_player_collection', {'id': user.id}) }}">
-                    <div class="card special-card modern-player-card">
+                <a href="{{ path('app_player_collection', {'id': user.id}) }}" class="player-card-link">
+                    <div class="card special-card modern-player-card{% if loop.index <= 3 %} rank-{{ loop.index }}{% endif %}">
+                        {% if loop.index <= 3 %}
+                            <span class="player-rank-badge">{{ loop.index == 1 ? '🥇' : (loop.index == 2 ? '🥈' : '🥉') }}</span>
+                        {% endif %}
                         {% if user.imageCollection %}
                             <img src="{{ asset(user.imageCollection) }}" alt="{{ user.pseudo }}" class="player-profile-img">
                         {% else %}
