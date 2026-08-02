@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Entity\UserCardFilm;
 use App\Form\ProfileSettingsType;
 use App\Repository\UserCardAnimeRepository;
+use App\Service\BadgeService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,10 +20,13 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class UserController extends AbstractController
 {
     #[Route('', name: 'app_user_profile', methods: ['GET'])]
-    public function showProfile(): Response
+    public function showProfile(BadgeService $badgeService): Response
     {
+        $user = $this->getUser();
+
         return $this->render('user/index.html.twig', [
-            'user' => $this->getUser(),
+            'user' => $user,
+            'badgeShowcase' => $badgeService->getBadgeShowcase($user),
         ]);
     }
 

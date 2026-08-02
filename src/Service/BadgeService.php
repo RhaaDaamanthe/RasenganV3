@@ -84,4 +84,75 @@ class BadgeService
 
         $this->em->flush();
     }
+
+    public function getBadgeShowcase(User $user): array
+    {
+        $this->refreshCollectorBadges($user);
+        $this->refreshSeniorityBadges($user);
+
+        $badgeRepo = $this->em->getRepository(Badge::class);
+
+        $collector = $this->buildTierShowcase(
+            $badgeRepo->findCollectorBadgesOrderedByLevel(),
+            $user->getTotalCardsCount()
+        );
+
+        $registeredSince = $user->getDateCreation();
+        $daysSinceRegistration = $registeredSince !== null
+            ? $registeredSince->diff(new \DateTimeImmutable())->days
+            : 0;
+        $seniority = $this->buildTierShowcase(
+            $badgeRepo->findSeniorityBadgesOrderedByLevel(),
+            $daysSinceRegistration
+        );
+
+        $ownedIds = array_map(fn (Badge $b) => $b->getId(), $user->getBadges()->toArray());
+        $events = array_map(fn (Badge $b) => [
+            'badge' => $b,
+            'unlocked' => in_array($b->getId(), $ownedIds, true),
+        ], $badgeRepo->findEventBadgesOrderedByPosition());
+
+        return [
+            'collectionneur' => $collector,
+            'anciennete' => $seniority,
+            'event' => $events,
+        ];
+    }
+
+    private function buildTierShowcase(array $tiers, int $metric): array
+    {
+        $result = [];
+        $previousObjective = 0;
+        $highestUnlockedIndex = null;
+        $progressAssigned = false;
+
+        foreach ($tiers as $index => $badge) {
+            $unlocked = $metric >= $badge->getObjective();
+            if ($unlocked) {
+                $highestUnlockedIndex = $index;
+            }
+
+            $progress = null;
+            if (!$unlocked && !$progressAssigned) {
+                $span = max(1, $badge->getObjective() - $previousObjective);
+                $progress = (int) min(100, max(0, floor(($metric - $previousObjective) / $span * 100)));
+                $progressAssigned = true;
+            }
+
+            $result[] = [
+                'badge' => $badge,
+                'unlocked' => $unlocked,
+                'current' => false,
+                'progress' => $progress,
+            ];
+
+            $previousObjective = $badge->getObjective();
+        }
+
+        if ($highestUnlockedIndex !== null) {
+            $result[$highestUnlockedIndex]['current'] = true;
+        }
+
+        return ['metric' => $metric, 'tiers' => $result];
+    }
 }

@@ -10,7 +10,7 @@
     text-align: center;
     font-family: 'Poppins', sans-serif;
     position: relative;
-    overflow: hidden;
+    overflow-x: hidden;
 }
 
 .profile-container::before {
@@ -250,7 +250,7 @@
 .badge-icon:hover {
     transform: translateY(-15px) scale(1.25);
     border-color: #420502 !important;
-    box-shadow: 0 20px 40px rgba(255, 215, 0, 0.6);
+    box-shadow: 0 12px 26px rgba(255, 215, 0, 0.35) !important;
 }
 
 .badge-icon.rarity-commune {
@@ -420,6 +420,58 @@
 
 .badges-panel-light p {
     color: #cdbfba;
+}
+
+.badge-family {
+    margin-bottom: 32px;
+}
+
+.badge-family:last-child {
+    margin-bottom: 0;
+}
+
+.badge-family-title {
+    color: #ff8c42;
+    font-size: 1.1rem;
+    margin: 0 0 16px;
+    text-align: center;
+}
+
+.badge-wrapper.locked .badge-icon {
+    filter: grayscale(1) brightness(0.55);
+    opacity: 0.7;
+}
+
+.badge-wrapper.locked .badge-icon:hover {
+    opacity: 1;
+}
+
+.badge-wrapper.current .badge-icon {
+    box-shadow: 0 0 0 3px #ffd700, 0 6px 20px rgba(255, 215, 0, 0.4);
+}
+
+.badge-progress-track {
+    width: 72px;
+    height: 6px;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.badge-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #e76d0a, #ff8c42);
+    border-radius: 999px;
+    transition: width 0.4s ease;
+}
+
+.badge-progress-label {
+    display: block;
+    text-align: center;
+    font-size: 0.7rem;
+    color: #ffb066;
+    margin-top: 3px;
 }
 
 .profile-tab-panel-soon {

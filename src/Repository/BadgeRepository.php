@@ -32,6 +32,14 @@ class BadgeRepository extends ServiceEntityRepository
         return $this->findBy(['type' => 'anciennete'], ['level' => 'ASC']);
     }
 
+    /**
+     * @return Badge[]
+     */
+    public function findEventBadgesOrderedByPosition(): array
+    {
+        return $this->findBy(['type' => 'event'], ['position' => 'ASC']);
+    }
+
     //    /**
     //     * @return Badge[] Returns an array of Badge objects
     //     */

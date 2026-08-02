@@ -1,0 +1,77 @@
+{# Attend : showcase ({collectionneur, anciennete, event}), pseudo #}
+<div class="badges-panel-light">
+    <h3>🎖️ Badges de {{ pseudo }}</h3>
+
+    <div class="badge-family">
+        <h4 class="badge-family-title">🎴 Collectionneur</h4>
+        <div class="badges-container">
+            {% for tier in showcase.collectionneur.tiers %}
+                <div class="badge-wrapper {{ tier.unlocked ? 'unlocked' : 'locked' }}{{ tier.current ? ' current' : '' }}" data-name="{{ tier.badge.name }}">
+                    <img src="{{ asset('images/badges/' ~ tier.badge.icon) }}"
+                         alt="{{ tier.badge.name }}"
+                         class="badge-icon rarity-{{ tier.badge.rarity }}"
+                         loading="lazy">
+                    {% if tier.progress is not null %}
+                        <div class="badge-progress-track">
+                            <div class="badge-progress-fill" style="width: {{ tier.progress }}%"></div>
+                        </div>
+                        <span class="badge-progress-label">{{ tier.progress }}%</span>
+                    {% endif %}
+                    <div class="badge-tooltip">
+                        <strong>{{ tier.badge.name }}</strong>
+                        {% if tier.badge.description %}<br><small>{{ tier.badge.description }}</small>{% endif %}
+                        {% if not tier.unlocked %}<br><small>{{ showcase.collectionneur.metric }} / {{ tier.badge.objective }} cartes</small>{% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="badge-family">
+        <h4 class="badge-family-title">⏳ Ancienneté</h4>
+        <div class="badges-container">
+            {% for tier in showcase.anciennete.tiers %}
+                <div class="badge-wrapper {{ tier.unlocked ? 'unlocked' : 'locked' }}{{ tier.current ? ' current' : '' }}" data-name="{{ tier.badge.name }}">
+                    <img src="{{ asset('images/badges/' ~ tier.badge.icon) }}"
+                         alt="{{ tier.badge.name }}"
+                         class="badge-icon rarity-{{ tier.badge.rarity }}"
+                         loading="lazy">
+                    {% if tier.progress is not null %}
+                        <div class="badge-progress-track">
+                            <div class="badge-progress-fill" style="width: {{ tier.progress }}%"></div>
+                        </div>
+                        <span class="badge-progress-label">{{ tier.progress }}%</span>
+                    {% endif %}
+                    <div class="badge-tooltip">
+                        <strong>{{ tier.badge.name }}</strong>
+                        {% if tier.badge.description %}<br><small>{{ tier.badge.description }}</small>{% endif %}
+                        {% if not tier.unlocked %}<br><small>{{ showcase.anciennete.metric }} / {{ tier.badge.objective }} jours</small>{% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="badge-family">
+        <h4 class="badge-family-title">🎉 Badges d'évènement</h4>
+        {% if showcase.event|length > 0 %}
+            <div class="badges-container">
+                {% for row in showcase.event %}
+                    <div class="badge-wrapper {{ row.unlocked ? 'unlocked' : 'locked' }}" data-name="{{ row.badge.name }}">
+                        <img src="{{ asset('images/badges/' ~ row.badge.icon) }}"
+                             alt="{{ row.badge.name }}"
+                             class="badge-icon rarity-{{ row.badge.rarity }}"
+                             loading="lazy">
+                        <div class="badge-tooltip">
+                            <strong>{{ row.badge.name }}</strong>
+                            {% if row.badge.description %}<br><small>{{ row.badge.description }}</small>{% endif %}
+                            {% if not row.unlocked %}<br><small>Non débloqué</small>{% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p><em>Aucun badge d'évènement pour le moment.</em></p>
+        {% endif %}
+    </div>
+</div>

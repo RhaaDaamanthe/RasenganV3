@@ -41,38 +41,6 @@
             </div>
         </div>
 
-        <!-- NOUVELLE SECTION BADGES (juste après les stats) -->
-        <div class="badges-section mt-5">
-            <h3 class="text-center mb-4 text-gold">
-                <i class="fas fa-medal"></i> Mes Badges
-                {% if user.badges|length > 0 %}
-                    <span class="badge-count">({{ user.badges|length }})</span>
-                {% endif %}
-            </h3>
-
-            {% if user.badges|length > 0 %}
-                <div class="badges-container">
-                    {% for badge in user.badges %}
-                        <div class="badge-wrapper" data-name="{{ badge.name }}">
-                            <img src="{{ asset('images/badges/' ~ badge.icon) }}"
-                                 alt="{{ badge.name }}"
-                                 class="badge-icon rarity-{{ badge.rarity }}"
-                                 loading="lazy">
-                            <div class="badge-tooltip">
-                                <strong>{{ badge.name }}</strong>
-                                {% if badge.description %}
-                                    <br><small>{{ badge.description }}</small>
-                                {% endif %}
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <p class="text-center text-muted">
-                    <em>Aucun badge débloqué pour le moment...<br>
-                    Continue à jouer, ils arriveront !</em>
-                </p>
-            {% endif %}
-        </div>
+        {% include 'badges/_showcase.html.twig' with {showcase: badgeShowcase, pseudo: user.pseudo} %}
     </main>
 {% endblock %}
