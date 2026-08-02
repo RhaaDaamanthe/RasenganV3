@@ -21,6 +21,9 @@
         <button type="button" class="profile-tab-btn" data-tab="badges">
             <span class="tab-btn-inner">🎖️ Badges</span>
         </button>
+        <button type="button" class="profile-tab-btn" data-tab="stats">
+            <span class="tab-btn-inner">📊 Stats</span>
+        </button>
         <button type="button" class="profile-tab-btn" data-tab="vitrine">
             <span class="tab-btn-inner">🖼️ Vitrine</span>
             <span class="tab-soon">Bientôt</span>
@@ -211,6 +214,40 @@
                 </div>
             {% else %}
                 <p><em>{{ user.pseudo }} n'a débloqué aucun badge pour le moment.</em></p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="profile-tab-panel" data-tab-panel="stats" hidden>
+        <div class="badges-panel-light">
+            <h3>📊 Statistiques de rareté — {{ user.pseudo }}</h3>
+
+            {% if rarityStats.total > 0 %}
+                <p class="stats-intro">
+                    Répartition de {{ rarityStats.total }} carte{{ rarityStats.total > 1 ? 's' : '' }} (hors mythiques et évènements) comparée aux taux de drop réels.
+                    <br><span class="stats-legend"><span class="lucky">▲ vert</span> = plus que la moyenne, <span class="unlucky">▼ rouge</span> = moins que la moyenne.</span>
+                </p>
+                <div class="rarity-stats-list">
+                    {% for row in rarityStats.rarities %}
+                        <div class="rarity-stats-row">
+                            <div class="rarity-stats-head">
+                                <span class="rarity-pill {{ row.slug }}">{{ row.label }}</span>
+                                <span class="rarity-stats-meta">
+                                    {{ row.owned }} carte{{ row.owned > 1 ? 's' : '' }} · {{ row.actualPercent|number_format(1) }}% obtenu (normal {{ row.expectedPercent|number_format(0) }}%)
+                                </span>
+                                <span class="rarity-stats-delta {{ row.delta >= 0 ? 'lucky' : 'unlucky' }}">
+                                    {{ row.delta >= 0 ? '▲' : '▼' }} {{ row.delta >= 0 ? '+' : '' }}{{ row.delta|number_format(1) }}%
+                                </span>
+                            </div>
+                            <div class="rarity-delta-track">
+                                <span class="rarity-delta-baseline"></span>
+                                <span class="rarity-delta-fill {{ row.delta >= 0 ? 'lucky' : 'unlucky' }}" style="width: {{ row.barWidth|number_format(2) }}%"></span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p><em>{{ user.pseudo }} n'a pas encore de cartes communes/rares/épiques/légendaires à analyser.</em></p>
             {% endif %}
         </div>
     </div>

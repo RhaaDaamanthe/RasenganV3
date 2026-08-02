@@ -23,7 +23,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class WheelController extends AbstractController
 {
-    private const RARITY_WEIGHTS = [
+    public const RARITY_WEIGHTS = [
         1 => 40, // Communes
         2 => 35, // Rares
         3 => 20, // Épiques

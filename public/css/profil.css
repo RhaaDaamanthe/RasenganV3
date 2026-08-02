@@ -474,6 +474,114 @@
     margin-top: 3px;
 }
 
+.stats-intro {
+    color: #cdbfba;
+    font-size: 0.9rem;
+    margin: 0 0 24px;
+    line-height: 1.6;
+}
+
+.stats-legend {
+    font-size: 0.82rem;
+    color: #8f7f78;
+}
+
+.stats-legend .lucky {
+    color: #2ecc71;
+    font-weight: 600;
+}
+
+.stats-legend .unlucky {
+    color: #e74c3c;
+    font-weight: 600;
+}
+
+.rarity-stats-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    max-width: 620px;
+    margin: 0 auto;
+}
+
+.rarity-stats-row {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(231, 109, 10, 0.15);
+    border-radius: 10px;
+    padding: 14px 18px;
+    text-align: left;
+}
+
+.rarity-stats-head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 6px 14px;
+    margin-bottom: 10px;
+}
+
+.rarity-stats-meta {
+    flex: 1;
+    min-width: 160px;
+    font-size: 0.82rem;
+    color: #cdbfba;
+}
+
+.rarity-stats-delta {
+    font-weight: 700;
+    padding: 3px 12px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.rarity-stats-delta.lucky {
+    background: rgba(46, 204, 113, 0.15);
+    color: #2ecc71;
+}
+
+.rarity-stats-delta.unlucky {
+    background: rgba(231, 76, 60, 0.15);
+    color: #e74c3c;
+}
+
+.rarity-delta-track {
+    position: relative;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.rarity-delta-baseline {
+    position: absolute;
+    top: -3px;
+    bottom: -3px;
+    left: 50%;
+    width: 2px;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateX(-1px);
+}
+
+.rarity-delta-fill {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    transition: width 0.5s ease;
+}
+
+.rarity-delta-fill.lucky {
+    left: 50%;
+    border-radius: 0 999px 999px 0;
+    background: linear-gradient(90deg, #2ecc71, #4ec97a);
+}
+
+.rarity-delta-fill.unlucky {
+    right: 50%;
+    border-radius: 999px 0 0 999px;
+    background: linear-gradient(270deg, #e74c3c, #ff6b5b);
+}
+
 .profile-tab-panel-soon {
     width: 100%;
     max-width: 900px;

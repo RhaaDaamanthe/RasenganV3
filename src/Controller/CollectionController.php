@@ -7,6 +7,7 @@ use App\Entity\UserCardFilm;
 use App\Repository\UserRepository;
 use App\Repository\UserCardAnimeRepository;
 use App\Entity\Rarities;
+use App\Service\RarityStatsService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -87,7 +88,8 @@ class CollectionController extends AbstractController
         User $user,
         UserCardAnimeRepository $userCardAnimeRepository,
         EntityManagerInterface $entityManager,
-        Request $request
+        Request $request,
+        RarityStatsService $rarityStatsService
     ): Response {
         // Récupère les filtres depuis l'URL
         $search = $request->query->get('search', '');
@@ -189,6 +191,7 @@ class CollectionController extends AbstractController
             'selectedRarity' => $selectedRarity,
             'selectedSection' => $selectedSection,
             'rarities' => $rarities,
+            'rarityStats' => $rarityStatsService->getRarityBreakdown($user),
         ]);
     }
 }
