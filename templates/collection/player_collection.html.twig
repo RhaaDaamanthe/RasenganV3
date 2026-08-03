@@ -34,7 +34,6 @@
         </button>
         <button type="button" class="profile-tab-btn" data-tab="wishlist">
             <span class="tab-btn-inner">💖 Wishlist</span>
-            <span class="tab-soon">Bientôt</span>
         </button>
     </div>
 
@@ -265,10 +264,51 @@
     </div>
 
     <div class="profile-tab-panel" data-tab-panel="wishlist" hidden>
-        <div class="profile-tab-panel-soon">
-            <span class="soon-icon">💖</span>
-            <h3>Wishlist à venir</h3>
-            <p>{{ user.pseudo }} pourra bientôt lister les cartes qu'il recherche ici.</p>
+        <div class="badges-panel-light">
+            <h3>💖 Wishlist de {{ user.pseudo }}</h3>
+
+            {% if (wishlistAnime|length + wishlistFilm|length) > 0 %}
+                <div class="wishlist-grid">
+                    {% for card in wishlistAnime %}
+                        <div class="wishlist-card{% if isOwnProfile %} wishlist-remove-card{% endif %}">
+                            {% if isOwnProfile %}
+                                <button type="button"
+                                        class="wishlist-btn active"
+                                        data-id="{{ card.id }}"
+                                        data-type="anime"
+                                        data-csrf="{{ csrf_token('wishlist-toggle') }}"
+                                        title="Retirer de ma wishlist">♥</button>
+                            {% endif %}
+                            {% if card.imagePath %}
+                                <img src="{{ asset(card.imagePath) }}" alt="{{ card.nom }}">
+                            {% else %}
+                                <img src="{{ asset('images/placeholder.png') }}" alt="{{ card.nom }}">
+                            {% endif %}
+                            <p class="wishlist-card-name">{{ card.nom }}</p>
+                        </div>
+                    {% endfor %}
+                    {% for card in wishlistFilm %}
+                        <div class="wishlist-card{% if isOwnProfile %} wishlist-remove-card{% endif %}">
+                            {% if isOwnProfile %}
+                                <button type="button"
+                                        class="wishlist-btn active"
+                                        data-id="{{ card.id }}"
+                                        data-type="film"
+                                        data-csrf="{{ csrf_token('wishlist-toggle') }}"
+                                        title="Retirer de ma wishlist">♥</button>
+                            {% endif %}
+                            {% if card.imagePath %}
+                                <img src="{{ asset(card.imagePath) }}" alt="{{ card.nom }}">
+                            {% else %}
+                                <img src="{{ asset('images/placeholder.png') }}" alt="{{ card.nom }}">
+                            {% endif %}
+                            <p class="wishlist-card-name">{{ card.nom }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p><em>{{ user.pseudo }} n'a pas encore ajouté de carte à sa wishlist.</em></p>
+            {% endif %}
         </div>
     </div>
 </main>
@@ -278,6 +318,7 @@
     {{ parent() }}
     {# PAS de filtre_cartes.js - tout est géré en PHP maintenant #}
     <script src="{{ asset('js/utilisateurs_cartes.js') }}"></script>
+    <script src="{{ asset('js/wishlist_toggle.js') }}"></script>
     <script>
         document.querySelectorAll('.profile-tab-btn').forEach(function (btn) {
             btn.addEventListener('click', function () {

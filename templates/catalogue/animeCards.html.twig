@@ -92,6 +92,14 @@
             {% for card in cards %}
                 {% if card.anime is not null %}
                     <div class="card{% if card.rarity.id == 5 %} mythic-card{% endif %}" data-anime="{{ card.anime.nom }}" data-rarete="{{ card.rarity.libelle }}" {% if card.rarity.id == 5 %}data-mythic-id="{{ card.id }}"{% endif %}>
+                        {% if app.user and card.id not in ownedIds %}
+                            <button type="button"
+                                    class="wishlist-btn{% if card.id in wishlistedIds %} active{% endif %}"
+                                    data-id="{{ card.id }}"
+                                    data-type="anime"
+                                    data-csrf="{{ csrf_token('wishlist-toggle') }}"
+                                    title="Ajouter à ma wishlist">{{ card.id in wishlistedIds ? '♥' : '♡' }}</button>
+                        {% endif %}
                         {% if card.imagePath %}
                             {% set is_webp = card.imagePath|last(5) == '.webp' %}
                             <picture>
@@ -191,4 +199,5 @@
     {{ parent() }}
     <script src="{{ asset('js/utilisateurs_cartes.js') }}"></script>
     <script src="{{ asset('js/mythic_combo.js') }}"></script>
+    <script src="{{ asset('js/wishlist_toggle.js') }}"></script>
 {% endblock %}

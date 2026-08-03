@@ -48,10 +48,17 @@ class CardAnime
     #[ORM\OneToMany(targetEntity: CardAnimeRequirement::class, mappedBy: 'mythicCard', orphanRemoval: true)]
     private Collection $requirements;
 
+    /**
+     * @var Collection<int, User>
+     */
+    #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'wishlistCardAnimes')]
+    private Collection $wishlistedByUsers;
+
     public function __construct()
     {
         $this->userCardAnimes = new ArrayCollection();
         $this->requirements = new ArrayCollection();
+        $this->wishlistedByUsers = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -201,5 +208,13 @@ class CardAnime
         }
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function getWishlistedByUsers(): Collection
+    {
+        return $this->wishlistedByUsers;
     }
 }

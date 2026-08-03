@@ -101,6 +101,8 @@ class CatalogueController extends AbstractController
             'search' => $search,
             'selectedRarity' => $rarity,
             'rarities' => $rarities,
+            'wishlistedIds' => $this->getWishlistedAnimeIds(),
+            'ownedIds' => $this->getOwnedAnimeIds(),
         ]);
     }
 
@@ -160,6 +162,8 @@ class CatalogueController extends AbstractController
             'search' => $search,
             'selectedRarity' => $rarity,
             'rarities' => $rarities,
+            'wishlistedIds' => $this->getWishlistedAnimeIds(),
+            'ownedIds' => $this->getOwnedAnimeIds(),
         ]);
     }
 
@@ -221,6 +225,8 @@ class CatalogueController extends AbstractController
             'search' => $search,
             'selectedRarity' => $rarity,
             'rarities' => $rarities,
+            'wishlistedIds' => $this->getWishlistedFilmIds(),
+            'ownedIds' => $this->getOwnedFilmIds(),
         ]);
     }
 
@@ -280,6 +286,66 @@ class CatalogueController extends AbstractController
             'search' => $search,
             'selectedRarity' => $rarity,
             'rarities' => $rarities,
+            'wishlistedIds' => $this->getWishlistedFilmIds(),
+            'ownedIds' => $this->getOwnedFilmIds(),
         ]);
+    }
+
+    /**
+     * @return int[]
+     */
+    private function getWishlistedAnimeIds(): array
+    {
+        $user = $this->getUser();
+
+        return $user
+            ? array_map(fn ($card) => $card->getId(), $user->getWishlistCardAnimes()->toArray())
+            : [];
+    }
+
+    /**
+     * @return int[]
+     */
+    private function getWishlistedFilmIds(): array
+    {
+        $user = $this->getUser();
+
+        return $user
+            ? array_map(fn ($card) => $card->getId(), $user->getWishlistCardFilms()->toArray())
+            : [];
+    }
+
+    /**
+     * @return int[]
+     */
+    private function getOwnedAnimeIds(): array
+    {
+        $user = $this->getUser();
+
+        if (!$user) {
+            return [];
+        }
+
+        return array_map(
+            fn ($userCard) => $userCard->getCardAnime()->getId(),
+            array_filter($user->getUserCardAnimes()->toArray(), fn ($userCard) => $userCard->getQuantity() > 0)
+        );
+    }
+
+    /**
+     * @return int[]
+     */
+    private function getOwnedFilmIds(): array
+    {
+        $user = $this->getUser();
+
+        if (!$user) {
+            return [];
+        }
+
+        return array_map(
+            fn ($userCard) => $userCard->getCardFilm()->getId(),
+            array_filter($user->getUserCardFilms()->toArray(), fn ($userCard) => $userCard->getQuantity() > 0)
+        );
     }
 }

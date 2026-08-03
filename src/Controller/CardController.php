@@ -6,6 +6,7 @@ use App\Entity\CardAnime;
 use App\Entity\UserCardAnime;
 use App\Entity\User; // N'oubliez pas d'importer l'entité User si vous en avez une
 use App\Service\BadgeService;
+use App\Service\WishlistService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +19,7 @@ class CardController extends AbstractController
     // Vous pouvez l'adapter à la manière dont les joueurs obtiennent des cartes.
     #[Route('/gain-card/{id}', name: 'app_gain_card')]
     #[IsGranted('ROLE_USER')] // Assurez-vous que seul un utilisateur connecté peut accéder à cette route
-    public function gainCard(EntityManagerInterface $entityManager, BadgeService $badgeService, CardAnime $card): Response
+    public function gainCard(EntityManagerInterface $entityManager, BadgeService $badgeService, WishlistService $wishlistService, CardAnime $card): Response
     {
         // Récupérer l'utilisateur actuellement connecté
         $user = $this->getUser();
@@ -61,6 +62,7 @@ class CardController extends AbstractController
 
         $entityManager->flush();
         $badgeService->refreshCollectorBadges($user);
+        $wishlistService->removeAnimeCardFromWishlist($user, $card);
 
         return new Response("Félicitations, vous avez obtenu une nouvelle carte !");
     }

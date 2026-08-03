@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const type = overlay.dataset.type; // "anime" ou "film"
     const csrfToken = overlay.dataset.csrf;
+    const wishlistCsrfToken = overlay.dataset.wishlistCsrf;
     const titleEl = overlay.querySelector(".mythic-modal-title");
     const listEl = overlay.querySelector(".mythic-requirements-list");
     const statusEl = overlay.querySelector(".mythic-modal-status");
@@ -59,10 +60,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 `;
             } else {
                 li.className = "requirement-row " + (req.ok ? "ok" : "missing");
+                const wishlistBtn = req.owned === 0
+                    ? `<button type="button"
+                            class="wishlist-btn inline${req.wishlisted ? " active" : ""}"
+                            data-id="${req.id}"
+                            data-type="${type}"
+                            data-csrf="${wishlistCsrfToken}"
+                            title="${req.wishlisted ? "Retirer de ma wishlist" : "Ajouter à ma wishlist"}">${req.wishlisted ? "♥" : "♡"}</button>`
+                    : "";
                 li.innerHTML = `
                     <span class="requirement-status">${req.ok ? "✓" : "✗"}</span>
                     <span class="requirement-nom">${req.nom}</span>
                     <span class="requirement-count">${req.owned} / ${req.needed}</span>
+                    ${wishlistBtn}
                 `;
             }
 

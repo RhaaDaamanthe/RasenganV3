@@ -750,6 +750,21 @@ h1 {
     border-color: #15803d;
 }
 
+.btn-gamble {
+    background: linear-gradient(135deg, #9333ea, #f97316);
+    border-color: transparent;
+    color: white;
+}
+
+.btn-gamble:hover {
+    background: linear-gradient(135deg, #7e22ce, #ea580c);
+}
+
+.btn-gamble:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .btn-secondary {
     display: inline-block;
     padding: 10px 20px;
@@ -916,6 +931,43 @@ h1 {
     vertical-align: middle;
 }
 
+.wheel-options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    text-align: left;
+}
+
+.wheel-option-field label {
+    display: block;
+    font-size: 0.85em;
+    font-weight: 700;
+    color: #555;
+    margin-bottom: 6px;
+}
+
+.wheel-option-field select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 0.95em;
+    color: #333;
+}
+
+.wheel-option-field select:focus {
+    border-color: #ff8c00;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.15);
+}
+
+.wheel-option-field select:disabled {
+    background: #f4f4f4;
+    color: #999;
+    cursor: not-allowed;
+}
+
 .wheel-viewport {
     position: relative;
     height: 150px;
@@ -1006,6 +1058,10 @@ h1 {
 
 .wheel-item-rarity.rarity-4 {
     background: linear-gradient(135deg, #ffcc33, #e0972a);
+}
+
+.wheel-item-rarity.rarity-0 {
+    background: linear-gradient(135deg, #4b5563, #1f2937);
 }
 
 .wheel-message {

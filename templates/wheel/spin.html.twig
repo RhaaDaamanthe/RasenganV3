@@ -15,17 +15,60 @@
             class="wheel-page"
             data-type="{{ type }}"
             data-rarities="{{ rarities|json_encode|e('html_attr') }}"
+            data-rarities333="{{ rarities333|json_encode|e('html_attr') }}"
             data-csrf="{{ csrf_token('wheel-action') }}"
             data-spin-rarity-url="{{ path('app_wheel_spin_rarity') }}"
             data-spin-card-url="{{ path(type == 'anime' ? 'app_wheel_anime_spin_card' : 'app_wheel_film_spin_card', {id: user.id}) }}"
             data-confirm-url="{{ path(type == 'anime' ? 'app_wheel_anime_confirm' : 'app_wheel_film_confirm', {id: user.id}) }}"
+            data-double-chance-url="{{ path('app_wheel_double_chance') }}"
         >
             <div class="dashboard-hero">
                 <h1>🎡 Roue pour {{ user.pseudo }}</h1>
             </div>
 
+            <section class="wheel-step" id="step-options">
+                <h2>Options du tirage</h2>
+                <div class="wheel-options-grid">
+                    <div class="wheel-option-field">
+                        <label for="mode-select">Mode de tirage</label>
+                        <select id="mode-select">
+                            <option value="classic">Classique (40/35/20/5)</option>
+                            <option value="333">333 (33/33/33/1)</option>
+                            <option value="double">Quitte ou double</option>
+                        </select>
+                    </div>
+                    <div class="wheel-option-field">
+                        <label for="title-select">Titre (optionnel)</label>
+                        <select id="title-select">
+                            <option value="">🎲 Aléatoire (tous les titres)</option>
+                            {% for title in titles %}
+                                <option value="{{ title.id }}">{{ title.nom }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="wheel-option-field" id="min-rarity-field">
+                        <label for="min-rarity-select">Rareté minimum (optionnel)</label>
+                        <select id="min-rarity-select">
+                            <option value="">Aucun minimum (taux classiques)</option>
+                            <option value="2">Minimum Rare</option>
+                            <option value="3">Minimum Épique</option>
+                            <option value="4">Minimum Légendaire</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <section class="wheel-step" id="step-double-choice" style="display:none;">
+                <h2>1. Choix du risque</h2>
+                <div class="wheel-result-actions">
+                    <button type="button" id="double-choice-safe-btn" class="btn btn-secondary">🎴 Carte Commune garantie</button>
+                    <button type="button" id="double-choice-gamble-btn" class="btn btn-gamble">🎲 Tenter le 50/50 (→ Rare)</button>
+                </div>
+                <p class="wheel-message wheel-message-error" id="double-choice-error" style="display:none;"></p>
+            </section>
+
             <section class="wheel-step" id="step-rarity">
-                <h2>1. Rareté</h2>
+                <h2 id="rarity-step-title">1. Rareté</h2>
                 <div class="wheel-viewport">
                     <div class="wheel-strip" id="rarity-strip"></div>
                 </div>
@@ -37,7 +80,10 @@
                 <div class="wheel-viewport">
                     <div class="wheel-strip" id="card-strip"></div>
                 </div>
-                <button type="button" id="spin-card-btn" class="btn btn-action">Lancer la roue des cartes</button>
+                <div class="wheel-result-actions">
+                    <button type="button" id="spin-card-btn" class="btn btn-action">Lancer la roue des cartes</button>
+                    <button type="button" id="step-card-redouble-btn" class="btn btn-gamble" style="display:none;">🎲 Redoubler (25% → Épique)</button>
+                </div>
                 <p class="wheel-message wheel-message-error" id="card-error-message" style="display:none;"></p>
             </section>
 

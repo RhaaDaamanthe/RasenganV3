@@ -11,6 +11,7 @@ use App\Repository\UserRepository;
 use App\Repository\CardAnimeRepository;
 use App\Repository\CardFilmRepository;
 use App\Service\BadgeService;
+use App\Service\WishlistService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -66,7 +67,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
         Request $request,
         CardAnimeRepository $cardAnimeRepository,
         EntityManagerInterface $entityManager,
-        BadgeService $badgeService
+        BadgeService $badgeService,
+        WishlistService $wishlistService
     ): Response {
         $search = $request->query->get('search', '');
         $page = max(1, $request->query->getInt('page', 1));
@@ -122,6 +124,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
                     $entityManager->flush();
                     $badgeService->refreshCollectorBadges($user);
+                    $wishlistService->removeAnimeCardFromWishlist($user, $card);
                     $this->addFlash('success', "✅ {$quantity}x {$card->getNom()} attribuée(s) à {$user->getPseudo()} !");
                 }
             }
@@ -144,7 +147,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
         Request $request,
         CardFilmRepository $cardFilmRepository,
         EntityManagerInterface $entityManager,
-        BadgeService $badgeService
+        BadgeService $badgeService,
+        WishlistService $wishlistService
     ): Response {
         $search = $request->query->get('search', '');
         $page = max(1, $request->query->getInt('page', 1));
@@ -200,6 +204,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
                     $entityManager->flush();
                     $badgeService->refreshCollectorBadges($user);
+                    $wishlistService->removeFilmCardFromWishlist($user, $card);
                     $this->addFlash('success', "✅ {$quantity}x {$card->getNom()} attribuée(s) à {$user->getPseudo()} !");
                 }
             }

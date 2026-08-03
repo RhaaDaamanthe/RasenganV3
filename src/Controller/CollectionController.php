@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Entity\CardAnime;
+use App\Entity\CardFilm;
 use App\Entity\User;
 use App\Entity\UserCardFilm;
 use App\Repository\UserRepository;
@@ -182,6 +184,35 @@ class CollectionController extends AbstractController
             ->getQuery()
             ->getResult();
 
+        // Wishlist triée par animé/film, puis par rareté (la plus haute d'abord), puis par nom
+        $wishlistAnime = $entityManager->createQueryBuilder()
+            ->select('ca')
+            ->from(CardAnime::class, 'ca')
+            ->join('ca.wishlistedByUsers', 'wu')
+            ->leftJoin('ca.anime', 'a')
+            ->leftJoin('ca.rarity', 'r')
+            ->where('wu = :user')
+            ->setParameter('user', $user)
+            ->orderBy('a.nom', 'ASC')
+            ->addOrderBy('r.id', 'DESC')
+            ->addOrderBy('ca.nom', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        $wishlistFilm = $entityManager->createQueryBuilder()
+            ->select('cf')
+            ->from(CardFilm::class, 'cf')
+            ->join('cf.wishlistedByUsers', 'wu')
+            ->leftJoin('cf.film', 'f')
+            ->leftJoin('cf.rarity', 'r')
+            ->where('wu = :user')
+            ->setParameter('user', $user)
+            ->orderBy('f.nom', 'ASC')
+            ->addOrderBy('r.id', 'DESC')
+            ->addOrderBy('cf.nom', 'ASC')
+            ->getQuery()
+            ->getResult();
+
         return $this->render('collection/player_collection.html.twig', [
             'user' => $user,
             'paginatedCards' => $paginatedCards,
@@ -192,6 +223,9 @@ class CollectionController extends AbstractController
             'selectedSection' => $selectedSection,
             'rarities' => $rarities,
             'rarityStats' => $rarityStatsService->getRarityBreakdown($user),
+            'wishlistAnime' => $wishlistAnime,
+            'wishlistFilm' => $wishlistFilm,
+            'isOwnProfile' => $this->getUser() === $user,
         ]);
     }
 }
