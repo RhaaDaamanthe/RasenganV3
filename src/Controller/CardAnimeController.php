@@ -83,7 +83,7 @@ final class CardAnimeController extends AbstractController
                 }
                 
                 $rarityFolderName = $rarityObject->getLibelle();
-                $targetDirectory = $this->getParameter('kernel.project_dir') . '/public/images/Cartes/' . $rarityFolderName;
+                $targetDirectory = $this->getParameter('app.public_dir') . '/images/Cartes/' . $rarityFolderName;
 
 
                 // B. Utilisation du nom de Fichier ORIGINAL (Nettoyé pour la sécurité)
@@ -173,7 +173,7 @@ final class CardAnimeController extends AbstractController
             // Suppression optionnelle du fichier physique
             $imagePath = $cardAnime->getImagePath();
             if ($imagePath) {
-                $absolutePath = $this->getParameter('kernel.project_dir') . '/public/' . $imagePath;
+                $absolutePath = $this->getParameter('app.public_dir') . '/' . $imagePath;
                 if (file_exists($absolutePath)) {
                     unlink($absolutePath);
                 }

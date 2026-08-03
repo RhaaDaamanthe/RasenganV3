@@ -47,12 +47,31 @@ class MythicController extends AbstractController
                 continue;
             }
 
+            $needed = $requirement->getQuantityRequired();
+
             $owned = $entityManager->getRepository(UserCardAnime::class)->findOneBy([
                 'user' => $user,
                 'cardAnime' => $requiredCard,
             ]);
             $ownedQuantity = $owned?->getQuantity() ?? 0;
-            $ok = $ownedQuantity >= $requirement->getQuantityRequired();
+            $ok = $ownedQuantity >= $needed;
+
+            $viaAlt = null;
+            if (!$ok) {
+                foreach ($requirement->getAlternativeCards() as $altCard) {
+                    $altOwned = $entityManager->getRepository(UserCardAnime::class)->findOneBy([
+                        'user' => $user,
+                        'cardAnime' => $altCard,
+                    ]);
+                    $altQuantity = $altOwned?->getQuantity() ?? 0;
+                    if ($altQuantity >= $needed) {
+                        $ok = true;
+                        $viaAlt = $altCard;
+                        $ownedQuantity = $altQuantity;
+                        break;
+                    }
+                }
+            }
 
             if (!$ok) {
                 $canUnlock = false;
@@ -62,10 +81,11 @@ class MythicController extends AbstractController
                 'id' => $requiredCard->getId(),
                 'nom' => $requiredCard->getNom(),
                 'imagePath' => $requiredCard->getImagePath(),
-                'needed' => $requirement->getQuantityRequired(),
+                'needed' => $needed,
                 'owned' => $ownedQuantity,
                 'ok' => $ok,
                 'wishlisted' => $user->getWishlistCardAnimes()->contains($requiredCard),
+                'viaAlt' => $viaAlt?->getNom(),
             ];
         }
 
@@ -105,13 +125,28 @@ class MythicController extends AbstractController
                 return $this->json(['success' => false, 'message' => "Cette carte n'est pas encore complètement configurée."], 400);
             }
 
+            $needed = $requirement->getQuantityRequired();
+
             $owned = $entityManager->getRepository(UserCardAnime::class)->findOneBy([
                 'user' => $user,
                 'cardAnime' => $requiredCard,
             ]);
-            $ownedQuantity = $owned?->getQuantity() ?? 0;
+            $satisfied = ($owned?->getQuantity() ?? 0) >= $needed;
 
-            if ($ownedQuantity < $requirement->getQuantityRequired()) {
+            if (!$satisfied) {
+                foreach ($requirement->getAlternativeCards() as $altCard) {
+                    $altOwned = $entityManager->getRepository(UserCardAnime::class)->findOneBy([
+                        'user' => $user,
+                        'cardAnime' => $altCard,
+                    ]);
+                    if (($altOwned?->getQuantity() ?? 0) >= $needed) {
+                        $satisfied = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!$satisfied) {
                 return $this->json(['success' => false, 'message' => 'La combinaison n\'est pas complète.'], 400);
             }
         }
@@ -179,12 +214,31 @@ class MythicController extends AbstractController
                 continue;
             }
 
+            $needed = $requirement->getQuantityRequired();
+
             $owned = $entityManager->getRepository(UserCardFilm::class)->findOneBy([
                 'user' => $user,
                 'cardFilm' => $requiredCard,
             ]);
             $ownedQuantity = $owned?->getQuantity() ?? 0;
-            $ok = $ownedQuantity >= $requirement->getQuantityRequired();
+            $ok = $ownedQuantity >= $needed;
+
+            $viaAlt = null;
+            if (!$ok) {
+                foreach ($requirement->getAlternativeCards() as $altCard) {
+                    $altOwned = $entityManager->getRepository(UserCardFilm::class)->findOneBy([
+                        'user' => $user,
+                        'cardFilm' => $altCard,
+                    ]);
+                    $altQuantity = $altOwned?->getQuantity() ?? 0;
+                    if ($altQuantity >= $needed) {
+                        $ok = true;
+                        $viaAlt = $altCard;
+                        $ownedQuantity = $altQuantity;
+                        break;
+                    }
+                }
+            }
 
             if (!$ok) {
                 $canUnlock = false;
@@ -194,10 +248,11 @@ class MythicController extends AbstractController
                 'id' => $requiredCard->getId(),
                 'nom' => $requiredCard->getNom(),
                 'imagePath' => $requiredCard->getImagePath(),
-                'needed' => $requirement->getQuantityRequired(),
+                'needed' => $needed,
                 'owned' => $ownedQuantity,
                 'ok' => $ok,
                 'wishlisted' => $user->getWishlistCardFilms()->contains($requiredCard),
+                'viaAlt' => $viaAlt?->getNom(),
             ];
         }
 
@@ -237,13 +292,28 @@ class MythicController extends AbstractController
                 return $this->json(['success' => false, 'message' => "Cette carte n'est pas encore complètement configurée."], 400);
             }
 
+            $needed = $requirement->getQuantityRequired();
+
             $owned = $entityManager->getRepository(UserCardFilm::class)->findOneBy([
                 'user' => $user,
                 'cardFilm' => $requiredCard,
             ]);
-            $ownedQuantity = $owned?->getQuantity() ?? 0;
+            $satisfied = ($owned?->getQuantity() ?? 0) >= $needed;
 
-            if ($ownedQuantity < $requirement->getQuantityRequired()) {
+            if (!$satisfied) {
+                foreach ($requirement->getAlternativeCards() as $altCard) {
+                    $altOwned = $entityManager->getRepository(UserCardFilm::class)->findOneBy([
+                        'user' => $user,
+                        'cardFilm' => $altCard,
+                    ]);
+                    if (($altOwned?->getQuantity() ?? 0) >= $needed) {
+                        $satisfied = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!$satisfied) {
                 return $this->json(['success' => false, 'message' => 'La combinaison n\'est pas complète.'], 400);
             }
         }

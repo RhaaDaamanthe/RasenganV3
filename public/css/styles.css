@@ -548,6 +548,13 @@ select {
   flex: 1;
 }
 
+.requirement-via-alt {
+  display: block;
+  color: #888;
+  font-weight: normal;
+  font-style: italic;
+}
+
 .mythic-modal-status {
   text-align: center;
   font-weight: bold;

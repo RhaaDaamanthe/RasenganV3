@@ -69,6 +69,7 @@ final class MythicRecipeController extends AbstractController
             $requiredIds = $request->request->all('required');
             $quantities = $request->request->all('qty');
             $placeholders = $request->request->all('placeholder');
+            $alternativesRaw = $request->request->all('alternatives');
 
             foreach ($requiredIds as $index => $requiredId) {
                 $requiredId = trim((string) $requiredId);
@@ -84,6 +85,15 @@ final class MythicRecipeController extends AbstractController
                     $requirement->setMythicCard($card);
                     $requirement->setRequiredCard($requiredCard);
                     $requirement->setQuantityRequired(max(1, (int) ($quantities[$index] ?? 1)));
+
+                    $altIds = array_filter(array_map('trim', explode(',', (string) ($alternativesRaw[$index] ?? ''))), fn ($v) => $v !== '');
+                    foreach ($altIds as $altId) {
+                        $altCard = $entityManager->getRepository(CardAnime::class)->find($altId);
+                        if ($altCard !== null && $altCard->getId() !== $requiredCard->getId()) {
+                            $requirement->addAlternativeCard($altCard);
+                        }
+                    }
+
                     $entityManager->persist($requirement);
                 } elseif ($placeholderNom !== '') {
                     $requirement = new CardAnimeRequirement();
@@ -135,6 +145,7 @@ final class MythicRecipeController extends AbstractController
             $requiredIds = $request->request->all('required');
             $quantities = $request->request->all('qty');
             $placeholders = $request->request->all('placeholder');
+            $alternativesRaw = $request->request->all('alternatives');
 
             foreach ($requiredIds as $index => $requiredId) {
                 $requiredId = trim((string) $requiredId);
@@ -150,6 +161,15 @@ final class MythicRecipeController extends AbstractController
                     $requirement->setMythicCard($card);
                     $requirement->setRequiredCard($requiredCard);
                     $requirement->setQuantityRequired(max(1, (int) ($quantities[$index] ?? 1)));
+
+                    $altIds = array_filter(array_map('trim', explode(',', (string) ($alternativesRaw[$index] ?? ''))), fn ($v) => $v !== '');
+                    foreach ($altIds as $altId) {
+                        $altCard = $entityManager->getRepository(CardFilm::class)->find($altId);
+                        if ($altCard !== null && $altCard->getId() !== $requiredCard->getId()) {
+                            $requirement->addAlternativeCard($altCard);
+                        }
+                    }
+
                     $entityManager->persist($requirement);
                 } elseif ($placeholderNom !== '') {
                     $requirement = new CardFilmRequirement();

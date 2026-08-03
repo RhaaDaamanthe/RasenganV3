@@ -68,9 +68,10 @@ document.addEventListener("DOMContentLoaded", () => {
                             data-csrf="${wishlistCsrfToken}"
                             title="${req.wishlisted ? "Retirer de ma wishlist" : "Ajouter à ma wishlist"}">${req.wishlisted ? "♥" : "♡"}</button>`
                     : "";
+                const viaAltNote = req.viaAlt ? ` <small class="requirement-via-alt">(via ${req.viaAlt})</small>` : "";
                 li.innerHTML = `
                     <span class="requirement-status">${req.ok ? "✓" : "✗"}</span>
-                    <span class="requirement-nom">${req.nom}</span>
+                    <span class="requirement-nom">${req.nom}${viaAltNote}</span>
                     <span class="requirement-count">${req.owned} / ${req.needed}</span>
                     ${wishlistBtn}
                 `;

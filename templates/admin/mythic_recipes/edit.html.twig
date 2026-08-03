@@ -87,13 +87,23 @@
         }
 
         .requirement-edit-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
             background: #f9f9f9;
             border: 1px solid #eee;
             border-radius: 8px;
             padding: 6px 10px;
+            transition: outline 0.15s ease;
+        }
+
+        .requirement-edit-row.picking-alt-active {
+            outline: 2px solid #fa9d11;
+            outline-offset: -2px;
+            background: #fff8ec;
+        }
+
+        .requirement-edit-row-main {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .requirement-edit-row img {
@@ -141,6 +151,60 @@
             background: #fdecea;
         }
 
+        .requirement-alt-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px dashed #e5e5e5;
+        }
+
+        .requirement-alt-label {
+            font-size: 0.75em;
+            color: #999;
+            font-weight: 600;
+        }
+
+        .alt-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #e8f4fd;
+            color: #2673b3;
+            border-radius: 999px;
+            padding: 2px 4px 2px 10px;
+            font-size: 0.75em;
+            font-weight: 600;
+        }
+
+        .alt-chip-remove {
+            background: none;
+            border: none;
+            color: #2673b3;
+            cursor: pointer;
+            font-size: 1em;
+            line-height: 1;
+            padding: 2px 6px;
+        }
+
+        .btn-pick-alt {
+            background: none;
+            border: 1px dashed #bbb;
+            color: #777;
+            border-radius: 999px;
+            padding: 2px 10px;
+            font-size: 0.75em;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-pick-alt:hover {
+            border-color: #fa9d11;
+            color: #e07b00;
+        }
+
         #no-selected-message {
             color: #999;
             font-style: italic;
@@ -182,6 +246,20 @@
         .recipe-panel .search-container {
             max-width: none;
             margin-bottom: 18px;
+        }
+
+        .pick-alt-banner {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: #fff3e0;
+            border: 1px solid #fa9d11;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 14px;
+            font-size: 0.9em;
+            color: #7a4a00;
         }
 
         .candidate-card {
@@ -227,6 +305,10 @@
         .recipe-panel h2 .btn-add-placeholder:hover {
             background: #fa9d11;
             color: white;
+        }
+
+        .requirement-edit-row--placeholder .requirement-edit-row-main {
+            background: #fff8ec;
         }
 
         .requirement-edit-row--placeholder {
@@ -294,26 +376,44 @@
                     <div id="selected-list">
                         {% for requirement in card.requirements %}
                             {% if requirement.requiredCard %}
+                                {% set altIds = [] %}
+                                {% for alt in requirement.alternativeCards %}
+                                    {% set altIds = altIds|merge([alt.id]) %}
+                                {% endfor %}
                                 <div class="requirement-edit-row" data-id="{{ requirement.requiredCard.id }}">
-                                    {% if requirement.requiredCard.imagePath %}
-                                        <img src="{{ asset(requirement.requiredCard.imagePath) }}" alt="">
-                                    {% endif %}
-                                    <input type="hidden" name="required[]" value="{{ requirement.requiredCard.id }}">
-                                    <input type="hidden" name="placeholder[]" value="">
-                                    <span class="requirement-nom">
-                                        {{ requirement.requiredCard.nom }}<br>
-                                        <small>{{ type == 'anime' ? (requirement.requiredCard.anime ? requirement.requiredCard.anime.nom : '?') : (requirement.requiredCard.film ? requirement.requiredCard.film.nom : '?') }}</small>
-                                    </span>
-                                    <input type="number" name="qty[]" min="1" value="{{ requirement.quantityRequired }}">
-                                    <button type="button" class="remove-row-btn" title="Retirer">✖</button>
+                                    <div class="requirement-edit-row-main">
+                                        {% if requirement.requiredCard.imagePath %}
+                                            <img src="{{ asset(requirement.requiredCard.imagePath) }}" alt="">
+                                        {% endif %}
+                                        <input type="hidden" name="required[]" value="{{ requirement.requiredCard.id }}">
+                                        <input type="hidden" name="placeholder[]" value="">
+                                        <span class="requirement-nom">
+                                            {{ requirement.requiredCard.nom }}<br>
+                                            <small>{{ type == 'anime' ? (requirement.requiredCard.anime ? requirement.requiredCard.anime.nom : '?') : (requirement.requiredCard.film ? requirement.requiredCard.film.nom : '?') }}</small>
+                                        </span>
+                                        <input type="number" name="qty[]" min="1" value="{{ requirement.quantityRequired }}">
+                                        <button type="button" class="remove-row-btn" title="Retirer">✖</button>
+                                    </div>
+                                    <div class="requirement-alt-row">
+                                        <input type="hidden" name="alternatives[]" value="{{ altIds|join(',') }}">
+                                        <span class="requirement-alt-label">Alternatives :</span>
+                                        <span class="requirement-alt-chips">
+                                            {% for alt in requirement.alternativeCards %}
+                                                <span class="alt-chip" data-id="{{ alt.id }}">{{ alt.nom }}<button type="button" class="alt-chip-remove">×</button></span>
+                                            {% endfor %}
+                                        </span>
+                                        <button type="button" class="btn-pick-alt">+ alternative</button>
+                                    </div>
                                 </div>
                             {% else %}
                                 <div class="requirement-edit-row requirement-edit-row--placeholder" data-id="">
-                                    <span class="requirement-icon">🔒</span>
-                                    <input type="hidden" name="required[]" value="">
-                                    <input type="text" name="placeholder[]" class="placeholder-input" placeholder="Nom de la carte à venir" value="{{ requirement.placeholderNom }}">
-                                    <input type="number" name="qty[]" min="1" value="{{ requirement.quantityRequired }}">
-                                    <button type="button" class="remove-row-btn" title="Retirer">✖</button>
+                                    <div class="requirement-edit-row-main">
+                                        <span class="requirement-icon">🔒</span>
+                                        <input type="hidden" name="required[]" value="">
+                                        <input type="text" name="placeholder[]" class="placeholder-input" placeholder="Nom de la carte à venir" value="{{ requirement.placeholderNom }}">
+                                        <input type="number" name="qty[]" min="1" value="{{ requirement.quantityRequired }}">
+                                        <button type="button" class="remove-row-btn" title="Retirer">✖</button>
+                                    </div>
                                 </div>
                             {% endif %}
                         {% endfor %}
@@ -326,6 +426,11 @@
 
                 <section class="recipe-panel recipe-browser">
                     <h2>Ajouter des cartes</h2>
+
+                    <div class="pick-alt-banner" id="pick-alt-banner">
+                        <span>Clique une carte pour l'ajouter comme alternative de <strong id="pick-alt-target-name"></strong></span>
+                        <button type="button" id="pick-alt-cancel" class="btn btn-secondary">Terminer</button>
+                    </div>
 
                     <div class="search-container">
                         <input type="text" id="card-search" placeholder="Rechercher par nom ou univers..." aria-label="Rechercher une carte" onkeyup="filterCards()">
@@ -368,6 +473,11 @@
         const selectedList = document.getElementById('selected-list');
         const noSelected = document.getElementById('no-selected-message');
         const countBadge = document.getElementById('selected-count');
+        const pickAltBanner = document.getElementById('pick-alt-banner');
+        const pickAltTargetName = document.getElementById('pick-alt-target-name');
+        const pickAltCancelBtn = document.getElementById('pick-alt-cancel');
+
+        let pickingAltForRow = null;
 
         function updateSelectedState() {
             const count = selectedList.children.length;
@@ -379,17 +489,72 @@
             }
         }
 
+        function setPickingMode(rowEl) {
+            if (pickingAltForRow) {
+                pickingAltForRow.classList.remove('picking-alt-active');
+            }
+
+            pickingAltForRow = rowEl;
+
+            if (rowEl) {
+                rowEl.classList.add('picking-alt-active');
+                pickAltTargetName.textContent = rowEl.querySelector('.requirement-nom').textContent.trim();
+                pickAltBanner.style.display = 'flex';
+            } else {
+                pickAltBanner.style.display = 'none';
+            }
+        }
+
+        function addAlternativeToRow(rowEl, id, nom) {
+            if (String(rowEl.dataset.id) === String(id)) {
+                return; // la carte principale ne peut pas être sa propre alternative
+            }
+
+            const hiddenInput = rowEl.querySelector('input[name="alternatives[]"]');
+            const chipsContainer = rowEl.querySelector('.requirement-alt-chips');
+            const current = hiddenInput.value ? hiddenInput.value.split(',').filter(v => v !== '') : [];
+
+            if (current.includes(String(id))) {
+                return;
+            }
+
+            current.push(String(id));
+            hiddenInput.value = current.join(',');
+
+            const chip = document.createElement('span');
+            chip.className = 'alt-chip';
+            chip.dataset.id = id;
+            chip.innerHTML = `${nom}<button type="button" class="alt-chip-remove">×</button>`;
+            chipsContainer.appendChild(chip);
+        }
+
+        function removeAlternativeChip(chipEl) {
+            const rowEl = chipEl.closest('.requirement-edit-row');
+            const hiddenInput = rowEl.querySelector('input[name="alternatives[]"]');
+            const remaining = (hiddenInput.value ? hiddenInput.value.split(',') : []).filter(v => v !== '' && v !== chipEl.dataset.id);
+            hiddenInput.value = remaining.join(',');
+            chipEl.remove();
+        }
+
         function addRow(id, nom, univers, image, qty) {
             const row = document.createElement('div');
             row.className = 'requirement-edit-row';
             row.dataset.id = id;
             row.innerHTML = `
-                ${image ? `<img src="${image}" alt="">` : ''}
-                <input type="hidden" name="required[]" value="${id}">
-                <input type="hidden" name="placeholder[]" value="">
-                <span class="requirement-nom">${nom}<br><small>${univers}</small></span>
-                <input type="number" name="qty[]" min="1" value="${qty}">
-                <button type="button" class="remove-row-btn" title="Retirer">✖</button>
+                <div class="requirement-edit-row-main">
+                    ${image ? `<img src="${image}" alt="">` : ''}
+                    <input type="hidden" name="required[]" value="${id}">
+                    <input type="hidden" name="placeholder[]" value="">
+                    <span class="requirement-nom">${nom}<br><small>${univers}</small></span>
+                    <input type="number" name="qty[]" min="1" value="${qty}">
+                    <button type="button" class="remove-row-btn" title="Retirer">✖</button>
+                </div>
+                <div class="requirement-alt-row">
+                    <input type="hidden" name="alternatives[]" value="">
+                    <span class="requirement-alt-label">Alternatives :</span>
+                    <span class="requirement-alt-chips"></span>
+                    <button type="button" class="btn-pick-alt">+ alternative</button>
+                </div>
             `;
             selectedList.appendChild(row);
         }
@@ -399,11 +564,13 @@
             row.className = 'requirement-edit-row requirement-edit-row--placeholder';
             row.dataset.id = '';
             row.innerHTML = `
-                <span class="requirement-icon">🔒</span>
-                <input type="hidden" name="required[]" value="">
-                <input type="text" name="placeholder[]" class="placeholder-input" placeholder="Nom de la carte à venir">
-                <input type="number" name="qty[]" min="1" value="1">
-                <button type="button" class="remove-row-btn" title="Retirer">✖</button>
+                <div class="requirement-edit-row-main">
+                    <span class="requirement-icon">🔒</span>
+                    <input type="hidden" name="required[]" value="">
+                    <input type="text" name="placeholder[]" class="placeholder-input" placeholder="Nom de la carte à venir">
+                    <input type="number" name="qty[]" min="1" value="1">
+                    <button type="button" class="remove-row-btn" title="Retirer">✖</button>
+                </div>
             `;
             selectedList.appendChild(row);
             updateSelectedState();
@@ -437,6 +604,11 @@
                 return;
             }
 
+            if (pickingAltForRow) {
+                addAlternativeToRow(pickingAltForRow, card.dataset.id, card.dataset.nom);
+                return;
+            }
+
             const id = card.dataset.id;
             const isSelected = card.classList.toggle('selected-candidate');
 
@@ -448,13 +620,30 @@
             updateSelectedState();
         });
 
+        pickAltCancelBtn.addEventListener('click', () => setPickingMode(null));
+
         selectedList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('alt-chip-remove')) {
+                removeAlternativeChip(e.target.closest('.alt-chip'));
+                return;
+            }
+
+            if (e.target.classList.contains('btn-pick-alt')) {
+                const row = e.target.closest('.requirement-edit-row');
+                setPickingMode(pickingAltForRow === row ? null : row);
+                return;
+            }
+
             if (!e.target.classList.contains('remove-row-btn')) {
                 return;
             }
 
             const row = e.target.closest('.requirement-edit-row');
             const id = row.dataset.id;
+
+            if (pickingAltForRow === row) {
+                setPickingMode(null);
+            }
             row.remove();
 
             const card = grid.querySelector('.candidate-card[data-id="' + id + '"]');

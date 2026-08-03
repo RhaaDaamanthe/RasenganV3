@@ -82,7 +82,7 @@ final class BadgeController extends AbstractController
                 return $this->render('badge/new.html.twig', ['form' => $form]);
             }
 
-            $targetDirectory = $this->getParameter('kernel.project_dir') . '/public/images/badges';
+            $targetDirectory = $this->getParameter('app.public_dir') . '/images/badges';
             $newFilename = $this->cleanFilename($iconFile->getClientOriginalName());
 
             try {
@@ -119,7 +119,7 @@ final class BadgeController extends AbstractController
             $iconFile = $form->get('icon')->getData();
 
             if ($iconFile) {
-                $targetDirectory = $this->getParameter('kernel.project_dir') . '/public/images/badges';
+                $targetDirectory = $this->getParameter('app.public_dir') . '/images/badges';
                 $newFilename = $this->cleanFilename($iconFile->getClientOriginalName());
 
                 try {

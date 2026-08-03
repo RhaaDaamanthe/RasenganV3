@@ -8,6 +8,14 @@ parameters:
     profile_pictures_directory: '%kernel.project_dir%/public/uploads/profiles'
     cards_images_directory: '%kernel.project_dir%/public/uploads/cards'
 
+    # Sous-dossier "public" servi par le serveur web, relatif à la racine du projet.
+    # En local : "public" (structure Symfony standard). Sur un hébergement où la
+    # racine du site EST déjà la racine du projet (pas de sous-dossier public/ web-servi
+    # séparé), on met APP_PUBLIC_SUBDIR="" dans .env.local pour que les uploads
+    # (cartes, badges...) tombent directement au bon endroit.
+    app.public_subdir: '%env(APP_PUBLIC_SUBDIR)%'
+    app.public_dir: '%kernel.project_dir%/%app.public_subdir%'
+
 services:
     # default configuration for services in *this* file
     _defaults:
