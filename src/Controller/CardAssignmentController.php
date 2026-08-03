@@ -11,6 +11,7 @@ use App\Repository\UserRepository;
 use App\Repository\CardAnimeRepository;
 use App\Repository\CardFilmRepository;
 use App\Service\BadgeService;
+use App\Service\DiscordNotifier;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -66,7 +67,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
         Request $request,
         CardAnimeRepository $cardAnimeRepository,
         EntityManagerInterface $entityManager,
-        BadgeService $badgeService
+        BadgeService $badgeService,
+        DiscordNotifier $discordNotifier
     ): Response {
         $search = $request->query->get('search', '');
         $page = max(1, $request->query->getInt('page', 1));
@@ -122,6 +124,14 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
                     $entityManager->flush();
                     $badgeService->refreshCollectorBadges($user);
+                    $discordNotifier->notifyDrop(
+                        $user->getPseudo(),
+                        $card->getNom(),
+                        $card->getAnime()?->getNom() ?? '',
+                        $card->getRarity()?->getLibelle() ?? '',
+                        'Anime',
+                        $card->getImagePath(),
+                    );
                     $this->addFlash('success', "✅ {$quantity}x {$card->getNom()} attribuée(s) à {$user->getPseudo()} !");
                 }
             }
@@ -144,7 +154,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
         Request $request,
         CardFilmRepository $cardFilmRepository,
         EntityManagerInterface $entityManager,
-        BadgeService $badgeService
+        BadgeService $badgeService,
+        DiscordNotifier $discordNotifier
     ): Response {
         $search = $request->query->get('search', '');
         $page = max(1, $request->query->getInt('page', 1));
@@ -200,6 +211,14 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
                     $entityManager->flush();
                     $badgeService->refreshCollectorBadges($user);
+                    $discordNotifier->notifyDrop(
+                        $user->getPseudo(),
+                        $card->getNom(),
+                        $card->getFilm()?->getNom() ?? '',
+                        $card->getRarity()?->getLibelle() ?? '',
+                        'Film',
+                        $card->getImagePath(),
+                    );
                     $this->addFlash('success', "✅ {$quantity}x {$card->getNom()} attribuée(s) à {$user->getPseudo()} !");
                 }
             }
