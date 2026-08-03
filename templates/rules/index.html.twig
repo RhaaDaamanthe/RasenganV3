@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Règles{% endblock %}
+{% block title %}Infos{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -84,8 +84,8 @@
             </div>
 
             <div class="method-card">
-                <h3 class="method-title">Carte minimum <span class="upcoming-tag">Probabilités variables</span></h3>
-                <p class="method-description">Certaines récompenses garantissent une rareté plancher — par exemple une <strong>carte minimum épique</strong> ne peut sortir qu'Épique ou Légendaire, jamais moins. On la retrouve pour l'anniversaire, certains paliers de niveau ou événements. Les probabilités exactes entre les raretés garanties dépendent de l'occasion.</p>
+                <h3 class="method-title">Carte minimum</h3>
+                <p class="method-description">Certaines récompenses garantissent une rareté plancher — par exemple une <strong>carte minimum épique</strong> ne peut sortir qu'Épique ou Légendaire, jamais moins. On la retrouve pour l'anniversaire, certains paliers de niveau ou événements. Le taux de Légendaire reste toujours à 5% ; seules les raretés en dessous se redistribuent le reste au prorata des taux classiques (ex: minimum Rare → Rare ≈60%, Épique ≈35%, Légendaire 5% ; minimum Épique → Épique 95%, Légendaire 5%).</p>
             </div>
 
             <div class="method-card">
@@ -147,6 +147,16 @@
             <span class="rarity-pill legendaire">Légendaire</span>
             <span class="rarity-pill mythique">Mythique</span>
             <span class="rarity-pill event">Event</span>
+        </div>
+
+        <p class="rules-intro" style="margin-top: 28px;">Chaque carte possédée rapporte des points sur votre profil, selon sa rareté :</p>
+        <div class="rarity-odds" style="justify-content: center;">
+            <span class="rarity-pill commune">Commune — 1 pt</span>
+            <span class="rarity-pill rare">Rare — 2 pts</span>
+            <span class="rarity-pill epique">Épique — 3 pts</span>
+            <span class="rarity-pill legendaire">Légendaire — 4 pts</span>
+            <span class="rarity-pill mythique">Mythique — 5 pts</span>
+            <span class="rarity-pill event">Event — 6 pts</span>
         </div>
     </div>
 </main>

@@ -62,6 +62,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OrderBy(['position' => 'ASC'])]
     private Collection $badges;
 
+    /**
+     * @var Collection<int, CardAnime>
+     */
+    #[ORM\ManyToMany(targetEntity: CardAnime::class, inversedBy: 'wishlistedByUsers')]
+    #[ORM\JoinTable(name: 'user_wishlist_anime')]
+    private Collection $wishlistCardAnimes;
+
+    /**
+     * @var Collection<int, CardFilm>
+     */
+    #[ORM\ManyToMany(targetEntity: CardFilm::class, inversedBy: 'wishlistedByUsers')]
+    #[ORM\JoinTable(name: 'user_wishlist_film')]
+    private Collection $wishlistCardFilms;
+
     // Ajout du constructeur
     public function __construct()
     {
@@ -72,6 +86,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->userCardAnimes = new ArrayCollection();
         $this->userCardFilms = new ArrayCollection();
         $this->badges = new ArrayCollection();
+        $this->wishlistCardAnimes = new ArrayCollection();
+        $this->wishlistCardFilms = new ArrayCollection();
     }
 
     // -----------------------
@@ -346,6 +362,54 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeBadge(Badge $badge): static
     {
         $this->badges->removeElement($badge);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CardAnime>
+     */
+    public function getWishlistCardAnimes(): Collection
+    {
+        return $this->wishlistCardAnimes;
+    }
+
+    public function addWishlistCardAnime(CardAnime $card): static
+    {
+        if (!$this->wishlistCardAnimes->contains($card)) {
+            $this->wishlistCardAnimes->add($card);
+        }
+
+        return $this;
+    }
+
+    public function removeWishlistCardAnime(CardAnime $card): static
+    {
+        $this->wishlistCardAnimes->removeElement($card);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CardFilm>
+     */
+    public function getWishlistCardFilms(): Collection
+    {
+        return $this->wishlistCardFilms;
+    }
+
+    public function addWishlistCardFilm(CardFilm $card): static
+    {
+        if (!$this->wishlistCardFilms->contains($card)) {
+            $this->wishlistCardFilms->add($card);
+        }
+
+        return $this;
+    }
+
+    public function removeWishlistCardFilm(CardFilm $card): static
+    {
+        $this->wishlistCardFilms->removeElement($card);
 
         return $this;
     }

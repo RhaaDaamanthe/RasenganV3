@@ -11,6 +11,7 @@ use App\Entity\UserCardFilm;
 use App\Repository\UserRepository;
 use App\Service\BadgeService;
 use App\Service\DiscordNotifier;
+use App\Service\WishlistService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Asset\Packages;
@@ -29,6 +30,13 @@ class WheelController extends AbstractController
         2 => 35, // Rares
         3 => 20, // Épiques
         4 => 5,  // Legendaires
+    ];
+
+    public const RARITY_WEIGHTS_333 = [
+        1 => 33, // Communes
+        2 => 33, // Rares
+        3 => 33, // Épiques
+        4 => 1,  // Legendaires
     ];
 
     #[Route('/anime/users', name: 'app_wheel_anime_users', methods: ['GET'])]
@@ -50,20 +58,42 @@ class WheelController extends AbstractController
     #[Route('/anime/user/{id}', name: 'app_wheel_anime_user', methods: ['GET'])]
     public function animeSpinPage(User $user, EntityManagerInterface $entityManager): Response
     {
+        $titles = $entityManager->getRepository(CardAnime::class)
+            ->createQueryBuilder('ca')
+            ->select('a.id, a.nom')
+            ->join('ca.anime', 'a')
+            ->groupBy('a.id, a.nom')
+            ->orderBy('a.nom', 'ASC')
+            ->getQuery()
+            ->getResult();
+
         return $this->render('wheel/spin.html.twig', [
             'user' => $user,
             'type' => 'anime',
-            'rarities' => $this->getEligibleRaritiesAsArray($entityManager),
+            'rarities' => $this->getEligibleRaritiesAsArray($entityManager, self::RARITY_WEIGHTS),
+            'rarities333' => $this->getEligibleRaritiesAsArray($entityManager, self::RARITY_WEIGHTS_333),
+            'titles' => $titles,
         ]);
     }
 
     #[Route('/film/user/{id}', name: 'app_wheel_film_user', methods: ['GET'])]
     public function filmSpinPage(User $user, EntityManagerInterface $entityManager): Response
     {
+        $titles = $entityManager->getRepository(CardFilm::class)
+            ->createQueryBuilder('cf')
+            ->select('f.id, f.nom')
+            ->join('cf.film', 'f')
+            ->groupBy('f.id, f.nom')
+            ->orderBy('f.nom', 'ASC')
+            ->getQuery()
+            ->getResult();
+
         return $this->render('wheel/spin.html.twig', [
             'user' => $user,
             'type' => 'film',
-            'rarities' => $this->getEligibleRaritiesAsArray($entityManager),
+            'rarities' => $this->getEligibleRaritiesAsArray($entityManager, self::RARITY_WEIGHTS),
+            'rarities333' => $this->getEligibleRaritiesAsArray($entityManager, self::RARITY_WEIGHTS_333),
+            'titles' => $titles,
         ]);
     }
 
@@ -74,11 +104,22 @@ class WheelController extends AbstractController
             return $this->json(['success' => false, 'message' => 'Jeton de sécurité invalide.'], 400);
         }
 
+        $mode = $request->request->get('mode');
+        $baseWeights = $mode === '333' ? self::RARITY_WEIGHTS_333 : self::RARITY_WEIGHTS;
+
+        $minRarityId = $request->request->get('minRarityId');
+        $minRarityId = ($minRarityId !== null && $minRarityId !== '') ? (int) $minRarityId : null;
+        if ($minRarityId !== null && !array_key_exists($minRarityId, $baseWeights)) {
+            return $this->json(['success' => false, 'message' => 'Rareté minimum invalide.'], 400);
+        }
+
+        $weights = $this->getWeightsForMinimumRarity($baseWeights, $minRarityId);
+
         $roll = mt_rand(1, 100);
         $cumulative = 0;
-        $chosenId = array_key_first(self::RARITY_WEIGHTS);
+        $chosenId = array_key_first($weights);
 
-        foreach (self::RARITY_WEIGHTS as $id => $weight) {
+        foreach ($weights as $id => $weight) {
             $cumulative += $weight;
             if ($roll <= $cumulative) {
                 $chosenId = $id;
@@ -107,7 +148,10 @@ class WheelController extends AbstractController
             return $this->json(['success' => false, 'message' => 'Rareté invalide.'], 400);
         }
 
-        $eligible = $this->getEligibleAnimeCards($entityManager, $rarityId);
+        $titleId = $request->request->get('titleId');
+        $titleId = ($titleId !== null && $titleId !== '') ? (int) $titleId : null;
+
+        $eligible = $this->getEligibleAnimeCards($entityManager, $rarityId, $titleId);
         if (count($eligible) === 0) {
             return $this->json(['success' => false, 'message' => 'Toutes les cartes de cette rareté sont déjà complètes.']);
         }
@@ -136,7 +180,10 @@ class WheelController extends AbstractController
             return $this->json(['success' => false, 'message' => 'Rareté invalide.'], 400);
         }
 
-        $eligible = $this->getEligibleFilmCards($entityManager, $rarityId);
+        $titleId = $request->request->get('titleId');
+        $titleId = ($titleId !== null && $titleId !== '') ? (int) $titleId : null;
+
+        $eligible = $this->getEligibleFilmCards($entityManager, $rarityId, $titleId);
         if (count($eligible) === 0) {
             return $this->json(['success' => false, 'message' => 'Toutes les cartes de cette rareté sont déjà complètes.']);
         }
@@ -153,8 +200,38 @@ class WheelController extends AbstractController
         ]);
     }
 
+    // Ne fait que trancher l'étape de "quitte ou double" (gagné/perdu) — le tirage de la
+    // carte elle-même se fait ensuite via /spin-card comme n'importe quel autre tirage,
+    // une fois que le joueur a décidé de s'arrêter à la rareté atteinte.
+    #[Route('/double-chance', name: 'app_wheel_double_chance', methods: ['POST'])]
+    public function doubleChance(Request $request): JsonResponse
+    {
+        if (!$this->isCsrfTokenValid('wheel-action', (string) $request->request->get('_token'))) {
+            return $this->json(['success' => false, 'message' => 'Jeton de sécurité invalide.'], 400);
+        }
+
+        $step = $request->request->get('step');
+        $chance = match ($step) {
+            'to-rare' => 50,
+            'to-epique' => 25,
+            default => null,
+        };
+        if ($chance === null) {
+            return $this->json(['success' => false, 'message' => 'Étape invalide.'], 400);
+        }
+
+        $won = mt_rand(1, 100) <= $chance;
+        $rarityId = $step === 'to-rare' ? 2 : 3;
+
+        return $this->json([
+            'success' => true,
+            'won' => $won,
+            'rarityId' => $won ? $rarityId : null,
+        ]);
+    }
+
     #[Route('/anime/user/{id}/attribuer', name: 'app_wheel_anime_confirm', methods: ['POST'])]
-    public function animeConfirm(User $user, Request $request, EntityManagerInterface $entityManager, BadgeService $badgeService, DiscordNotifier $discordNotifier): JsonResponse
+    public function animeConfirm(User $user, Request $request, EntityManagerInterface $entityManager, BadgeService $badgeService, WishlistService $wishlistService, DiscordNotifier $discordNotifier): JsonResponse
     {
         if (!$this->isCsrfTokenValid('wheel-action', (string) $request->request->get('_token'))) {
             return $this->json(['success' => false, 'message' => 'Jeton de sécurité invalide.'], 400);
@@ -203,12 +280,13 @@ class WheelController extends AbstractController
             'Anime',
             $card->getImagePath(),
         );
+        $wishlistService->removeAnimeCardFromWishlist($user, $card);
 
         return $this->json(['success' => true, 'message' => "✅ {$card->getNom()} attribuée à {$user->getPseudo()} !"]);
     }
 
     #[Route('/film/user/{id}/attribuer', name: 'app_wheel_film_confirm', methods: ['POST'])]
-    public function filmConfirm(User $user, Request $request, EntityManagerInterface $entityManager, BadgeService $badgeService, DiscordNotifier $discordNotifier): JsonResponse
+    public function filmConfirm(User $user, Request $request, EntityManagerInterface $entityManager, BadgeService $badgeService, WishlistService $wishlistService, DiscordNotifier $discordNotifier): JsonResponse
     {
         if (!$this->isCsrfTokenValid('wheel-action', (string) $request->request->get('_token'))) {
             return $this->json(['success' => false, 'message' => 'Jeton de sécurité invalide.'], 400);
@@ -257,6 +335,7 @@ class WheelController extends AbstractController
             'Film',
             $card->getImagePath(),
         );
+        $wishlistService->removeFilmCardFromWishlist($user, $card);
 
         return $this->json(['success' => true, 'message' => "✅ {$card->getNom()} attribuée à {$user->getPseudo()} !"]);
     }
@@ -264,12 +343,12 @@ class WheelController extends AbstractController
     /**
      * @return array<int, array{id: int, libelle: string, weight: int}>
      */
-    private function getEligibleRaritiesAsArray(EntityManagerInterface $entityManager): array
+    private function getEligibleRaritiesAsArray(EntityManagerInterface $entityManager, array $weights): array
     {
         $rarities = $entityManager->getRepository(Rarities::class)
             ->createQueryBuilder('r')
             ->where('r.id IN (:ids)')
-            ->setParameter('ids', array_keys(self::RARITY_WEIGHTS))
+            ->setParameter('ids', array_keys($weights))
             ->orderBy('r.id', 'ASC')
             ->getQuery()
             ->getResult();
@@ -277,21 +356,74 @@ class WheelController extends AbstractController
         return array_map(fn (Rarities $r) => [
             'id' => $r->getId(),
             'libelle' => $r->getLibelle(),
-            'weight' => self::RARITY_WEIGHTS[$r->getId()],
+            'weight' => $weights[$r->getId()],
         ], $rarities);
+    }
+
+    /**
+     * Applique un plancher de rareté à une table de poids de base. Le taux de
+     * Légendaire ne bouge jamais ; seules les raretés en dessous se
+     * redistribuent le reste proportionnellement entre elles.
+     *
+     * @return array<int, float|int>
+     */
+    private function getWeightsForMinimumRarity(array $baseWeights, ?int $minRarityId): array
+    {
+        if ($minRarityId === null) {
+            return $baseWeights;
+        }
+
+        $filtered = array_filter(
+            $baseWeights,
+            fn (int $id) => $id >= $minRarityId,
+            ARRAY_FILTER_USE_KEY
+        );
+
+        if ($filtered === []) {
+            return $baseWeights;
+        }
+
+        if (count($filtered) === 1) {
+            return [array_key_first($filtered) => 100];
+        }
+
+        $legendaryId = 4;
+        if (array_key_exists($legendaryId, $filtered)) {
+            $legendaryWeight = $baseWeights[$legendaryId];
+            $others = array_diff_key($filtered, [$legendaryId => true]);
+            $othersTotal = array_sum($others);
+            $remainingBudget = 100 - $legendaryWeight;
+
+            $result = $othersTotal > 0
+                ? array_map(fn (int $weight) => $weight / $othersTotal * $remainingBudget, $others)
+                : [];
+            $result[$legendaryId] = $legendaryWeight;
+            ksort($result);
+
+            return $result;
+        }
+
+        $total = array_sum($filtered);
+
+        return array_map(fn (int $weight) => $weight / $total * 100, $filtered);
     }
 
     /**
      * @return CardAnime[]
      */
-    private function getEligibleAnimeCards(EntityManagerInterface $entityManager, int $rarityId): array
+    private function getEligibleAnimeCards(EntityManagerInterface $entityManager, int $rarityId, ?int $titleId = null): array
     {
-        $cards = $entityManager->getRepository(CardAnime::class)
+        $qb = $entityManager->getRepository(CardAnime::class)
             ->createQueryBuilder('ca')
             ->where('ca.rarity = :rarityId')
-            ->setParameter('rarityId', $rarityId)
-            ->getQuery()
-            ->getResult();
+            ->setParameter('rarityId', $rarityId);
+
+        if ($titleId !== null) {
+            $qb->andWhere('IDENTITY(ca.anime) = :titleId')
+                ->setParameter('titleId', $titleId);
+        }
+
+        $cards = $qb->getQuery()->getResult();
 
         $eligible = [];
         foreach ($cards as $card) {
@@ -314,14 +446,19 @@ class WheelController extends AbstractController
     /**
      * @return CardFilm[]
      */
-    private function getEligibleFilmCards(EntityManagerInterface $entityManager, int $rarityId): array
+    private function getEligibleFilmCards(EntityManagerInterface $entityManager, int $rarityId, ?int $titleId = null): array
     {
-        $cards = $entityManager->getRepository(CardFilm::class)
+        $qb = $entityManager->getRepository(CardFilm::class)
             ->createQueryBuilder('cf')
             ->where('cf.rarity = :rarityId')
-            ->setParameter('rarityId', $rarityId)
-            ->getQuery()
-            ->getResult();
+            ->setParameter('rarityId', $rarityId);
+
+        if ($titleId !== null) {
+            $qb->andWhere('IDENTITY(cf.film) = :titleId')
+                ->setParameter('titleId', $titleId);
+        }
+
+        $cards = $qb->getQuery()->getResult();
 
         $eligible = [];
         foreach ($cards as $card) {

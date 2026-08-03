@@ -346,6 +346,7 @@ select {
 }
 
 .card {
+  position: relative;
   background: linear-gradient(white 90%, rgb(250, 157, 17));
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -354,6 +355,69 @@ select {
   text-decoration: none;
   color: black;
   border: 3px solid white;
+}
+
+.wishlist-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 5;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.wishlist-btn:hover {
+  transform: scale(1.15);
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.wishlist-btn.active {
+  background: rgba(231, 76, 60, 0.85);
+  color: #fff;
+}
+
+.wishlist-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+  transform: none;
+}
+
+.wishlist-btn.error {
+  background: rgba(231, 76, 60, 0.9);
+  animation: wishlist-shake 0.4s ease;
+}
+
+.wishlist-btn.inline {
+  position: static;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  margin-left: auto;
+  font-size: 0.95rem;
+  background: rgba(0, 0, 0, 0.15);
+  color: inherit;
+}
+
+.wishlist-btn.inline.active {
+  background: rgba(231, 76, 60, 0.85);
+  color: #fff;
+}
+
+@keyframes wishlist-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
 }
 
 .card:hover {

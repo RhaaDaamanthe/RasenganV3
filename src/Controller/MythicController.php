@@ -7,6 +7,7 @@ use App\Entity\CardFilm;
 use App\Entity\UserCardAnime;
 use App\Entity\UserCardFilm;
 use App\Service\BadgeService;
+use App\Service\WishlistService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -64,6 +65,7 @@ class MythicController extends AbstractController
                 'needed' => $requirement->getQuantityRequired(),
                 'owned' => $ownedQuantity,
                 'ok' => $ok,
+                'wishlisted' => $user->getWishlistCardAnimes()->contains($requiredCard),
             ];
         }
 
@@ -76,7 +78,7 @@ class MythicController extends AbstractController
     }
 
     #[Route('/catalogue/anime/mythic/{id}/unlock', name: 'app_mythic_anime_unlock', methods: ['POST'])]
-    public function animeUnlock(CardAnime $card, Request $request, EntityManagerInterface $entityManager, BadgeService $badgeService): JsonResponse
+    public function animeUnlock(CardAnime $card, Request $request, EntityManagerInterface $entityManager, BadgeService $badgeService, WishlistService $wishlistService): JsonResponse
     {
         if (!$this->isCsrfTokenValid('mythic-unlock', (string) $request->request->get('_token'))) {
             return $this->json(['success' => false, 'message' => 'Jeton de sécurité invalide.'], 400);
@@ -139,6 +141,7 @@ class MythicController extends AbstractController
 
         $entityManager->flush();
         $badgeService->refreshCollectorBadges($user);
+        $wishlistService->removeAnimeCardFromWishlist($user, $card);
 
         return $this->json([
             'success' => true,
@@ -194,6 +197,7 @@ class MythicController extends AbstractController
                 'needed' => $requirement->getQuantityRequired(),
                 'owned' => $ownedQuantity,
                 'ok' => $ok,
+                'wishlisted' => $user->getWishlistCardFilms()->contains($requiredCard),
             ];
         }
 
@@ -206,7 +210,7 @@ class MythicController extends AbstractController
     }
 
     #[Route('/catalogue/film/mythic/{id}/unlock', name: 'app_mythic_film_unlock', methods: ['POST'])]
-    public function filmUnlock(CardFilm $card, Request $request, EntityManagerInterface $entityManager, BadgeService $badgeService): JsonResponse
+    public function filmUnlock(CardFilm $card, Request $request, EntityManagerInterface $entityManager, BadgeService $badgeService, WishlistService $wishlistService): JsonResponse
     {
         if (!$this->isCsrfTokenValid('mythic-unlock', (string) $request->request->get('_token'))) {
             return $this->json(['success' => false, 'message' => 'Jeton de sécurité invalide.'], 400);
@@ -269,6 +273,7 @@ class MythicController extends AbstractController
 
         $entityManager->flush();
         $badgeService->refreshCollectorBadges($user);
+        $wishlistService->removeFilmCardFromWishlist($user, $card);
 
         return $this->json([
             'success' => true,

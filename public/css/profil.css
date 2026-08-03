@@ -582,6 +582,41 @@
     background: linear-gradient(270deg, #e74c3c, #ff6b5b);
 }
 
+.wishlist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 16px;
+}
+
+.wishlist-card {
+    position: relative;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(231, 109, 10, 0.15);
+    border-radius: 10px;
+    overflow: hidden;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.wishlist-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+.wishlist-card img {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    display: block;
+}
+
+.wishlist-card-name {
+    padding: 8px 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #fff8ec;
+}
+
 .profile-tab-panel-soon {
     width: 100%;
     max-width: 900px;

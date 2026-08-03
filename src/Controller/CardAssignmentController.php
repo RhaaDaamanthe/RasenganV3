@@ -12,6 +12,7 @@ use App\Repository\CardAnimeRepository;
 use App\Repository\CardFilmRepository;
 use App\Service\BadgeService;
 use App\Service\DiscordNotifier;
+use App\Service\WishlistService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -69,6 +70,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
         EntityManagerInterface $entityManager,
         BadgeService $badgeService,
         DiscordNotifier $discordNotifier
+        WishlistService $wishlistService
     ): Response {
         $search = $request->query->get('search', '');
         $page = max(1, $request->query->getInt('page', 1));
@@ -132,6 +134,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
                         'Anime',
                         $card->getImagePath(),
                     );
+                    $wishlistService->removeAnimeCardFromWishlist($user, $card);
                     $this->addFlash('success', "✅ {$quantity}x {$card->getNom()} attribuée(s) à {$user->getPseudo()} !");
                 }
             }
@@ -156,6 +159,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
         EntityManagerInterface $entityManager,
         BadgeService $badgeService,
         DiscordNotifier $discordNotifier
+        WishlistService $wishlistService
     ): Response {
         $search = $request->query->get('search', '');
         $page = max(1, $request->query->getInt('page', 1));
@@ -219,6 +223,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
                         'Film',
                         $card->getImagePath(),
                     );
+                    $wishlistService->removeFilmCardFromWishlist($user, $card);
                     $this->addFlash('success', "✅ {$quantity}x {$card->getNom()} attribuée(s) à {$user->getPseudo()} !");
                 }
             }

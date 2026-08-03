@@ -46,10 +46,17 @@ class CardFilm
     #[ORM\OneToMany(targetEntity: CardFilmRequirement::class, mappedBy: 'mythicCard', orphanRemoval: true)]
     private Collection $requirements;
 
+    /**
+     * @var Collection<int, User>
+     */
+    #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'wishlistCardFilms')]
+    private Collection $wishlistedByUsers;
+
     public function __construct()
     {
         $this->userCardFilms = new ArrayCollection();
         $this->requirements = new ArrayCollection();
+        $this->wishlistedByUsers = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -186,5 +193,13 @@ class CardFilm
         }
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function getWishlistedByUsers(): Collection
+    {
+        return $this->wishlistedByUsers;
     }
 }
