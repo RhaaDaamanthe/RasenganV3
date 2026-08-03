@@ -270,7 +270,7 @@
             {% if (wishlistAnime|length + wishlistFilm|length) > 0 %}
                 <div class="wishlist-grid">
                     {% for card in wishlistAnime %}
-                        <div class="wishlist-card{% if isOwnProfile %} wishlist-remove-card{% endif %}">
+                        <div class="wishlist-card{% if isOwnProfile %} wishlist-remove-card{% endif %}{% if card.id in outOfStockAnimeIds %} wishlist-card-taken{% endif %}">
                             {% if isOwnProfile %}
                                 <button type="button"
                                         class="wishlist-btn active"
@@ -284,11 +284,10 @@
                             {% else %}
                                 <img src="{{ asset('images/placeholder.png') }}" alt="{{ card.nom }}">
                             {% endif %}
-                            <p class="wishlist-card-name">{{ card.nom }}</p>
                         </div>
                     {% endfor %}
                     {% for card in wishlistFilm %}
-                        <div class="wishlist-card{% if isOwnProfile %} wishlist-remove-card{% endif %}">
+                        <div class="wishlist-card{% if isOwnProfile %} wishlist-remove-card{% endif %}{% if card.id in outOfStockFilmIds %} wishlist-card-taken{% endif %}">
                             {% if isOwnProfile %}
                                 <button type="button"
                                         class="wishlist-btn active"
@@ -302,7 +301,6 @@
                             {% else %}
                                 <img src="{{ asset('images/placeholder.png') }}" alt="{{ card.nom }}">
                             {% endif %}
-                            <p class="wishlist-card-name">{{ card.nom }}</p>
                         </div>
                     {% endfor %}
                 </div>

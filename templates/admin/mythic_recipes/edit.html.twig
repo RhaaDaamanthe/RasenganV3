@@ -412,6 +412,7 @@
                                         <input type="hidden" name="required[]" value="">
                                         <input type="text" name="placeholder[]" class="placeholder-input" placeholder="Nom de la carte à venir" value="{{ requirement.placeholderNom }}">
                                         <input type="number" name="qty[]" min="1" value="{{ requirement.quantityRequired }}">
+                                        <input type="hidden" name="alternatives[]" value="">
                                         <button type="button" class="remove-row-btn" title="Retirer">✖</button>
                                     </div>
                                 </div>
@@ -569,6 +570,7 @@
                     <input type="hidden" name="required[]" value="">
                     <input type="text" name="placeholder[]" class="placeholder-input" placeholder="Nom de la carte à venir">
                     <input type="number" name="qty[]" min="1" value="1">
+                    <input type="hidden" name="alternatives[]" value="">
                     <button type="button" class="remove-row-btn" title="Retirer">✖</button>
                 </div>
             `;

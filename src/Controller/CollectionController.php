@@ -213,6 +213,45 @@ class CollectionController extends AbstractController
             ->getQuery()
             ->getResult();
 
+        // Cartes de la wishlist déjà entièrement distribuées à d'autres joueurs (rupture de stock)
+        $outOfStockAnimeIds = [];
+        $wishlistAnimeIds = array_map(fn (CardAnime $c) => $c->getId(), $wishlistAnime);
+        if ($wishlistAnimeIds) {
+            $distributed = $entityManager->getRepository(\App\Entity\UserCardAnime::class)
+                ->createQueryBuilder('uca')
+                ->select('IDENTITY(uca.cardAnime) as cardId, SUM(uca.quantity) as total')
+                ->where('uca.cardAnime IN (:ids)')
+                ->setParameter('ids', $wishlistAnimeIds)
+                ->groupBy('uca.cardAnime')
+                ->getQuery()
+                ->getResult();
+            $distributedById = array_column($distributed, 'total', 'cardId');
+            foreach ($wishlistAnime as $card) {
+                if ((int) ($distributedById[$card->getId()] ?? 0) >= $card->getQuantity()) {
+                    $outOfStockAnimeIds[] = $card->getId();
+                }
+            }
+        }
+
+        $outOfStockFilmIds = [];
+        $wishlistFilmIds = array_map(fn (CardFilm $c) => $c->getId(), $wishlistFilm);
+        if ($wishlistFilmIds) {
+            $distributed = $entityManager->getRepository(\App\Entity\UserCardFilm::class)
+                ->createQueryBuilder('ucf')
+                ->select('IDENTITY(ucf.cardFilm) as cardId, SUM(ucf.quantity) as total')
+                ->where('ucf.cardFilm IN (:ids)')
+                ->setParameter('ids', $wishlistFilmIds)
+                ->groupBy('ucf.cardFilm')
+                ->getQuery()
+                ->getResult();
+            $distributedById = array_column($distributed, 'total', 'cardId');
+            foreach ($wishlistFilm as $card) {
+                if ((int) ($distributedById[$card->getId()] ?? 0) >= $card->getQuantity()) {
+                    $outOfStockFilmIds[] = $card->getId();
+                }
+            }
+        }
+
         return $this->render('collection/player_collection.html.twig', [
             'user' => $user,
             'paginatedCards' => $paginatedCards,
@@ -225,6 +264,8 @@ class CollectionController extends AbstractController
             'rarityStats' => $rarityStatsService->getRarityBreakdown($user),
             'wishlistAnime' => $wishlistAnime,
             'wishlistFilm' => $wishlistFilm,
+            'outOfStockAnimeIds' => $outOfStockAnimeIds,
+            'outOfStockFilmIds' => $outOfStockFilmIds,
             'isOwnProfile' => $this->getUser() === $user,
         ]);
     }
