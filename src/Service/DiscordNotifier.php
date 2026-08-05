@@ -77,11 +77,11 @@ class DiscordNotifier
     private function colorForRarity(string $rarity): int
     {
         return match (mb_strtolower($rarity)) {
-            'commune' => 0x95A5A6,
-            'rare' => 0x3498DB,
-            'épique', 'epique' => 0x9B59B6,
-            'légendaire', 'legendaire' => 0xF1C40F,
-            'mythique' => 0xE74C3C,
+            'communes' => 0x95A5A6,
+            'rares' => 0x3498DB,
+            'épiques', 'epiques' => 0x9B59B6,
+            'légendaires', 'legendaires' => 0xF1C40F,
+            'mythiques' => 0xE74C3C,
             default => 0x2ECC71,
         };
     }
