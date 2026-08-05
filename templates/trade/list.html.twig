@@ -1,0 +1,100 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes échanges{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
+    <style>
+        .trade-page {
+            padding: 170px 20px 80px;
+            min-height: calc(100vh - 100px);
+            background: linear-gradient(180deg, #3a0705 0%, #1a0402 340px, #1a0402 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .trade-inner { width: 100%; max-width: 900px; }
+        .trade-section-title { color: #ff8c42; margin: 32px 0 14px; text-transform: uppercase; letter-spacing: 0.5px; font-size: 1.1rem; }
+        .trade-empty { color: #cdbfba; font-style: italic; }
+        .trade-row {
+            display: flex; align-items: center; justify-content: space-between; gap: 16px;
+            background: linear-gradient(160deg, #4a0e0a 0%, #2e0503 100%);
+            border: 1px solid rgba(231, 109, 10, 0.25);
+            border-radius: 12px; padding: 14px 18px; margin-bottom: 12px;
+            text-decoration: none; color: #fff;
+        }
+        .trade-row:hover { border-color: #ff8c42; }
+        .trade-row .trade-status { font-size: 0.8rem; padding: 3px 10px; border-radius: 999px; background: rgba(255,140,66,0.15); color: #ffb066; text-transform: uppercase; }
+        .trade-status.accepted { background: rgba(76, 175, 80, 0.2); color: #7ed48b; }
+        .trade-status.declined, .trade-status.cancelled { background: rgba(220, 60, 60, 0.2); color: #ff8a8a; }
+        .trade-status.countered { background: rgba(120, 120, 220, 0.2); color: #b3b3ff; }
+        .trade-new-picker { display: flex; flex-wrap: wrap; gap: 10px; }
+        .trade-new-picker a {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 16px; border-radius: 999px;
+            background: rgba(231, 109, 10, 0.15); border: 1px solid rgba(231, 109, 10, 0.4);
+            color: #ffb066; text-decoration: none; font-weight: 600; font-size: 0.9rem;
+        }
+        .trade-new-picker a:hover { background: #e76d0a; color: #fff; }
+    </style>
+{% endblock %}
+
+{% block body %}
+<main class="trade-page">
+<div class="trade-inner">
+    <div class="player-collection-title-wrap">
+        <span class="title-flourish"></span>
+        <h2 class="player-collection-title">Mes échanges</h2>
+        <span class="title-flourish"></span>
+    </div>
+
+    <h3 class="trade-section-title">➕ Proposer un nouvel échange</h3>
+    {% if otherPlayers is empty %}
+        <p class="trade-empty">Aucun autre joueur avec qui échanger pour le moment.</p>
+    {% else %}
+        <div class="trade-new-picker">
+            {% for player in otherPlayers %}
+                <a href="{{ path('app_trade_new', {id: player.id}) }}">🔁 {{ player.pseudo }}</a>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <h3 class="trade-section-title">📥 Offres reçues</h3>
+    {% if received is empty %}
+        <p class="trade-empty">Aucune offre en attente.</p>
+    {% else %}
+        {% for offer in received %}
+            <a href="{{ path('app_trade_show', {id: offer.id}) }}" class="trade-row">
+                <span>{{ offer.proposer.pseudo }} vous propose un échange</span>
+                <span class="trade-status">{{ offer.status }}</span>
+            </a>
+        {% endfor %}
+    {% endif %}
+
+    <h3 class="trade-section-title">📤 Offres envoyées</h3>
+    {% if sent is empty %}
+        <p class="trade-empty">Aucune offre envoyée en attente.</p>
+    {% else %}
+        {% for offer in sent %}
+            <a href="{{ path('app_trade_show', {id: offer.id}) }}" class="trade-row">
+                <span>Offre envoyée à {{ offer.recipient.pseudo }}</span>
+                <span class="trade-status">{{ offer.status }}</span>
+            </a>
+        {% endfor %}
+    {% endif %}
+
+    <h3 class="trade-section-title">🗂️ Historique</h3>
+    {% if history is empty %}
+        <p class="trade-empty">Aucun échange résolu pour le moment.</p>
+    {% else %}
+        {% for offer in history %}
+            <a href="{{ path('app_trade_show', {id: offer.id}) }}" class="trade-row">
+                <span>{{ offer.proposer.pseudo }} → {{ offer.recipient.pseudo }}</span>
+                <span class="trade-status {{ offer.status }}">{{ offer.status }}</span>
+            </a>
+        {% endfor %}
+    {% endif %}
+</div>
+</main>
+{% endblock %}
