@@ -11,6 +11,7 @@ use App\Repository\UserRepository;
 use App\Repository\CardAnimeRepository;
 use App\Repository\CardFilmRepository;
 use App\Service\BadgeService;
+use App\Service\DiscordNotifier;
 use App\Service\WishlistService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -68,6 +69,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
         CardAnimeRepository $cardAnimeRepository,
         EntityManagerInterface $entityManager,
         BadgeService $badgeService,
+        DiscordNotifier $discordNotifier
         WishlistService $wishlistService
     ): Response {
         $search = $request->query->get('search', '');
@@ -124,6 +126,14 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
                     $entityManager->flush();
                     $badgeService->refreshCollectorBadges($user);
+                    $discordNotifier->notifyDrop(
+                        $user->getPseudo(),
+                        $card->getNom(),
+                        $card->getAnime()?->getNom() ?? '',
+                        $card->getRarity()?->getLibelle() ?? '',
+                        'Anime',
+                        $card->getImagePath(),
+                    );
                     $wishlistService->removeAnimeCardFromWishlist($user, $card);
                     $this->addFlash('success', "✅ {$quantity}x {$card->getNom()} attribuée(s) à {$user->getPseudo()} !");
                 }
@@ -148,6 +158,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
         CardFilmRepository $cardFilmRepository,
         EntityManagerInterface $entityManager,
         BadgeService $badgeService,
+        DiscordNotifier $discordNotifier
         WishlistService $wishlistService
     ): Response {
         $search = $request->query->get('search', '');
@@ -204,6 +215,14 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
                     $entityManager->flush();
                     $badgeService->refreshCollectorBadges($user);
+                    $discordNotifier->notifyDrop(
+                        $user->getPseudo(),
+                        $card->getNom(),
+                        $card->getFilm()?->getNom() ?? '',
+                        $card->getRarity()?->getLibelle() ?? '',
+                        'Film',
+                        $card->getImagePath(),
+                    );
                     $wishlistService->removeFilmCardFromWishlist($user, $card);
                     $this->addFlash('success', "✅ {$quantity}x {$card->getNom()} attribuée(s) à {$user->getPseudo()} !");
                 }
