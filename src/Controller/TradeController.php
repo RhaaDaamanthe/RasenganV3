@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Rarities;
 use App\Entity\TradeOffer;
 use App\Entity\User;
 use App\Entity\UserCardFilm;
@@ -77,6 +78,7 @@ class TradeController extends AbstractController
             'myCardFilms' => $entityManager->getRepository(\App\Entity\UserCardFilm::class)->findBy(['user' => $proposer]),
             'theirCardAnimes' => $userCardAnimeRepository->findByUserSorted($recipient),
             'theirCardFilms' => $entityManager->getRepository(\App\Entity\UserCardFilm::class)->findBy(['user' => $recipient]),
+            'rarities' => $entityManager->getRepository(Rarities::class)->findAll(),
         ]);
     }
 
@@ -177,6 +179,7 @@ class TradeController extends AbstractController
             'myCardFilms' => $entityManager->getRepository(\App\Entity\UserCardFilm::class)->findBy(['user' => $me]),
             'theirCardAnimes' => $userCardAnimeRepository->findByUserSorted($other),
             'theirCardFilms' => $entityManager->getRepository(\App\Entity\UserCardFilm::class)->findBy(['user' => $other]),
+            'rarities' => $entityManager->getRepository(Rarities::class)->findAll(),
         ]);
     }
 
