@@ -5,13 +5,19 @@
   list-style: none;
 }
 
-html,
-body {
+html {
   height: 100%;
 }
 
+/*
+  Footer collé en bas : min-height (et non height) laisse le body grandir avec
+  son contenu. Avec height: 100% le body restait figé à la hauteur du viewport,
+  le footer se plaçait à la fin de cette boîte et le contenu plus long passait
+  par-dessus.
+*/
 body {
   font-family: "Poppins";
+  min-height: 100%;
   display: flex;
   flex-direction: column;
 }

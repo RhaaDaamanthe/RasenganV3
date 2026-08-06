@@ -36,6 +36,7 @@ services:
         arguments:
             $projectDir: '%kernel.project_dir%'
             $webhookUrl: '%env(DISCORD_DROP_WEBHOOK_URL)%'
+            $tradeWebhookUrl: '%env(DISCORD_TRADE_WEBHOOK_URL)%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
