@@ -83,6 +83,22 @@
             margin-top: 6px;
         }
         .trade-card-pick.selected .qty-picker { display: flex; }
+        .trade-wish-toggle {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 9px 12px; border-radius: 10px;
+            border: 1px solid rgba(241, 196, 15, 0.4); background: #1e0403;
+            color: #f1c40f; font-size: 0.8rem; cursor: pointer; user-select: none;
+        }
+        .trade-wish-toggle input { accent-color: #f1c40f; cursor: pointer; }
+        .trade-card-pick .wish-badge {
+            position: absolute; top: -8px; left: -8px;
+            padding: 2px 7px; border-radius: 999px;
+            background: #f1c40f; color: #3a2600; font-size: 0.7rem; font-weight: 700;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            pointer-events: none;
+        }
+        .trade-card-pick.wished { border-color: rgba(241, 196, 15, 0.55); }
+        .trade-wishlist-hint { color: #f1c40f; font-size: 0.8rem; margin-bottom: 10px; display: block; }
         .trade-card-pick .qty-picker button {
             width: 22px; height: 22px; border-radius: 6px; border: 1px solid rgba(231,109,10,0.5);
             background: #1e0403; color: #fff; cursor: pointer; font-weight: 700; line-height: 1;
@@ -139,6 +155,12 @@
     <p style="text-align:center; color:#cdbfba;">
         Cliquez sur les cartes pour les sélectionner (offertes à gauche, demandées à droite), ajustez la quantité si besoin, puis envoyez l'offre.
     </p>
+    <p style="text-align:center;">
+        <span class="trade-wishlist-hint">
+            ⭐ = carte présente dans une wishlist —
+            <a href="{{ path('app_trade_suggestions', {id: recipient.id}) }}" style="color:#f1c40f;">voir les échanges suggérés avec {{ recipient.pseudo }}</a>
+        </span>
+    </p>
 
     <form method="post" id="trade-form">
         <div class="trade-columns">
@@ -153,11 +175,17 @@
                             <option value="{{ rarity.libelle }}">{{ rarity.libelle }}</option>
                         {% endfor %}
                     </select>
+                    <label class="trade-wish-toggle">
+                        <input type="checkbox" class="trade-wish-filter" data-filter-target="proposer">
+                        ⭐ Sa wishlist
+                    </label>
                 </div>
                 <div class="trade-card-grid" data-grid="proposer">
                     {% for uc in myCardAnimes %}
-                        <div class="trade-card-pick" data-input="proposer_items[]" data-value="anime:{{ uc.cardAnime.id }}" data-name="{{ uc.cardAnime.nom|lower }}" data-rarete="{{ uc.cardAnime.rarity.libelle }}">
+                        {% set wished = theirWishlist.anime[uc.cardAnime.id] is defined %}
+                        <div class="trade-card-pick{{ wished ? ' wished' }}" data-input="proposer_items[]" data-value="anime:{{ uc.cardAnime.id }}" data-name="{{ uc.cardAnime.nom|lower }}" data-rarete="{{ uc.cardAnime.rarity.libelle }}" data-wished="{{ wished ? '1' : '0' }}">
                             <span class="selected-badge">✓</span>
+                            {% if wished %}<span class="wish-badge" title="{{ recipient.pseudo }} veut cette carte">⭐</span>{% endif %}
                             <img src="{{ asset(uc.cardAnime.imagePath) }}" alt="{{ uc.cardAnime.nom }}">
                             <span class="name">{{ uc.cardAnime.nom }}</span>
                             <span class="qty">possédées : x{{ uc.quantity }}</span>
@@ -169,8 +197,10 @@
                         </div>
                     {% endfor %}
                     {% for uc in myCardFilms %}
-                        <div class="trade-card-pick" data-input="proposer_items[]" data-value="film:{{ uc.cardFilm.id }}" data-name="{{ uc.cardFilm.nom|lower }}" data-rarete="{{ uc.cardFilm.rarity.libelle }}">
+                        {% set wished = theirWishlist.film[uc.cardFilm.id] is defined %}
+                        <div class="trade-card-pick{{ wished ? ' wished' }}" data-input="proposer_items[]" data-value="film:{{ uc.cardFilm.id }}" data-name="{{ uc.cardFilm.nom|lower }}" data-rarete="{{ uc.cardFilm.rarity.libelle }}" data-wished="{{ wished ? '1' : '0' }}">
                             <span class="selected-badge">✓</span>
+                            {% if wished %}<span class="wish-badge" title="{{ recipient.pseudo }} veut cette carte">⭐</span>{% endif %}
                             <img src="{{ asset(uc.cardFilm.imagePath) }}" alt="{{ uc.cardFilm.nom }}">
                             <span class="name">{{ uc.cardFilm.nom }}</span>
                             <span class="qty">possédées : x{{ uc.quantity }}</span>
@@ -196,11 +226,17 @@
                             <option value="{{ rarity.libelle }}">{{ rarity.libelle }}</option>
                         {% endfor %}
                     </select>
+                    <label class="trade-wish-toggle">
+                        <input type="checkbox" class="trade-wish-filter" data-filter-target="recipient">
+                        ⭐ Ma wishlist
+                    </label>
                 </div>
                 <div class="trade-card-grid" data-grid="recipient">
                     {% for uc in theirCardAnimes %}
-                        <div class="trade-card-pick" data-input="recipient_items[]" data-value="anime:{{ uc.cardAnime.id }}" data-name="{{ uc.cardAnime.nom|lower }}" data-rarete="{{ uc.cardAnime.rarity.libelle }}">
+                        {% set wished = myWishlist.anime[uc.cardAnime.id] is defined %}
+                        <div class="trade-card-pick{{ wished ? ' wished' }}" data-input="recipient_items[]" data-value="anime:{{ uc.cardAnime.id }}" data-name="{{ uc.cardAnime.nom|lower }}" data-rarete="{{ uc.cardAnime.rarity.libelle }}" data-wished="{{ wished ? '1' : '0' }}">
                             <span class="selected-badge">✓</span>
+                            {% if wished %}<span class="wish-badge" title="Dans votre wishlist">⭐</span>{% endif %}
                             <img src="{{ asset(uc.cardAnime.imagePath) }}" alt="{{ uc.cardAnime.nom }}">
                             <span class="name">{{ uc.cardAnime.nom }}</span>
                             <span class="qty">possédées : x{{ uc.quantity }}</span>
@@ -212,8 +248,10 @@
                         </div>
                     {% endfor %}
                     {% for uc in theirCardFilms %}
-                        <div class="trade-card-pick" data-input="recipient_items[]" data-value="film:{{ uc.cardFilm.id }}" data-name="{{ uc.cardFilm.nom|lower }}" data-rarete="{{ uc.cardFilm.rarity.libelle }}">
+                        {% set wished = myWishlist.film[uc.cardFilm.id] is defined %}
+                        <div class="trade-card-pick{{ wished ? ' wished' }}" data-input="recipient_items[]" data-value="film:{{ uc.cardFilm.id }}" data-name="{{ uc.cardFilm.nom|lower }}" data-rarete="{{ uc.cardFilm.rarity.libelle }}" data-wished="{{ wished ? '1' : '0' }}">
                             <span class="selected-badge">✓</span>
+                            {% if wished %}<span class="wish-badge" title="Dans votre wishlist">⭐</span>{% endif %}
                             <img src="{{ asset(uc.cardFilm.imagePath) }}" alt="{{ uc.cardFilm.nom }}">
                             <span class="name">{{ uc.cardFilm.nom }}</span>
                             <span class="qty">possédées : x{{ uc.quantity }}</span>
@@ -323,18 +361,21 @@
                 var target = grid.dataset.grid;
                 var searchInput = document.querySelector('.trade-search[data-filter-target="' + target + '"]');
                 var raritySelect = document.querySelector('.trade-rarity-filter[data-filter-target="' + target + '"]');
+                var wishFilter = document.querySelector('.trade-wish-filter[data-filter-target="' + target + '"]');
                 var emptyMsg = document.querySelector('.trade-filter-empty[data-empty-for="' + target + '"]');
                 var cards = grid.querySelectorAll('.trade-card-pick');
 
                 function applyFilter() {
                     var query = (searchInput.value || '').trim().toLowerCase();
                     var rarity = raritySelect.value;
+                    var wishedOnly = wishFilter.checked;
                     var visibleCount = 0;
 
                     cards.forEach(function (card) {
                         var matchesName = !query || card.dataset.name.indexOf(query) !== -1;
                         var matchesRarity = !rarity || card.dataset.rarete === rarity;
-                        var visible = matchesName && matchesRarity;
+                        var matchesWish = !wishedOnly || card.dataset.wished === '1';
+                        var visible = matchesName && matchesRarity && matchesWish;
 
                         card.classList.toggle('filtered-out', !visible);
                         if (visible) visibleCount++;
@@ -345,6 +386,7 @@
 
                 searchInput.addEventListener('input', applyFilter);
                 raritySelect.addEventListener('change', applyFilter);
+                wishFilter.addEventListener('change', applyFilter);
             });
         })();
     </script>

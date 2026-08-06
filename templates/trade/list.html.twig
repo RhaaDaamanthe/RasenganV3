@@ -1,4 +1,5 @@
 {% extends 'base.html.twig' %}
+{% import 'trade/_macros.html.twig' as trade %}
 
 {% block title %}Mes échanges{% endblock %}
 
@@ -29,7 +30,9 @@
         .trade-status.accepted { background: rgba(76, 175, 80, 0.2); color: #7ed48b; }
         .trade-status.declined, .trade-status.cancelled { background: rgba(220, 60, 60, 0.2); color: #ff8a8a; }
         .trade-status.countered { background: rgba(120, 120, 220, 0.2); color: #b3b3ff; }
+        .trade-status.invalidated { background: rgba(150, 150, 150, 0.2); color: #c9c9c9; }
         .trade-new-picker { display: flex; flex-wrap: wrap; gap: 10px; }
+        .trade-player-entry { display: inline-flex; align-items: stretch; }
         .trade-new-picker a {
             display: inline-flex; align-items: center; gap: 6px;
             padding: 8px 16px; border-radius: 999px;
@@ -37,6 +40,11 @@
             color: #ffb066; text-decoration: none; font-weight: 600; font-size: 0.9rem;
         }
         .trade-new-picker a:hover { background: #e76d0a; color: #fff; }
+        .trade-player-entry a:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: none; }
+        .trade-player-entry a.trade-suggest-link {
+            border-top-left-radius: 0; border-bottom-left-radius: 0;
+            padding-left: 12px; padding-right: 12px;
+        }
     </style>
 {% endblock %}
 
@@ -55,7 +63,11 @@
     {% else %}
         <div class="trade-new-picker">
             {% for player in otherPlayers %}
-                <a href="{{ path('app_trade_new', {id: player.id}) }}">🔁 {{ player.pseudo }}</a>
+                <span class="trade-player-entry">
+                    <a href="{{ path('app_trade_new', {id: player.id}) }}">🔁 {{ player.pseudo }}</a>
+                    <a href="{{ path('app_trade_suggestions', {id: player.id}) }}" class="trade-suggest-link"
+                       title="Voir les échanges suggérés avec {{ player.pseudo }}">⭐</a>
+                </span>
             {% endfor %}
         </div>
     {% endif %}
@@ -67,7 +79,7 @@
         {% for offer in received %}
             <a href="{{ path('app_trade_show', {id: offer.id}) }}" class="trade-row">
                 <span>{{ offer.proposer.pseudo }} vous propose un échange</span>
-                <span class="trade-status">{{ offer.status }}</span>
+                <span class="trade-status">{{ trade.statusLabel(offer.status) }}</span>
             </a>
         {% endfor %}
     {% endif %}
@@ -79,7 +91,7 @@
         {% for offer in sent %}
             <a href="{{ path('app_trade_show', {id: offer.id}) }}" class="trade-row">
                 <span>Offre envoyée à {{ offer.recipient.pseudo }}</span>
-                <span class="trade-status">{{ offer.status }}</span>
+                <span class="trade-status">{{ trade.statusLabel(offer.status) }}</span>
             </a>
         {% endfor %}
     {% endif %}
@@ -91,7 +103,7 @@
         {% for offer in history %}
             <a href="{{ path('app_trade_show', {id: offer.id}) }}" class="trade-row">
                 <span>{{ offer.proposer.pseudo }} → {{ offer.recipient.pseudo }}</span>
-                <span class="trade-status {{ offer.status }}">{{ offer.status }}</span>
+                <span class="trade-status {{ offer.status }}">{{ trade.statusLabel(offer.status) }}</span>
             </a>
         {% endfor %}
     {% endif %}
