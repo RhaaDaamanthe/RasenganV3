@@ -158,7 +158,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
         CardFilmRepository $cardFilmRepository,
         EntityManagerInterface $entityManager,
         BadgeService $badgeService,
-        DiscordNotifier $discordNotifier
+        DiscordNotifier $discordNotifier,
         WishlistService $wishlistService
     ): Response {
         $search = $request->query->get('search', '');
