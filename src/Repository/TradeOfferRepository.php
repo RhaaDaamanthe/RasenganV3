@@ -69,6 +69,31 @@ class TradeOfferRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * Offres encore en attente dans lesquelles cet utilisateur a engagé au moins une carte
+     * (peu importe qu'il soit proposer ou recipient).
+     *
+     * Sert à repérer les offres devenues impossibles après qu'un échange a été accepté.
+     *
+     * @return TradeOffer[]
+     */
+    public function findPendingWithItemOwnedBy(User $user, ?TradeOffer $exclude = null): array
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->join('t.items', 'i')
+            ->andWhere('i.owner = :user')
+            ->andWhere('t.status = :status')
+            ->setParameter('user', $user)
+            ->setParameter('status', TradeOffer::STATUS_PENDING)
+            ->distinct();
+
+        if ($exclude !== null && $exclude->getId() !== null) {
+            $qb->andWhere('t.id != :exclude')->setParameter('exclude', $exclude->getId());
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
     public function countPendingReceivedBy(User $user): int
     {
         return (int) $this->createQueryBuilder('t')

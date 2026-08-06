@@ -16,6 +16,12 @@ class TradeOffer
     public const STATUS_CANCELLED = 'cancelled';
     public const STATUS_COUNTERED = 'countered';
 
+    /**
+     * Offre devenue impossible : une des cartes engagées a été échangée entre-temps
+     * via une autre offre acceptée. Annulée automatiquement par le système.
+     */
+    public const STATUS_INVALIDATED = 'invalidated';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

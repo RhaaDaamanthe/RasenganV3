@@ -10,6 +10,7 @@ use App\Repository\TradeOfferRepository;
 use App\Repository\UserCardAnimeRepository;
 use App\Repository\UserRepository;
 use App\Service\TradeService;
+use App\Service\WishlistService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -49,6 +50,7 @@ class TradeController extends AbstractController
         UserCardAnimeRepository $userCardAnimeRepository,
         EntityManagerInterface $entityManager,
         TradeService $tradeService,
+        WishlistService $wishlistService,
     ): Response {
         /** @var User $proposer */
         $proposer = $this->getUser();
@@ -61,7 +63,7 @@ class TradeController extends AbstractController
 
         if ($request->isMethod('POST')) {
             try {
-                $itemsData = $this->parseItemsFromRequest($request, $proposer, $recipient, $entityManager);
+                $itemsData = $this->parseItemsFromRequest($request, $proposer, $recipient);
                 $offer = $tradeService->proposeTrade($proposer, $recipient, $itemsData);
 
                 $this->addFlash('success', "✅ Offre d'échange envoyée à {$recipient->getPseudo()} !");
@@ -75,10 +77,33 @@ class TradeController extends AbstractController
         return $this->render('trade/new.html.twig', [
             'recipient' => $recipient,
             'myCardAnimes' => $userCardAnimeRepository->findByUserSorted($proposer),
-            'myCardFilms' => $entityManager->getRepository(\App\Entity\UserCardFilm::class)->findBy(['user' => $proposer]),
+            'myCardFilms' => $entityManager->getRepository(UserCardFilm::class)->findBy(['user' => $proposer]),
             'theirCardAnimes' => $userCardAnimeRepository->findByUserSorted($recipient),
-            'theirCardFilms' => $entityManager->getRepository(\App\Entity\UserCardFilm::class)->findBy(['user' => $recipient]),
+            'theirCardFilms' => $entityManager->getRepository(UserCardFilm::class)->findBy(['user' => $recipient]),
             'rarities' => $entityManager->getRepository(Rarities::class)->findAll(),
+            'myWishlist' => $wishlistService->getWishlistCardIds($proposer),
+            'theirWishlist' => $wishlistService->getWishlistCardIds($recipient),
+        ]);
+    }
+
+    /**
+     * Croise les doublons et les wishlists des deux joueurs pour proposer des pistes d'échange.
+     */
+    #[Route('/suggestions/{id}', name: 'app_trade_suggestions', requirements: ['id' => '\d+'])]
+    public function suggestions(User $other, WishlistService $wishlistService): Response
+    {
+        /** @var User $me */
+        $me = $this->getUser();
+
+        if ($me === $other) {
+            $this->addFlash('error', "Vous ne pouvez pas échanger avec vous-même.");
+
+            return $this->redirectToRoute('app_trade_list');
+        }
+
+        return $this->render('trade/suggestions.html.twig', [
+            'other' => $other,
+            'suggestions' => $wishlistService->findTradeSuggestions($me, $other),
         ]);
     }
 
@@ -94,9 +119,10 @@ class TradeController extends AbstractController
     }
 
     #[Route('/{id}/accepter', name: 'app_trade_accept', methods: ['POST'])]
-    public function accept(TradeOffer $offer, TradeService $tradeService): Response
+    public function accept(TradeOffer $offer, Request $request, TradeService $tradeService): Response
     {
         $this->assertParticipant($offer);
+        $this->assertCsrf($request, 'trade_accept', $offer);
 
         try {
             $tradeService->accept($offer, $this->getUser());
@@ -109,9 +135,10 @@ class TradeController extends AbstractController
     }
 
     #[Route('/{id}/refuser', name: 'app_trade_decline', methods: ['POST'])]
-    public function decline(TradeOffer $offer, TradeService $tradeService): Response
+    public function decline(TradeOffer $offer, Request $request, TradeService $tradeService): Response
     {
         $this->assertParticipant($offer);
+        $this->assertCsrf($request, 'trade_decline', $offer);
 
         try {
             $tradeService->decline($offer, $this->getUser());
@@ -124,9 +151,10 @@ class TradeController extends AbstractController
     }
 
     #[Route('/{id}/annuler', name: 'app_trade_cancel', methods: ['POST'])]
-    public function cancel(TradeOffer $offer, TradeService $tradeService): Response
+    public function cancel(TradeOffer $offer, Request $request, TradeService $tradeService): Response
     {
         $this->assertParticipant($offer);
+        $this->assertCsrf($request, 'trade_cancel', $offer);
 
         try {
             $tradeService->cancel($offer, $this->getUser());
@@ -145,6 +173,7 @@ class TradeController extends AbstractController
         UserCardAnimeRepository $userCardAnimeRepository,
         EntityManagerInterface $entityManager,
         TradeService $tradeService,
+        WishlistService $wishlistService,
     ): Response {
         $this->assertParticipant($offer);
 
@@ -176,10 +205,12 @@ class TradeController extends AbstractController
             'recipient' => $other,
             'counterOf' => $offer,
             'myCardAnimes' => $userCardAnimeRepository->findByUserSorted($me),
-            'myCardFilms' => $entityManager->getRepository(\App\Entity\UserCardFilm::class)->findBy(['user' => $me]),
+            'myCardFilms' => $entityManager->getRepository(UserCardFilm::class)->findBy(['user' => $me]),
             'theirCardAnimes' => $userCardAnimeRepository->findByUserSorted($other),
-            'theirCardFilms' => $entityManager->getRepository(\App\Entity\UserCardFilm::class)->findBy(['user' => $other]),
+            'theirCardFilms' => $entityManager->getRepository(UserCardFilm::class)->findBy(['user' => $other]),
             'rarities' => $entityManager->getRepository(Rarities::class)->findAll(),
+            'myWishlist' => $wishlistService->getWishlistCardIds($me),
+            'theirWishlist' => $wishlistService->getWishlistCardIds($other),
         ]);
     }
 
@@ -189,7 +220,7 @@ class TradeController extends AbstractController
      *
      * @return array<int, array{owner: User, type: string, cardId: int, quantity: int}>
      */
-    private function parseItemsFromRequest(Request $request, User $proposer, User $recipient, EntityManagerInterface $entityManager): array
+    private function parseItemsFromRequest(Request $request, User $proposer, User $recipient): array
     {
         $items = [];
 
@@ -226,6 +257,17 @@ class TradeController extends AbstractController
 
         if ($offer->getProposer() !== $user && $offer->getRecipient() !== $user) {
             throw $this->createAccessDeniedException("Vous n'êtes pas concerné par cet échange.");
+        }
+    }
+
+    /**
+     * Sans ce jeton, un formulaire auto-soumis hébergé sur un site tiers pourrait
+     * faire accepter/refuser/annuler une offre à l'insu du joueur connecté.
+     */
+    private function assertCsrf(Request $request, string $intention, TradeOffer $offer): void
+    {
+        if (!$this->isCsrfTokenValid($intention . $offer->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton CSRF invalide.');
         }
     }
 }
