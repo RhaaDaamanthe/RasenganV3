@@ -127,6 +127,44 @@ class UserManagementController extends AbstractController
         ]);
     }
 
+    // Renseigner ou effacer l'identifiant Discord d'un joueur, pour pouvoir le
+    // mentionner lors d'un drop. Doublon volontaire du champ present dans
+    // /parametres : le joueur peut le faire lui-meme, l'admin peut depanner.
+    #[Route('/discord-id/{id}', name: 'app_set_user_discord_id', methods: ['POST'])]
+    public function setUserDiscordId(
+        User $user,
+        Request $request,
+        EntityManagerInterface $entityManager
+    ): Response {
+        if (!$this->isCsrfTokenValid('set-discord-id' . $user->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', '❌ Jeton de sécurité invalide.');
+
+            return $this->redirectToRoute('app_manage_users');
+        }
+
+        $discordId = trim((string) $request->request->get('discord_id'));
+
+        if ($discordId === '') {
+            $user->setDiscordId(null);
+            $entityManager->flush();
+            $this->addFlash('success', "✅ Identifiant Discord de {$user->getPseudo()} effacé.");
+
+            return $this->redirectToRoute('app_manage_users');
+        }
+
+        if (!preg_match('/^[0-9]{17,20}$/', $discordId)) {
+            $this->addFlash('error', '❌ Un identifiant Discord est une suite de 17 à 20 chiffres.');
+
+            return $this->redirectToRoute('app_manage_users');
+        }
+
+        $user->setDiscordId($discordId);
+        $entityManager->flush();
+        $this->addFlash('success', "✅ Identifiant Discord de {$user->getPseudo()} enregistré !");
+
+        return $this->redirectToRoute('app_manage_users');
+    }
+
     // Réinitialiser le mot de passe d'un utilisateur
     #[Route('/reset-password/{id}', name: 'app_reset_user_password', methods: ['POST'])]
     public function resetUserPassword(

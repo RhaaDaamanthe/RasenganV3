@@ -127,7 +127,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
                     $entityManager->flush();
                     $badgeService->refreshCollectorBadges($user);
                     $discordNotifier->notifyDrop(
-                        $user->getPseudo(),
+                        $user,
                         $card->getNom(),
                         $card->getAnime()?->getNom() ?? '',
                         $card->getRarity()?->getLibelle() ?? '',
@@ -216,7 +216,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
                     $entityManager->flush();
                     $badgeService->refreshCollectorBadges($user);
                     $discordNotifier->notifyDrop(
-                        $user->getPseudo(),
+                        $user,
                         $card->getNom(),
                         $card->getFilm()?->getNom() ?? '',
                         $card->getRarity()?->getLibelle() ?? '',

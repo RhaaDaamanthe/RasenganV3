@@ -52,6 +52,13 @@
                 <div class="user-card">
                     <span class="user-card-name">{{ user.pseudo }}</span>
                     <span class="user-card-email">{{ user.email }}</span>
+                    <form method="post" action="{{ path('app_set_user_discord_id', {'id': user.id}) }}" class="user-card-form">
+                        <input type="hidden" name="_token" value="{{ csrf_token('set-discord-id' ~ user.id) }}">
+                        <input type="text" name="discord_id" value="{{ user.discordId }}" placeholder="ID Discord (17-20 chiffres)" inputmode="numeric" class="user-card-input">
+                        <button type="submit" class="btn btn-secondary">
+                            💬 Enregistrer l’ID Discord
+                        </button>
+                    </form>
                     <form method="post" action="{{ path('app_reset_user_password', {'id': user.id}) }}" class="user-card-form">
                         <input type="text" name="new_password" placeholder="Nouveau mot de passe" required class="user-card-input">
                         <button type="submit" class="btn btn-primary" onclick="return confirm('Réinitialiser le mot de passe de {{ user.pseudo }} ?')">

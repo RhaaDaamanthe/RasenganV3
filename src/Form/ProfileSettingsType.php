@@ -54,6 +54,22 @@ public function buildForm(FormBuilderInterface $builder, array $options): void
                 'placeholder' => 'Ex: Chez le Roi des Saiyans',
             ],
         ])
+        ->add('discordId', TextType::class, [
+            'label' => 'Ton identifiant Discord',
+            'required' => false,
+            'help' => 'Discord > Parametres > Avance > Mode developpeur, puis clic droit sur ton pseudo > Copier l identifiant. Sert a te mentionner quand tu obtiens une carte.',
+            'attr' => [
+                'class' => 'form-control',
+                'placeholder' => 'Ex: 123456789012345678',
+                'inputmode' => 'numeric',
+            ],
+            'constraints' => [
+                new Regex([
+                    'pattern' => '/^[0-9]{17,20}$/',
+                    'message' => 'Un identifiant Discord est une suite de 17 a 20 chiffres.',
+                ]),
+            ],
+        ])
         ->add('plainPassword', RepeatedType::class, [
             'type' => PasswordType::class,
             'mapped' => false,

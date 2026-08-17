@@ -273,7 +273,7 @@ class WheelController extends AbstractController
         $entityManager->flush();
         $badgeService->refreshCollectorBadges($user);
         $discordNotifier->notifyDrop(
-            $user->getPseudo(),
+            $user,
             $card->getNom(),
             $card->getAnime()?->getNom() ?? '',
             $card->getRarity()?->getLibelle() ?? '',
@@ -328,7 +328,7 @@ class WheelController extends AbstractController
         $entityManager->flush();
         $badgeService->refreshCollectorBadges($user);
         $discordNotifier->notifyDrop(
-            $user->getPseudo(),
+            $user,
             $card->getNom(),
             $card->getFilm()?->getNom() ?? '',
             $card->getRarity()?->getLibelle() ?? '',

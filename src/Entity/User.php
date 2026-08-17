@@ -31,6 +31,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 150, nullable: true)]
     private ?string $titreCollection = null;
 
+    /** Identifiant Discord (snowflake) du joueur, pour le mentionner lors d'un drop. */
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $discordId = null;
+
     #[ORM\Column]
     private ?\DateTimeImmutable $dateCreation = null;
 
@@ -140,6 +144,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setTitreCollection(?string $titreCollection): static
     {
         $this->titreCollection = $titreCollection;
+        return $this;
+    }
+
+    public function getDiscordId(): ?string
+    {
+        return $this->discordId;
+    }
+
+    public function setDiscordId(?string $discordId): static
+    {
+        $this->discordId = $discordId;
         return $this;
     }
 
