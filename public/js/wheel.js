@@ -145,7 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const target = viewportWidth / 2 - (WINNING_INDEX * ITEM_WIDTH + ITEM_WIDTH / 2);
 
             requestAnimationFrame(() => {
-                strip.style.transition = "transform 4.5s cubic-bezier(0.1, 0.8, 0.2, 1)";
+                strip.style.transition = "transform 2.5s cubic-bezier(0.15, 0.85, 0.2, 1)";
                 strip.style.transform = `translateX(${target}px)`;
             });
 

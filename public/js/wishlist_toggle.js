@@ -50,7 +50,16 @@ document.addEventListener("click", (e) => {
                 if (removableCard) {
                     removableCard.style.transition = "opacity 0.3s ease";
                     removableCard.style.opacity = "0";
-                    setTimeout(() => removableCard.remove(), 300);
+                    setTimeout(() => {
+                        const section = removableCard.closest("[data-wishlist-section]");
+                        removableCard.remove();
+
+                        // Garde le compteur de la section (animés / films) à jour.
+                        const count = section && section.querySelector(".wishlist-section-count");
+                        if (count) {
+                            count.textContent = section.querySelectorAll(".wishlist-card").length;
+                        }
+                    }, 300);
                 }
             }
         })

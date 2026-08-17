@@ -614,6 +614,57 @@
     display: block;
 }
 
+.wishlist-search {
+    margin-bottom: 20px;
+}
+
+.wishlist-search input {
+    width: 100%;
+    max-width: 340px;
+    padding: 10px 14px;
+    color: #fff;
+    font-size: 0.95rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.wishlist-search input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.wishlist-search input:focus {
+    border-color: #e74c3c;
+}
+
+.wishlist-section + .wishlist-section {
+    margin-top: 28px;
+}
+
+.wishlist-section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 12px;
+    color: #fff;
+    font-size: 1.05rem;
+}
+
+.wishlist-section-count {
+    padding: 2px 10px;
+    color: #fff;
+    font-size: 0.8rem;
+    background: rgba(231, 76, 60, 0.8);
+    border-radius: 999px;
+}
+
+.wishlist-no-match {
+    margin: 12px 0 0;
+    color: #cdbfba;
+}
+
 .profile-tab-panel-soon {
     width: 100%;
     max-width: 900px;
