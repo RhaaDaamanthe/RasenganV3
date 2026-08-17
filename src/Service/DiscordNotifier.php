@@ -16,7 +16,7 @@ class DiscordNotifier
         private readonly HttpClientInterface $httpClient,
         private readonly LoggerInterface $logger,
         private readonly UrlGeneratorInterface $urlGenerator,
-        private readonly string $projectDir,
+        private readonly string $publicDir,
         private readonly ?string $webhookUrl,
         private readonly ?string $tradeWebhookUrl = null,
     ) {
@@ -45,7 +45,12 @@ class DiscordNotifier
             ],
         ];
 
-        $this->send($this->webhookUrl, $embed, $this->resolveImagePath($imagePath));
+        $absoluteImagePath = $this->resolveImagePath($imagePath);
+        if ($imagePath && !$absoluteImagePath) {
+            $this->logger->warning('Image de carte introuvable, notification Discord envoyée sans visuel', ['imagePath' => $imagePath, 'publicDir' => $this->publicDir]);
+        }
+
+        $this->send($this->webhookUrl, $embed, $absoluteImagePath);
     }
 
     /**
@@ -199,11 +204,11 @@ class DiscordNotifier
     private function colorForRarity(string $rarity): int
     {
         return match (mb_strtolower($rarity)) {
-            'commune' => 0x95A5A6,
-            'rare' => 0x3498DB,
-            'épique', 'epique' => 0x9B59B6,
-            'légendaire', 'legendaire' => 0xF1C40F,
-            'mythique' => 0xE74C3C,
+            'communes' => 0x95A5A6,
+            'rares' => 0x3498DB,
+            'épiques', 'epiques' => 0x9B59B6,
+            'légendaires', 'legendaires' => 0xF1C40F,
+            'mythiques' => 0xE74C3C,
             default => 0x2ECC71,
         };
     }
@@ -214,7 +219,7 @@ class DiscordNotifier
             return null;
         }
 
-        $absolute = $this->projectDir . '/public/' . ltrim($path, '/');
+        $absolute = rtrim($this->publicDir, '/\\') . '/' . ltrim($path, '/');
 
         return is_file($absolute) ? $absolute : null;
     }

@@ -34,7 +34,7 @@ services:
 
     App\Service\DiscordNotifier:
         arguments:
-            $projectDir: '%kernel.project_dir%'
+            $publicDir: '%app.public_dir%'
             $webhookUrl: '%env(DISCORD_DROP_WEBHOOK_URL)%'
             $tradeWebhookUrl: '%env(DISCORD_TRADE_WEBHOOK_URL)%'
 
