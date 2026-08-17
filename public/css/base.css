@@ -80,6 +80,8 @@ footer {
     display: flex;
     justify-content: center;
     gap: 200px;
+    /* Empêche le footer d'être écrasé par un contenu très long (body est en flex column). */
+    flex-shrink: 0;
 }
 
 footer a {

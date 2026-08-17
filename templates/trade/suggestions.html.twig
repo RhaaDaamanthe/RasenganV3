@@ -1,0 +1,110 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Échanges suggérés avec {{ other.pseudo }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
+    <style>
+        .trade-page {
+            padding: 170px 20px 80px;
+            min-height: calc(100vh - 100px);
+            background: linear-gradient(180deg, #3a0705 0%, #1a0402 340px, #1a0402 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .trade-inner { width: 100%; max-width: 1200px; }
+        .trade-columns { display: flex; gap: 24px; flex-wrap: wrap; margin-top: 20px; }
+        .trade-column { flex: 1 1 460px; min-width: 300px; }
+        .trade-column h3 { color: #ff8c42; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .trade-column-sub { color: #cdbfba; font-size: 0.85rem; margin-bottom: 14px; display: block; }
+        .trade-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; }
+        .trade-card-tile {
+            position: relative;
+            background: linear-gradient(160deg, #4a0e0a 0%, #2e0503 100%);
+            border: 2px solid rgba(241, 196, 15, 0.45);
+            border-radius: 10px; padding: 8px; text-align: center; color: #fff;
+        }
+        .trade-card-tile img { width: 100%; border-radius: 6px; display: block; }
+        .trade-card-tile .name { font-size: 0.75rem; margin-top: 6px; display: block; }
+        .trade-card-tile .qty { font-size: 0.7rem; color: #cdbfba; }
+        .trade-card-tile .wish-badge {
+            position: absolute; top: -8px; left: -8px;
+            padding: 2px 7px; border-radius: 999px;
+            background: #f1c40f; color: #3a2600; font-size: 0.7rem; font-weight: 700;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+        }
+        .trade-empty { color: #cdbfba; font-style: italic; }
+        .trade-cta { text-align: center; margin-top: 34px; }
+        .trade-cta a {
+            display: inline-block; padding: 12px 32px; border-radius: 999px;
+            background: #e76d0a; color: #fff; font-weight: 700; text-decoration: none;
+        }
+        .trade-cta a:hover { background: #ff8c42; }
+    </style>
+{% endblock %}
+
+{% block body %}
+<main class="trade-page">
+<div class="trade-inner">
+    <div class="player-collection-title-wrap">
+        <span class="title-flourish"></span>
+        <h2 class="player-collection-title">Échanges suggérés avec {{ other.pseudo }}</h2>
+        <span class="title-flourish"></span>
+    </div>
+
+    <p style="text-align:center; color:#cdbfba;">
+        Croisement de vos collections et de vos wishlists respectives.
+    </p>
+
+    <div class="trade-columns">
+        <div class="trade-column">
+            <h3>⭐ Ce qui l'intéresse chez vous</h3>
+            <span class="trade-column-sub">Vos doublons présents dans la wishlist de {{ other.pseudo }}.</span>
+            {% if suggestions.iCanOffer is empty %}
+                <p class="trade-empty">Aucun de vos doublons ne figure dans sa wishlist.</p>
+            {% else %}
+                <div class="trade-card-grid">
+                    {% for entry in suggestions.iCanOffer %}
+                        <div class="trade-card-tile">
+                            <span class="wish-badge">⭐</span>
+                            <img src="{{ asset(entry.card.imagePath) }}" alt="{{ entry.card.nom }}">
+                            <span class="name">{{ entry.card.nom }}</span>
+                            <span class="qty">vous en avez x{{ entry.quantity }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="trade-column">
+            <h3>⭐ Ce qui vous intéresse chez lui</h3>
+            <span class="trade-column-sub">Les cartes de {{ other.pseudo }} présentes dans votre wishlist.</span>
+            {% if suggestions.iCanGet is empty %}
+                <p class="trade-empty">Aucune carte de sa collection ne figure dans votre wishlist.</p>
+            {% else %}
+                <div class="trade-card-grid">
+                    {% for entry in suggestions.iCanGet %}
+                        <div class="trade-card-tile">
+                            <span class="wish-badge">⭐</span>
+                            <img src="{{ asset(entry.card.imagePath) }}" alt="{{ entry.card.nom }}">
+                            <span class="name">{{ entry.card.nom }}</span>
+                            <span class="qty">il en a x{{ entry.quantity }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="trade-cta">
+        <a href="{{ path('app_trade_new', {id: other.id}) }}">🔁 Proposer un échange à {{ other.pseudo }}</a>
+    </div>
+
+    <p style="text-align:center; margin-top: 24px;">
+        <a href="{{ path('app_trade_list') }}" style="color:#ffb066;">← Retour à mes échanges</a>
+    </p>
+</div>
+</main>
+{% endblock %}

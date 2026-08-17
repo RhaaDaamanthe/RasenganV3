@@ -14,7 +14,7 @@ class UserCardFilm
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'userCardFilms')]
-    private ?user $user = null;
+    private ?User $user = null;
 
     #[ORM\ManyToOne(inversedBy: 'userCardFilms')]
     private ?CardFilm $cardFilm = null;
@@ -30,12 +30,12 @@ class UserCardFilm
         return $this->id;
     }
 
-    public function getUser(): ?user
+    public function getUser(): ?User
     {
         return $this->user;
     }
 
-    public function setUser(?user $user): static
+    public function setUser(?User $user): static
     {
         $this->user = $user;
 

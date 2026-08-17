@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Entity\UserCardFilm;
 use App\Form\ProfileSettingsType;
+use App\Repository\TradeOfferRepository;
 use App\Repository\UserCardAnimeRepository;
 use App\Service\BadgeService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -20,13 +21,14 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class UserController extends AbstractController
 {
     #[Route('', name: 'app_user_profile', methods: ['GET'])]
-    public function showProfile(BadgeService $badgeService): Response
+    public function showProfile(BadgeService $badgeService, TradeOfferRepository $tradeOfferRepository): Response
     {
         $user = $this->getUser();
 
         return $this->render('user/index.html.twig', [
             'user' => $user,
             'badgeShowcase' => $badgeService->getBadgeShowcase($user),
+            'pendingTradesCount' => $tradeOfferRepository->countPendingReceivedBy($user),
         ]);
     }
 

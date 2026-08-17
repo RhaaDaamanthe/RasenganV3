@@ -1,0 +1,120 @@
+{% extends 'base.html.twig' %}
+{% import 'trade/_macros.html.twig' as trade %}
+
+{% block title %}Échange #{{ offer.id }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
+    <style>
+        .trade-page {
+            padding: 170px 20px 80px;
+            min-height: calc(100vh - 100px);
+            background: linear-gradient(180deg, #3a0705 0%, #1a0402 340px, #1a0402 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .trade-inner { width: 100%; max-width: 900px; display: flex; flex-direction: column; align-items: center; }
+        .trade-columns { display: flex; gap: 32px; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
+        .trade-column { flex: 0 0 auto; max-width: 340px; }
+        .trade-column h3 { color: #ff8c42; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; text-align: center; }
+        .trade-card-grid { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+        .trade-card-tile {
+            width: 100px;
+            background: linear-gradient(160deg, #4a0e0a 0%, #2e0503 100%);
+            border: 1px solid rgba(231, 109, 10, 0.25);
+            border-radius: 10px; padding: 8px; text-align: center; color: #fff;
+        }
+        .trade-card-tile img { width: 100%; border-radius: 6px; }
+        .trade-card-tile .name { font-size: 0.75rem; margin-top: 6px; display: block; }
+        .trade-card-tile .qty { font-size: 0.7rem; color: #ffb066; }
+        .trade-arrow { font-size: 1.6rem; align-self: center; color: #e76d0a; text-align: center; flex: 0 0 auto; margin-top: 32px; }
+        .trade-actions { margin-top: 24px; text-align: center; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .trade-actions button, .trade-actions a.button {
+            padding: 10px 26px; border-radius: 999px; border: none; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-block;
+        }
+        .btn-accept { background: #4caf50; color: #fff; }
+        .btn-decline { background: #b03030; color: #fff; }
+        .btn-counter { background: #4a4ac0; color: #fff; }
+        .btn-cancel { background: #555; color: #fff; }
+        .trade-status-banner { text-align: center; margin: 10px 0 24px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #ffb066; }
+    </style>
+{% endblock %}
+
+{% block body %}
+<main class="trade-page">
+<div class="trade-inner">
+    <div class="player-collection-title-wrap">
+        <span class="title-flourish"></span>
+        <h2 class="player-collection-title">{{ offer.proposer.pseudo }} ↔ {{ offer.recipient.pseudo }}</h2>
+        <span class="title-flourish"></span>
+    </div>
+
+    <p class="trade-status-banner">Statut : {{ trade.statusLabel(offer.status) }}</p>
+
+    {% if offer.status == 'invalidated' %}
+        <p style="text-align:center; color:#ff8a8a; margin-top:-14px;">
+            Une des cartes engagées a été échangée entre-temps : cette offre a été annulée automatiquement.
+        </p>
+    {% endif %}
+
+    <div class="trade-columns">
+        <div class="trade-column">
+            <h3>Offert par {{ offer.proposer.pseudo }}</h3>
+            <div class="trade-card-grid">
+                {% for item in offer.itemsOfferedBy(offer.proposer) %}
+                    {% set card = item.card %}
+                    <div class="trade-card-tile">
+                        <img src="{{ asset(card.imagePath) }}" alt="{{ card.nom }}">
+                        <span class="name">{{ card.nom }}</span>
+                        <span class="qty">x{{ item.quantity }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="trade-arrow">⇄</div>
+
+        <div class="trade-column">
+            <h3>Offert par {{ offer.recipient.pseudo }}</h3>
+            <div class="trade-card-grid">
+                {% for item in offer.itemsOfferedBy(offer.recipient) %}
+                    {% set card = item.card %}
+                    <div class="trade-card-tile">
+                        <img src="{{ asset(card.imagePath) }}" alt="{{ card.nom }}">
+                        <span class="name">{{ card.nom }}</span>
+                        <span class="qty">x{{ item.quantity }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    {% if offer.isPending %}
+        <div class="trade-actions">
+            {% if isRecipient %}
+                <form method="post" action="{{ path('app_trade_accept', {id: offer.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('trade_accept' ~ offer.id) }}">
+                    <button type="submit" class="btn-accept">✅ Accepter</button>
+                </form>
+                <form method="post" action="{{ path('app_trade_decline', {id: offer.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('trade_decline' ~ offer.id) }}">
+                    <button type="submit" class="btn-decline">❌ Refuser</button>
+                </form>
+                <a href="{{ path('app_trade_counter', {id: offer.id}) }}" class="button btn-counter">🔁 Contre-offre</a>
+            {% else %}
+                <form method="post" action="{{ path('app_trade_cancel', {id: offer.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('trade_cancel' ~ offer.id) }}">
+                    <button type="submit" class="btn-cancel">🗑️ Annuler l'offre</button>
+                </form>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <p style="text-align:center; margin-top: 30px;">
+        <a href="{{ path('app_trade_list') }}" style="color:#ffb066;">← Retour à mes échanges</a>
+    </p>
+</div>
+</main>
+{% endblock %}

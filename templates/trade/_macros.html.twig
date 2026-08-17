@@ -1,0 +1,9 @@
+{# Libellés lisibles des statuts d'échange, partagés par les vues trade/*. #}
+{% macro statusLabel(status) %}{{ {
+    'pending': 'En attente',
+    'accepted': 'Accepté',
+    'declined': 'Refusé',
+    'cancelled': 'Annulé',
+    'countered': 'Contre-offre',
+    'invalidated': 'Annulé automatiquement',
+}[status]|default(status) }}{% endmacro %}
