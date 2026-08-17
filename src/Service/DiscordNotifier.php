@@ -12,7 +12,7 @@ class DiscordNotifier
     public function __construct(
         private readonly HttpClientInterface $httpClient,
         private readonly LoggerInterface $logger,
-        private readonly string $projectDir,
+        private readonly string $publicDir,
         private readonly ?string $webhookUrl,
     ) {
     }
@@ -41,6 +41,9 @@ class DiscordNotifier
         ];
 
         $absoluteImagePath = $this->resolveImagePath($imagePath);
+        if ($imagePath && !$absoluteImagePath) {
+            $this->logger->warning('Image de carte introuvable, notification Discord envoyée sans visuel', ['imagePath' => $imagePath, 'publicDir' => $this->publicDir]);
+        }
 
         try {
             if ($absoluteImagePath) {
@@ -92,7 +95,7 @@ class DiscordNotifier
             return null;
         }
 
-        $absolute = $this->projectDir . '/public/' . ltrim($path, '/');
+        $absolute = rtrim($this->publicDir, '/\\') . '/' . ltrim($path, '/');
 
         return is_file($absolute) ? $absolute : null;
     }
