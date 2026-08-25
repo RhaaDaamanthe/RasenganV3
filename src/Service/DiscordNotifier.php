@@ -377,10 +377,21 @@ class DiscordNotifier
      */
     private function attachmentIds(array $message): array
     {
-        return array_map(
+        $ids = array_map(
             static fn (array $attachment): string => (string) $attachment['id'],
             $message['attachments'] ?? []
         );
+
+        // Discord ne liste pas dans "attachments" les fichiers utilisés par un embed.
+        // Leur identifiant reste toutefois présent dans l'URL CDN de l'image.
+        foreach ($message['embeds'] ?? [] as $embed) {
+            $url = $embed['image']['url'] ?? null;
+            if (\is_string($url) && preg_match('~/attachments/\d+/(\d+)/~', $url, $matches)) {
+                $ids[] = $matches[1];
+            }
+        }
+
+        return array_values(array_unique($ids));
     }
 
     /**
