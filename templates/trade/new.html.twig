@@ -211,6 +211,21 @@
                             </span>
                         </div>
                     {% endfor %}
+                    {% for uc in myCardJeus %}
+                        {% set wished = theirWishlist.jeu[uc.cardJeu.id] is defined %}
+                        <div class="trade-card-pick{{ wished ? ' wished' }}" data-input="proposer_items[]" data-value="jeu:{{ uc.cardJeu.id }}" data-name="{{ uc.cardJeu.nom|lower }}" data-rarete="{{ uc.cardJeu.rarity.libelle }}" data-wished="{{ wished ? '1' : '0' }}">
+                            <span class="selected-badge">✓</span>
+                            {% if wished %}<span class="wish-badge" title="{{ recipient.pseudo }} veut cette carte">⭐</span>{% endif %}
+                            <img src="{{ asset(uc.cardJeu.imagePath) }}" alt="{{ uc.cardJeu.nom }}">
+                            <span class="name">{{ uc.cardJeu.nom }}</span>
+                            <span class="qty">possédées : x{{ uc.quantity }}</span>
+                            <span class="qty-picker">
+                                <button type="button" class="qty-minus">−</button>
+                                <input type="number" min="1" max="{{ uc.quantity }}" value="1">
+                                <button type="button" class="qty-plus">+</button>
+                            </span>
+                        </div>
+                    {% endfor %}
                 </div>
                 <p class="trade-filter-empty" data-empty-for="proposer">Aucune carte ne correspond à votre recherche.</p>
             </div>
@@ -254,6 +269,21 @@
                             {% if wished %}<span class="wish-badge" title="Dans votre wishlist">⭐</span>{% endif %}
                             <img src="{{ asset(uc.cardFilm.imagePath) }}" alt="{{ uc.cardFilm.nom }}">
                             <span class="name">{{ uc.cardFilm.nom }}</span>
+                            <span class="qty">possédées : x{{ uc.quantity }}</span>
+                            <span class="qty-picker">
+                                <button type="button" class="qty-minus">−</button>
+                                <input type="number" min="1" max="{{ uc.quantity }}" value="1">
+                                <button type="button" class="qty-plus">+</button>
+                            </span>
+                        </div>
+                    {% endfor %}
+                    {% for uc in theirCardJeus %}
+                        {% set wished = myWishlist.jeu[uc.cardJeu.id] is defined %}
+                        <div class="trade-card-pick{{ wished ? ' wished' }}" data-input="recipient_items[]" data-value="jeu:{{ uc.cardJeu.id }}" data-name="{{ uc.cardJeu.nom|lower }}" data-rarete="{{ uc.cardJeu.rarity.libelle }}" data-wished="{{ wished ? '1' : '0' }}">
+                            <span class="selected-badge">✓</span>
+                            {% if wished %}<span class="wish-badge" title="Dans votre wishlist">⭐</span>{% endif %}
+                            <img src="{{ asset(uc.cardJeu.imagePath) }}" alt="{{ uc.cardJeu.nom }}">
+                            <span class="name">{{ uc.cardJeu.nom }}</span>
                             <span class="qty">possédées : x{{ uc.quantity }}</span>
                             <span class="qty-picker">
                                 <button type="button" class="qty-minus">−</button>

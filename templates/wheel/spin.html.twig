@@ -18,8 +18,8 @@
             data-rarities333="{{ rarities333|json_encode|e('html_attr') }}"
             data-csrf="{{ csrf_token('wheel-action') }}"
             data-spin-rarity-url="{{ path('app_wheel_spin_rarity') }}"
-            data-spin-card-url="{{ path(type == 'anime' ? 'app_wheel_anime_spin_card' : 'app_wheel_film_spin_card', {id: user.id}) }}"
-            data-confirm-url="{{ path(type == 'anime' ? 'app_wheel_anime_confirm' : 'app_wheel_film_confirm', {id: user.id}) }}"
+            data-spin-card-url="{{ path({ anime: 'app_wheel_anime_spin_card', film: 'app_wheel_film_spin_card', jeu: 'app_wheel_jeu_spin_card' }[type], {id: user.id}) }}"
+            data-confirm-url="{{ path({ anime: 'app_wheel_anime_confirm', film: 'app_wheel_film_confirm', jeu: 'app_wheel_jeu_confirm' }[type], {id: user.id}) }}"
             data-double-chance-url="{{ path('app_wheel_double_chance') }}"
         >
             <div class="dashboard-hero">
@@ -103,7 +103,7 @@
                 <p class="wheel-message" id="wheel-status-message"></p>
             </section>
 
-            <a href="{{ path(type == 'anime' ? 'app_wheel_anime_users' : 'app_wheel_film_users') }}" class="btn btn-secondary wheel-back-link">← Retour à la liste des joueurs</a>
+            <a href="{{ path({ anime: 'app_wheel_anime_users', film: 'app_wheel_film_users', jeu: 'app_wheel_jeu_users' }[type]) }}" class="btn btn-secondary wheel-back-link">← Retour à la liste des joueurs</a>
         </div>
     </div>
 </main>

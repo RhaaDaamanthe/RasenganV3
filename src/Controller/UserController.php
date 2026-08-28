@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Entity\UserCardFilm;
+use App\Entity\UserCardJeu;
 use App\Form\ProfileSettingsType;
 use App\Repository\TradeOfferRepository;
 use App\Repository\UserCardAnimeRepository;
@@ -46,6 +47,7 @@ final class UserController extends AbstractController
         // RÉCUPÉRER LES CARTES DE L'UTILISATEUR
         $userCardAnimes = $userCardAnimeRepository->findByUserSorted($user);
         $userCardFilms = $entityManager->getRepository(UserCardFilm::class)->findBy(['user' => $user]);
+        $userCardJeus = $entityManager->getRepository(UserCardJeu::class)->findBy(['user' => $user]);
 
         $userCards = [];
         foreach ($userCardAnimes as $uca) {
@@ -53,6 +55,9 @@ final class UserController extends AbstractController
         }
         foreach ($userCardFilms as $ucf) {
             $userCards[] = $ucf->getCardFilm();
+        }
+        foreach ($userCardJeus as $ucj) {
+            $userCards[] = $ucj->getCardJeu();
         }
 
         // TRI PAR RARETÉ (Commun → Légendaire)

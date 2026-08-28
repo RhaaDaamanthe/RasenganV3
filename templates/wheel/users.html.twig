@@ -12,14 +12,14 @@
 <main>
     <div class="admin-container users-list-page">
         <div class="dashboard-hero">
-            <h1>🎡 Roue d'attribution — {{ type == 'anime' ? 'Cartes d\'animé' : 'Cartes de film' }}</h1>
+            <h1>🎡 Roue d'attribution — {{ { anime: 'Cartes d\'animé', film: 'Cartes de film', jeu: 'Cartes de jeu vidéo' }[type] }}</h1>
         </div>
 
         <div class="user-grid">
             {% for user in users %}
                 <div class="user-card">
                     <span class="user-card-name">{{ user.pseudo }}</span>
-                    <a href="{{ path(type == 'anime' ? 'app_wheel_anime_user' : 'app_wheel_film_user', {id: user.id}) }}" class="btn btn-primary">
+                    <a href="{{ path({ anime: 'app_wheel_anime_user', film: 'app_wheel_film_user', jeu: 'app_wheel_jeu_user' }[type], {id: user.id}) }}" class="btn btn-primary">
                         Lancer la roue
                     </a>
                 </div>

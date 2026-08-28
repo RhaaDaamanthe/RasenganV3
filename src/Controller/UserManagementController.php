@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Entity\UserCardAnime;
 use App\Entity\UserCardFilm;
+use App\Entity\UserCardJeu;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -55,7 +56,7 @@ class UserManagementController extends AbstractController
                 ->setParameter('search', '%' . $search . '%');
         }
 
-        $userCardAnimes = $section === 'film' ? [] : $qbAnime->getQuery()->getResult();
+        $userCardAnimes = !in_array($section, ['film', 'jeu'], true) ? $qbAnime->getQuery()->getResult() : [];
 
         // Récupérer les cartes de film de l'utilisateur
         $qbFilm = $entityManager->getRepository(UserCardFilm::class)
@@ -70,7 +71,22 @@ class UserManagementController extends AbstractController
                 ->setParameter('search', '%' . $search . '%');
         }
 
-        $userCardFilms = $section === 'anime' ? [] : $qbFilm->getQuery()->getResult();
+        $userCardFilms = !in_array($section, ['anime', 'jeu'], true) ? $qbFilm->getQuery()->getResult() : [];
+
+        // Récupérer les cartes de jeu vidéo de l'utilisateur
+        $qbJeu = $entityManager->getRepository(UserCardJeu::class)
+            ->createQueryBuilder('ucj')
+            ->leftJoin('ucj.cardJeu', 'cj')
+            ->leftJoin('cj.jeu', 'j')
+            ->where('ucj.user = :user')
+            ->setParameter('user', $user);
+
+        if (!empty($search)) {
+            $qbJeu->andWhere('cj.nom LIKE :search OR j.nom LIKE :search')
+                ->setParameter('search', '%' . $search . '%');
+        }
+
+        $userCardJeus = !in_array($section, ['anime', 'film'], true) ? $qbJeu->getQuery()->getResult() : [];
 
         // Traitement de la suppression
         if ($request->isMethod('POST')) {
@@ -79,14 +95,18 @@ class UserManagementController extends AbstractController
             $action = $request->request->get('action'); // 'remove_one' ou 'remove_all'
 
             if ($userCardId && $type) {
-                if ($type === 'anime') {
-                    $userCard = $entityManager->getRepository(UserCardAnime::class)->find($userCardId);
-                } else {
-                    $userCard = $entityManager->getRepository(UserCardFilm::class)->find($userCardId);
-                }
+                $userCard = match ($type) {
+                    'anime' => $entityManager->getRepository(UserCardAnime::class)->find($userCardId),
+                    'jeu' => $entityManager->getRepository(UserCardJeu::class)->find($userCardId),
+                    default => $entityManager->getRepository(UserCardFilm::class)->find($userCardId),
+                };
 
                 if ($userCard) {
-                    $cardName = $type === 'anime' ? $userCard->getCardAnime()->getNom() : $userCard->getCardFilm()->getNom();
+                    $cardName = match ($type) {
+                        'anime' => $userCard->getCardAnime()->getNom(),
+                        'jeu' => $userCard->getCardJeu()->getNom(),
+                        default => $userCard->getCardFilm()->getNom(),
+                    };
                     
                     if ($action === 'remove_all' || $userCard->getQuantity() <= 1) {
                         // Supprimer complètement
@@ -108,6 +128,7 @@ class UserManagementController extends AbstractController
             'user' => $user,
             'userCardAnimes' => $userCardAnimes,
             'userCardFilms' => $userCardFilms,
+            'userCardJeus' => $userCardJeus,
             'search' => $search,
             'selectedSection' => $section,
         ]);

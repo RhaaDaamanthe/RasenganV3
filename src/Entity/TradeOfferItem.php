@@ -28,6 +28,9 @@ class TradeOfferItem
     #[ORM\ManyToOne]
     private ?CardFilm $cardFilm = null;
 
+    #[ORM\ManyToOne]
+    private ?CardJeu $cardJeu = null;
+
     #[ORM\Column]
     private ?int $quantity = null;
 
@@ -84,6 +87,18 @@ class TradeOfferItem
         return $this;
     }
 
+    public function getCardJeu(): ?CardJeu
+    {
+        return $this->cardJeu;
+    }
+
+    public function setCardJeu(?CardJeu $cardJeu): static
+    {
+        $this->cardJeu = $cardJeu;
+
+        return $this;
+    }
+
     public function getQuantity(): ?int
     {
         return $this->quantity;
@@ -96,8 +111,8 @@ class TradeOfferItem
         return $this;
     }
 
-    public function getCard(): CardAnime|CardFilm|null
+    public function getCard(): CardAnime|CardFilm|CardJeu|null
     {
-        return $this->cardAnime ?? $this->cardFilm;
+        return $this->cardAnime ?? $this->cardFilm ?? $this->cardJeu;
     }
 }

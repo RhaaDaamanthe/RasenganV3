@@ -6,6 +6,7 @@ use App\Controller\WheelController;
 use App\Entity\User;
 use App\Entity\UserCardAnime;
 use App\Entity\UserCardFilm;
+use App\Entity\UserCardJeu;
 use Doctrine\ORM\EntityManagerInterface;
 
 class RarityStatsService
@@ -97,6 +98,22 @@ class RarityStatsService
             ->getResult();
 
         foreach ($filmRows as $row) {
+            $rarityId = (int) $row['rarityId'];
+            $counts[$rarityId] = ($counts[$rarityId] ?? 0) + (int) $row['qty'];
+        }
+
+        $jeuRows = $this->em->createQueryBuilder()
+            ->select('r.id as rarityId, SUM(ucj.quantity) as qty')
+            ->from(UserCardJeu::class, 'ucj')
+            ->join('ucj.cardJeu', 'cj')
+            ->join('cj.rarity', 'r')
+            ->where('ucj.user = :user')
+            ->setParameter('user', $user)
+            ->groupBy('r.id')
+            ->getQuery()
+            ->getResult();
+
+        foreach ($jeuRows as $row) {
             $rarityId = (int) $row['rarityId'];
             $counts[$rarityId] = ($counts[$rarityId] ?? 0) + (int) $row['qty'];
         }

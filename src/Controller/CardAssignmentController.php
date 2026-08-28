@@ -5,11 +5,14 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Entity\CardAnime;
 use App\Entity\CardFilm;
+use App\Entity\CardJeu;
 use App\Entity\UserCardAnime;
 use App\Entity\UserCardFilm;
+use App\Entity\UserCardJeu;
 use App\Repository\UserRepository;
 use App\Repository\CardAnimeRepository;
 use App\Repository\CardFilmRepository;
+use App\Repository\CardJeuRepository;
 use App\Service\BadgeService;
 use App\Service\DiscordNotifier;
 use App\Service\WishlistService;
@@ -58,6 +61,21 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
         return $this->render('card_assignment/users_list.html.twig', [
             'users' => $users,
             'type' => 'film',
+        ]);
+    }
+
+    // Liste des utilisateurs pour attribuer des cartes de jeu vidéo
+    #[Route('/jeu/users', name: 'app_assign_jeu_users')]
+    public function jeuUsers(UserRepository $userRepository): Response
+    {
+        $users = $userRepository->createQueryBuilder('u')
+            ->orderBy('u.pseudo', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return $this->render('card_assignment/users_list.html.twig', [
+            'users' => $users,
+            'type' => 'jeu',
         ]);
     }
 
@@ -233,6 +251,95 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
             'user' => $user,
             'cards' => $cards,
             'type' => 'film',
+            'search' => $search,
+            'currentPage' => $page,
+            'totalPages' => $totalPages,
+        ]);
+    }
+
+    // Formulaire d'attribution de cartes de jeu vidéo à un utilisateur
+    #[Route('/jeu/user/{id}', name: 'app_assign_jeu_to_user')]
+    public function assignJeuToUser(
+        User $user,
+        Request $request,
+        CardJeuRepository $cardJeuRepository,
+        EntityManagerInterface $entityManager,
+        BadgeService $badgeService,
+        DiscordNotifier $discordNotifier,
+        WishlistService $wishlistService
+    ): Response {
+        $search = $request->query->get('search', '');
+        $page = max(1, $request->query->getInt('page', 1));
+        $limit = 50;
+        $offset = ($page - 1) * $limit;
+
+        // Requête pour récupérer les cartes avec recherche
+        $qb = $cardJeuRepository->createQueryBuilder('cj')
+            ->leftJoin('cj.jeu', 'j')
+            ->leftJoin('cj.rarity', 'r');
+
+        if (!empty($search)) {
+            $qb->andWhere('cj.nom LIKE :search OR j.nom LIKE :search')
+               ->setParameter('search', '%' . $search . '%');
+        }
+
+        $totalCards = (clone $qb)->select('count(cj.id)')->getQuery()->getSingleScalarResult();
+
+        $cards = $qb->orderBy('r.id', 'DESC')
+            ->addOrderBy('cj.id', 'ASC')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        $totalPages = ceil($totalCards / $limit);
+
+        // Traitement du formulaire
+        if ($request->isMethod('POST')) {
+            $cardId = $request->request->get('card_id');
+            $quantity = (int) $request->request->get('quantity', 1);
+
+            if ($cardId && $quantity > 0) {
+                $card = $cardJeuRepository->find($cardId);
+
+                if ($card) {
+                    // Vérifier si l'utilisateur possède déjà cette carte
+                    $userCard = $entityManager->getRepository(UserCardJeu::class)
+                        ->findOneBy(['user' => $user, 'cardJeu' => $card]);
+
+                    if ($userCard) {
+                        // Augmenter la quantité
+                        $userCard->setQuantity($userCard->getQuantity() + $quantity);
+                    } else {
+                        // Créer une nouvelle attribution
+                        $userCard = new UserCardJeu();
+                        $userCard->setUser($user);
+                        $userCard->setCardJeu($card);
+                        $userCard->setQuantity($quantity);
+                        $entityManager->persist($userCard);
+                    }
+                    $userCard->setObtainedAt(new \DateTimeImmutable());
+
+                    $entityManager->flush();
+                    $badgeService->refreshCollectorBadges($user);
+                    $discordNotifier->notifyDrop(
+                        $user,
+                        $card->getNom(),
+                        $card->getJeu()?->getNom() ?? '',
+                        $card->getRarity()?->getLibelle() ?? '',
+                        'Jeu vidéo',
+                        $card->getImagePath(),
+                    );
+                    $wishlistService->removeJeuCardFromWishlist($user, $card);
+                    $this->addFlash('success', "✅ {$quantity}x {$card->getNom()} attribuée(s) à {$user->getPseudo()} !");
+                }
+            }
+        }
+
+        return $this->render('card_assignment/assign_cards.html.twig', [
+            'user' => $user,
+            'cards' => $cards,
+            'type' => 'jeu',
             'search' => $search,
             'currentPage' => $page,
             'totalPages' => $totalPages,

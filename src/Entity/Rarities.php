@@ -33,10 +33,17 @@ class Rarities
     #[ORM\OneToMany(targetEntity: CardFilm::class, mappedBy: 'rarity')]
     private Collection $cardFilms;
 
+    /**
+     * @var Collection<int, CardJeu>
+     */
+    #[ORM\OneToMany(targetEntity: CardJeu::class, mappedBy: 'rarity')]
+    private Collection $cardJeus;
+
     public function __construct()
     {
         $this->cards = new ArrayCollection();
         $this->cardFilms = new ArrayCollection();
+        $this->cardJeus = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -122,6 +129,36 @@ class Rarities
             // set the owning side to null (unless already changed)
             if ($cardFilm->getRarity() === $this) {
                 $cardFilm->setRarity(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CardJeu>
+     */
+    public function getCardJeus(): Collection
+    {
+        return $this->cardJeus;
+    }
+
+    public function addCardJeu(CardJeu $cardJeu): static
+    {
+        if (!$this->cardJeus->contains($cardJeu)) {
+            $this->cardJeus->add($cardJeu);
+            $cardJeu->setRarity($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCardJeu(CardJeu $cardJeu): static
+    {
+        if ($this->cardJeus->removeElement($cardJeu)) {
+            // set the owning side to null (unless already changed)
+            if ($cardJeu->getRarity() === $this) {
+                $cardJeu->setRarity(null);
             }
         }
 

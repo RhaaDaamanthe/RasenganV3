@@ -70,6 +70,9 @@
                         <option value="">Toutes les sections</option>
                         <option value="anime" {% if selectedSection == 'anime' %}selected{% endif %}>Animés</option>
                         <option value="film" {% if selectedSection == 'film' %}selected{% endif %}>Films & séries</option>
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <option value="jeu" {% if selectedSection == 'jeu' %}selected{% endif %}>Jeux vidéo</option>
+                        {% endif %}
                     </select>
                 </div>
 
@@ -96,6 +99,9 @@
             <div class="player-stats-inline">
                 <span class="player-cards">🍜 {{ user.getTotalCardAnimeCount }} cartes Anime</span>
                 <span class="player-cards">🎬 {{ user.getTotalCardFilmCount }} cartes Film</span>
+                {% if user.getTotalCardJeuCount > 0 %}
+                    <span class="player-cards">🎮 {{ user.getTotalCardJeuCount }} cartes Jeu vidéo</span>
+                {% endif %}
             </div>
         </form>
     </div>
@@ -146,6 +152,9 @@
                 {% elseif userCard.cardFilm is defined and userCard.cardFilm is not null %}
                     {% set card = userCard.cardFilm %}
                     {% set section = 'film' %}
+                {% elseif userCard.cardJeu is defined and userCard.cardJeu is not null %}
+                    {% set card = userCard.cardJeu %}
+                    {% set section = 'jeu' %}
                 {% else %}
                     {% set card = null %}
                 {% endif %}
@@ -275,7 +284,7 @@
         <div class="badges-panel-light">
             <h3>💖 Wishlist de {{ user.pseudo }}</h3>
 
-            {% if (wishlistAnime|length + wishlistFilm|length) > 0 %}
+            {% if (wishlistAnime|length + wishlistFilm|length + wishlistJeu|length) > 0 %}
                 <div class="wishlist-search">
                     <input type="search"
                            id="wishlist-search"
@@ -286,7 +295,8 @@
 
                 {% for group in [
                     { key: 'anime', label: '📺 Animés', cards: wishlistAnime, outOfStock: outOfStockAnimeIds },
-                    { key: 'film', label: '🎬 Films', cards: wishlistFilm, outOfStock: outOfStockFilmIds }
+                    { key: 'film', label: '🎬 Films', cards: wishlistFilm, outOfStock: outOfStockFilmIds },
+                    { key: 'jeu', label: '🎮 Jeux vidéo', cards: wishlistJeu, outOfStock: outOfStockJeuIds }
                 ] %}
                     <section class="wishlist-section" data-wishlist-section="{{ group.key }}"{% if group.cards|length == 0 %} hidden{% endif %}>
                         <h4 class="wishlist-section-title">

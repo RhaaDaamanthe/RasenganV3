@@ -6,6 +6,8 @@ use App\Entity\CardAnime;
 use App\Entity\CardAnimeRequirement;
 use App\Entity\CardFilm;
 use App\Entity\CardFilmRequirement;
+use App\Entity\CardJeu;
+use App\Entity\CardJeuRequirement;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -36,9 +38,18 @@ final class MythicRecipeController extends AbstractController
             ->getQuery()
             ->getResult();
 
+        $mythicJeuCards = $entityManager->getRepository(CardJeu::class)
+            ->createQueryBuilder('c')
+            ->join('c.rarity', 'r')
+            ->where('r.id = 5')
+            ->orderBy('c.nom', 'ASC')
+            ->getQuery()
+            ->getResult();
+
         return $this->render('admin/mythic_recipes/index.html.twig', [
             'mythicAnimeCards' => $mythicAnimeCards,
             'mythicFilmCards' => $mythicFilmCards,
+            'mythicJeuCards' => $mythicJeuCards,
         ]);
     }
 
@@ -190,6 +201,82 @@ final class MythicRecipeController extends AbstractController
         return $this->render('admin/mythic_recipes/edit.html.twig', [
             'card' => $card,
             'type' => 'film',
+            'candidates' => $candidates,
+        ]);
+    }
+
+    #[Route('/jeu/{id}', name: 'app_mythic_recipe_edit_jeu', methods: ['GET', 'POST'])]
+    public function editJeu(CardJeu $card, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $candidates = $entityManager->getRepository(CardJeu::class)
+            ->createQueryBuilder('c')
+            ->where('c.id != :id')
+            ->setParameter('id', $card->getId())
+            ->leftJoin('c.jeu', 'j')
+            ->orderBy('j.nom', 'ASC')
+            ->addOrderBy('c.nom', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('mythic-recipe-edit' . $card->getId(), (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'Jeton de sécurité invalide.');
+
+                return $this->redirectToRoute('app_mythic_recipe_edit_jeu', ['id' => $card->getId()]);
+            }
+
+            foreach ($card->getRequirements() as $existingRequirement) {
+                $entityManager->remove($existingRequirement);
+            }
+
+            $requiredIds = $request->request->all('required');
+            $quantities = $request->request->all('qty');
+            $placeholders = $request->request->all('placeholder');
+            $alternativesRaw = $request->request->all('alternatives');
+
+            foreach ($requiredIds as $index => $requiredId) {
+                $requiredId = trim((string) $requiredId);
+                $placeholderNom = trim((string) ($placeholders[$index] ?? ''));
+
+                if ($requiredId !== '' && (int) $requiredId !== $card->getId()) {
+                    $requiredCard = $entityManager->getRepository(CardJeu::class)->find($requiredId);
+                    if ($requiredCard === null) {
+                        continue;
+                    }
+
+                    $requirement = new CardJeuRequirement();
+                    $requirement->setMythicCard($card);
+                    $requirement->setRequiredCard($requiredCard);
+                    $requirement->setQuantityRequired(max(1, (int) ($quantities[$index] ?? 1)));
+
+                    $altIds = array_filter(array_map('trim', explode(',', (string) ($alternativesRaw[$index] ?? ''))), fn ($v) => $v !== '');
+                    foreach ($altIds as $altId) {
+                        $altCard = $entityManager->getRepository(CardJeu::class)->find($altId);
+                        if ($altCard !== null && $altCard->getId() !== $requiredCard->getId()) {
+                            $requirement->addAlternativeCard($altCard);
+                        }
+                    }
+
+                    $entityManager->persist($requirement);
+                } elseif ($placeholderNom !== '') {
+                    $requirement = new CardJeuRequirement();
+                    $requirement->setMythicCard($card);
+                    $requirement->setRequiredCard(null);
+                    $requirement->setPlaceholderNom($placeholderNom);
+                    $requirement->setQuantityRequired(max(1, (int) ($quantities[$index] ?? 1)));
+                    $entityManager->persist($requirement);
+                }
+            }
+
+            $entityManager->flush();
+            $this->addFlash('success', 'Combinaison mise à jour avec succès !');
+
+            return $this->redirectToRoute('app_mythic_recipe_index');
+        }
+
+        return $this->render('admin/mythic_recipes/edit.html.twig', [
+            'card' => $card,
+            'type' => 'jeu',
             'candidates' => $candidates,
         ]);
     }

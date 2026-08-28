@@ -6,11 +6,14 @@ use App\Entity\CardAnime;
 use App\Entity\Anime;
 use App\Entity\Film;
 use App\Entity\CardFilm;
+use App\Entity\Jeu;
+use App\Entity\CardJeu;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class CatalogueController extends AbstractController
 {
@@ -37,9 +40,23 @@ class CatalogueController extends AbstractController
             ->getQuery()
             ->getResult();
 
+        // Les jeux vidéo ne sont pas encore ouverts aux joueurs : la tuile du catalogue
+        // reste « ????? » et non cliquable, et la liste n'est affichée qu'aux admins.
+        $jeux = $this->isGranted('ROLE_ADMIN')
+            ? $entityManager->getRepository(CardJeu::class)
+                ->createQueryBuilder('cj')
+                ->select('j.id, j.nom, count(cj.id) as card_count')
+                ->join('cj.jeu', 'j')
+                ->groupBy('j.id, j.nom')
+                ->orderBy('j.nom', 'ASC')
+                ->getQuery()
+                ->getResult()
+            : [];
+
         return $this->render('catalogue/index.html.twig', [
             'animes' => $animes,
             'films' => $films,
+            'jeux' => $jeux,
         ]);
     }
 
@@ -292,6 +309,141 @@ class CatalogueController extends AbstractController
     }
 
     /**
+     * Cartes d'un jeu vidéo précis.
+     *
+     * Section encore fermée aux joueurs : tout est fonctionnel mais réservé aux admins
+     * le temps de préparer le lancement. Retirer l'attribut IsGranted pour l'ouvrir.
+     */
+    #[Route('/catalogue/jeu/{id}', name: 'app_catalogue_jeu_cards')]
+    #[IsGranted('ROLE_ADMIN')]
+    public function showJeuCards(Jeu $jeu, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $page = max(1, $request->query->getInt('page', 1));
+        $limit = 100;
+        $offset = ($page - 1) * $limit;
+
+        // Récupération des paramètres de recherche et filtrage
+        $search = $request->query->get('search', '');
+        $rarity = $request->query->get('rarity', '');
+
+        $repo = $entityManager->getRepository(CardJeu::class);
+        $qb = $repo->createQueryBuilder('cj')
+            ->leftJoin('cj.rarity', 'r')
+            ->where('cj.jeu = :jeu')
+            ->setParameter('jeu', $jeu);
+
+        // Filtre de recherche (nom de la carte)
+        if (!empty($search)) {
+            $qb->andWhere('cj.nom LIKE :search')
+               ->setParameter('search', '%' . $search . '%');
+        }
+
+        // Filtre de rareté
+        if (!empty($rarity)) {
+            $qb->andWhere('r.libelle = :rarity')
+               ->setParameter('rarity', $rarity);
+        }
+
+        // Compte total pour la pagination
+        $totalCards = (clone $qb)
+            ->select('count(cj.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // Récupération des cartes avec pagination
+        $cards = $qb
+            ->orderBy('r.id', 'DESC')
+            ->addOrderBy('cj.id', 'ASC')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        $totalPages = ceil($totalCards / $limit);
+
+        // Récupérer toutes les raretés pour le filtre
+        $rarities = $entityManager->getRepository(\App\Entity\Rarities::class)->findAll();
+
+        return $this->render('catalogue/jeuCards.html.twig', [
+            'jeu' => $jeu,
+            'cards' => $cards,
+            'currentPage' => $page,
+            'totalPages' => $totalPages,
+            'totalCards' => $totalCards,
+            'search' => $search,
+            'selectedRarity' => $rarity,
+            'rarities' => $rarities,
+            'wishlistedIds' => $this->getWishlistedJeuIds(),
+            'ownedIds' => $this->getOwnedJeuIds(),
+        ]);
+    }
+
+    /**
+     * Voir showJeuCards() : section encore réservée aux admins.
+     */
+    #[Route('/catalogue/jeu', name: 'app_catalogue_all_jeu_cards')]
+    #[IsGranted('ROLE_ADMIN')]
+    public function showAllJeuCards(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $page = max(1, $request->query->getInt('page', 1));
+        $limit = 100;
+        $offset = ($page - 1) * $limit;
+
+        // Récupération des paramètres de recherche et filtrage
+        $search = $request->query->get('search', '');
+        $rarity = $request->query->get('rarity', '');
+
+        $repo = $entityManager->getRepository(CardJeu::class);
+        $qb = $repo->createQueryBuilder('cj')
+            ->leftJoin('cj.rarity', 'r')
+            ->leftJoin('cj.jeu', 'j');
+
+        // Filtre de recherche (nom de la carte OU nom du jeu)
+        if (!empty($search)) {
+            $qb->andWhere('cj.nom LIKE :search OR j.nom LIKE :search')
+               ->setParameter('search', '%' . $search . '%');
+        }
+
+        // Filtre de rareté
+        if (!empty($rarity)) {
+            $qb->andWhere('r.libelle = :rarity')
+               ->setParameter('rarity', $rarity);
+        }
+
+        // Compte total pour la pagination
+        $totalCards = (clone $qb)
+            ->select('count(cj.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // Récupération des cartes avec pagination
+        $cards = $qb
+            ->orderBy('r.id', 'DESC')
+            ->addOrderBy('cj.id', 'ASC')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        $totalPages = ceil($totalCards / $limit);
+
+        // Récupérer toutes les raretés pour le filtre
+        $rarities = $entityManager->getRepository(\App\Entity\Rarities::class)->findAll();
+
+        return $this->render('catalogue/jeuCards.html.twig', [
+            'cards' => $cards,
+            'currentPage' => $page,
+            'totalPages' => $totalPages,
+            'totalCards' => $totalCards,
+            'search' => $search,
+            'selectedRarity' => $rarity,
+            'rarities' => $rarities,
+            'wishlistedIds' => $this->getWishlistedJeuIds(),
+            'ownedIds' => $this->getOwnedJeuIds(),
+        ]);
+    }
+
+    /**
      * @return int[]
      */
     private function getWishlistedAnimeIds(): array
@@ -346,6 +498,35 @@ class CatalogueController extends AbstractController
         return array_map(
             fn ($userCard) => $userCard->getCardFilm()->getId(),
             array_filter($user->getUserCardFilms()->toArray(), fn ($userCard) => $userCard->getQuantity() > 0)
+        );
+    }
+
+    /**
+     * @return int[]
+     */
+    private function getWishlistedJeuIds(): array
+    {
+        $user = $this->getUser();
+
+        return $user
+            ? array_map(fn ($card) => $card->getId(), $user->getWishlistCardJeus()->toArray())
+            : [];
+    }
+
+    /**
+     * @return int[]
+     */
+    private function getOwnedJeuIds(): array
+    {
+        $user = $this->getUser();
+
+        if (!$user) {
+            return [];
+        }
+
+        return array_map(
+            fn ($userCard) => $userCard->getCardJeu()->getId(),
+            array_filter($user->getUserCardJeus()->toArray(), fn ($userCard) => $userCard->getQuantity() > 0)
         );
     }
 }

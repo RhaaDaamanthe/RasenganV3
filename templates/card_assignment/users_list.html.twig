@@ -19,15 +19,9 @@
             {% for user in users %}
                 <div class="user-card">
                     <span class="user-card-name">{{ user.pseudo }}</span>
-                    {% if type == 'anime' %}
-                        <a href="{{ path('app_assign_anime_to_user', {'id': user.id}) }}" class="btn btn-primary">
-                            Attribuer cartes
-                        </a>
-                    {% else %}
-                        <a href="{{ path('app_assign_film_to_user', {'id': user.id}) }}" class="btn btn-primary">
-                            Attribuer cartes
-                        </a>
-                    {% endif %}
+                    <a href="{{ path({ anime: 'app_assign_anime_to_user', film: 'app_assign_film_to_user', jeu: 'app_assign_jeu_to_user' }[type], {'id': user.id}) }}" class="btn btn-primary">
+                        Attribuer cartes
+                    </a>
                 </div>
             {% else %}
                 <p>Aucun joueur trouvé.</p>

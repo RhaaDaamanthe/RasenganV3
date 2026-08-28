@@ -69,6 +69,27 @@
             {% endfor %}
         </div>
 
+        <h2>Cartes de jeu vidéo</h2>
+        <div class="card-grid">
+            {% for card in mythicJeuCards %}
+                <div class="admin-card">
+                    {% if card.imagePath %}
+                        <img src="{{ asset(card.imagePath) }}" alt="{{ card.nom }}" class="card-image">
+                    {% endif %}
+                    <div class="card-content">
+                        <h3>{{ card.nom }}</h3>
+                        <p><strong>Jeu vidéo :</strong> {{ card.jeu ? card.jeu.nom : 'Non lié' }}</p>
+                        <p><strong>Cartes requises :</strong> {{ card.requirements|length }}</p>
+                    </div>
+                    <div class="admin-card-actions">
+                        <a href="{{ path('app_mythic_recipe_edit_jeu', {id: card.id}) }}" class="btn btn-warning">Configurer</a>
+                    </div>
+                </div>
+            {% else %}
+                <p>Aucune carte mythique de jeu vidéo pour le moment.</p>
+            {% endfor %}
+        </div>
+
         <div class="media-list-page-footer">
             <a href="{{ path('app_admin') }}" class="btn btn-secondary">← Retour au tableau de bord</a>
         </div>

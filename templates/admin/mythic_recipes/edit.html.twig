@@ -355,7 +355,7 @@
             {% endif %}
             <div>
                 <h1>Combinaison — {{ card.nom }}</h1>
-                <div class="recipe-subtitle">{{ type == 'anime' ? 'Carte d\'animé' : 'Carte de film' }} · Mythique</div>
+                <div class="recipe-subtitle">{{ { anime: 'Carte d\'animé', film: 'Carte de film', jeu: 'Carte de jeu vidéo' }[type] }} · Mythique</div>
             </div>
         </div>
 
@@ -363,7 +363,7 @@
             <div class="flash-message flash-error">{{ message }}</div>
         {% endfor %}
 
-        <form method="post" action="{{ path(type == 'anime' ? 'app_mythic_recipe_edit_anime' : 'app_mythic_recipe_edit_film', {id: card.id}) }}">
+        <form method="post" action="{{ path({ anime: 'app_mythic_recipe_edit_anime', film: 'app_mythic_recipe_edit_film', jeu: 'app_mythic_recipe_edit_jeu' }[type], {id: card.id}) }}">
             <input type="hidden" name="_token" value="{{ csrf_token('mythic-recipe-edit' ~ card.id) }}">
 
             <div class="recipe-layout">
@@ -389,7 +389,7 @@
                                         <input type="hidden" name="placeholder[]" value="">
                                         <span class="requirement-nom">
                                             {{ requirement.requiredCard.nom }}<br>
-                                            <small>{{ type == 'anime' ? (requirement.requiredCard.anime ? requirement.requiredCard.anime.nom : '?') : (requirement.requiredCard.film ? requirement.requiredCard.film.nom : '?') }}</small>
+                                            <small>{{ attribute(requirement.requiredCard, type) ? attribute(requirement.requiredCard, type).nom : '?' }}</small>
                                         </span>
                                         <input type="number" name="qty[]" min="1" value="{{ requirement.quantityRequired }}">
                                         <button type="button" class="remove-row-btn" title="Retirer">✖</button>
@@ -440,7 +440,7 @@
 
                     <div class="card-grid" id="candidate-grid">
                         {% for candidate in candidates %}
-                            {% set univers = type == 'anime' ? (candidate.anime ? candidate.anime.nom : '?') : (candidate.film ? candidate.film.nom : '?') %}
+                            {% set univers = attribute(candidate, type) ? attribute(candidate, type).nom : '?' %}
                             <div class="admin-card candidate-card"
                                  data-id="{{ candidate.id }}"
                                  data-nom="{{ candidate.nom }}"
@@ -453,7 +453,7 @@
                                 {% endif %}
                                 <div class="card-content">
                                     <h3>{{ candidate.nom }}</h3>
-                                    <p><strong>{{ type == 'anime' ? 'Animé' : 'Film' }} :</strong> {{ univers }}</p>
+                                    <p><strong>{{ { anime: 'Animé', film: 'Film', jeu: 'Jeu vidéo' }[type] }} :</strong> {{ univers }}</p>
                                     <p><strong>Rareté :</strong> {{ candidate.rarity.libelle }}</p>
                                 </div>
                             </div>

@@ -4,10 +4,12 @@ namespace App\Controller;
 
 use App\Entity\CardAnime;
 use App\Entity\CardFilm;
+use App\Entity\CardJeu;
 use App\Entity\Rarities;
 use App\Entity\User;
 use App\Entity\UserCardAnime;
 use App\Entity\UserCardFilm;
+use App\Entity\UserCardJeu;
 use App\Repository\UserRepository;
 use App\Service\BadgeService;
 use App\Service\DiscordNotifier;
@@ -55,6 +57,14 @@ class WheelController extends AbstractController
         return $this->render('wheel/users.html.twig', ['users' => $users, 'type' => 'film']);
     }
 
+    #[Route('/jeu/users', name: 'app_wheel_jeu_users', methods: ['GET'])]
+    public function jeuUsers(UserRepository $userRepository): Response
+    {
+        $users = $userRepository->createQueryBuilder('u')->orderBy('u.pseudo', 'ASC')->getQuery()->getResult();
+
+        return $this->render('wheel/users.html.twig', ['users' => $users, 'type' => 'jeu']);
+    }
+
     #[Route('/anime/user/{id}', name: 'app_wheel_anime_user', methods: ['GET'])]
     public function animeSpinPage(User $user, EntityManagerInterface $entityManager): Response
     {
@@ -91,6 +101,27 @@ class WheelController extends AbstractController
         return $this->render('wheel/spin.html.twig', [
             'user' => $user,
             'type' => 'film',
+            'rarities' => $this->getEligibleRaritiesAsArray($entityManager, self::RARITY_WEIGHTS),
+            'rarities333' => $this->getEligibleRaritiesAsArray($entityManager, self::RARITY_WEIGHTS_333),
+            'titles' => $titles,
+        ]);
+    }
+
+    #[Route('/jeu/user/{id}', name: 'app_wheel_jeu_user', methods: ['GET'])]
+    public function jeuSpinPage(User $user, EntityManagerInterface $entityManager): Response
+    {
+        $titles = $entityManager->getRepository(CardJeu::class)
+            ->createQueryBuilder('cj')
+            ->select('j.id, j.nom')
+            ->join('cj.jeu', 'j')
+            ->groupBy('j.id, j.nom')
+            ->orderBy('j.nom', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return $this->render('wheel/spin.html.twig', [
+            'user' => $user,
+            'type' => 'jeu',
             'rarities' => $this->getEligibleRaritiesAsArray($entityManager, self::RARITY_WEIGHTS),
             'rarities333' => $this->getEligibleRaritiesAsArray($entityManager, self::RARITY_WEIGHTS_333),
             'titles' => $titles,
@@ -200,7 +231,39 @@ class WheelController extends AbstractController
         ]);
     }
 
-    // Ne fait que trancher l'étape de "quitte ou double" (gagné/perdu) — le tirage de la
+    #[Route('/jeu/user/{id}/spin-card', name: 'app_wheel_jeu_spin_card', methods: ['POST'])]
+    public function jeuSpinCard(User $user, Request $request, EntityManagerInterface $entityManager, Packages $packages): JsonResponse
+    {
+        if (!$this->isCsrfTokenValid('wheel-action', (string) $request->request->get('_token'))) {
+            return $this->json(['success' => false, 'message' => 'Jeton de sécurité invalide.'], 400);
+        }
+
+        $rarityId = (int) $request->request->get('rarityId');
+        if (!array_key_exists($rarityId, self::RARITY_WEIGHTS)) {
+            return $this->json(['success' => false, 'message' => 'Rareté invalide.'], 400);
+        }
+
+        $titleId = $request->request->get('titleId');
+        $titleId = ($titleId !== null && $titleId !== '') ? (int) $titleId : null;
+
+        $eligible = $this->getEligibleJeuCards($entityManager, $rarityId, $titleId);
+        if (count($eligible) === 0) {
+            return $this->json(['success' => false, 'message' => 'Toutes les cartes de cette rareté sont déjà complètes.']);
+        }
+
+        $winner = $eligible[array_rand($eligible)];
+
+        $pool = array_values(array_filter($eligible, fn (CardJeu $c) => $c->getId() !== $winner->getId()));
+        shuffle($pool);
+
+        return $this->json([
+            'success' => true,
+            'winner' => $this->cardToArray($winner, $packages),
+            'pool' => array_map(fn (CardJeu $c) => $this->cardToArray($c, $packages), array_slice($pool, 0, 11)),
+        ]);
+    }
+
+    // Ne fait que trancher l'étape de "quitte ou double\" (gagné/perdu) — le tirage de la
     // carte elle-même se fait ensuite via /spin-card comme n'importe quel autre tirage,
     // une fois que le joueur a décidé de s'arrêter à la rareté atteinte.
     #[Route('/double-chance', name: 'app_wheel_double_chance', methods: ['POST'])]
@@ -336,6 +399,61 @@ class WheelController extends AbstractController
             $card->getImagePath(),
         );
         $wishlistService->removeFilmCardFromWishlist($user, $card);
+
+        return $this->json(['success' => true, 'message' => "✅ {$card->getNom()} attribuée à {$user->getPseudo()} !"]);
+    }
+
+    #[Route('/jeu/user/{id}/attribuer', name: 'app_wheel_jeu_confirm', methods: ['POST'])]
+    public function jeuConfirm(User $user, Request $request, EntityManagerInterface $entityManager, BadgeService $badgeService, WishlistService $wishlistService, DiscordNotifier $discordNotifier): JsonResponse
+    {
+        if (!$this->isCsrfTokenValid('wheel-action', (string) $request->request->get('_token'))) {
+            return $this->json(['success' => false, 'message' => 'Jeton de sécurité invalide.'], 400);
+        }
+
+        $card = $entityManager->getRepository(CardJeu::class)->find((int) $request->request->get('cardId'));
+        if (!$card) {
+            return $this->json(['success' => false, 'message' => 'Carte introuvable.'], 400);
+        }
+
+        $distributed = $entityManager->getRepository(UserCardJeu::class)
+            ->createQueryBuilder('ucj')
+            ->select('SUM(ucj.quantity)')
+            ->where('ucj.cardJeu = :card')
+            ->setParameter('card', $card)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        if (($distributed ?? 0) >= $card->getQuantity()) {
+            return $this->json(['success' => false, 'message' => 'Cette carte est maintenant en rupture de stock.']);
+        }
+
+        $userCard = $entityManager->getRepository(UserCardJeu::class)->findOneBy([
+            'user' => $user,
+            'cardJeu' => $card,
+        ]);
+
+        if ($userCard) {
+            $userCard->setQuantity($userCard->getQuantity() + 1);
+        } else {
+            $userCard = new UserCardJeu();
+            $userCard->setUser($user);
+            $userCard->setCardJeu($card);
+            $userCard->setQuantity(1);
+            $entityManager->persist($userCard);
+        }
+        $userCard->setObtainedAt(new \DateTimeImmutable());
+
+        $entityManager->flush();
+        $badgeService->refreshCollectorBadges($user);
+        $discordNotifier->notifyDrop(
+            $user,
+            $card->getNom(),
+            $card->getJeu()?->getNom() ?? '',
+            $card->getRarity()?->getLibelle() ?? '',
+            'Jeu vidéo',
+            $card->getImagePath(),
+        );
+        $wishlistService->removeJeuCardFromWishlist($user, $card);
 
         return $this->json(['success' => true, 'message' => "✅ {$card->getNom()} attribuée à {$user->getPseudo()} !"]);
     }
@@ -478,7 +596,42 @@ class WheelController extends AbstractController
         return $eligible;
     }
 
-    private function cardToArray(CardAnime|CardFilm $card, Packages $packages): array
+    /**
+     * @return CardJeu[]
+     */
+    private function getEligibleJeuCards(EntityManagerInterface $entityManager, int $rarityId, ?int $titleId = null): array
+    {
+        $qb = $entityManager->getRepository(CardJeu::class)
+            ->createQueryBuilder('cj')
+            ->where('cj.rarity = :rarityId')
+            ->setParameter('rarityId', $rarityId);
+
+        if ($titleId !== null) {
+            $qb->andWhere('IDENTITY(cj.jeu) = :titleId')
+                ->setParameter('titleId', $titleId);
+        }
+
+        $cards = $qb->getQuery()->getResult();
+
+        $eligible = [];
+        foreach ($cards as $card) {
+            $distributed = $entityManager->getRepository(UserCardJeu::class)
+                ->createQueryBuilder('ucj')
+                ->select('SUM(ucj.quantity)')
+                ->where('ucj.cardJeu = :card')
+                ->setParameter('card', $card)
+                ->getQuery()
+                ->getSingleScalarResult();
+
+            if (($distributed ?? 0) < $card->getQuantity()) {
+                $eligible[] = $card;
+            }
+        }
+
+        return $eligible;
+    }
+
+    private function cardToArray(CardAnime|CardFilm|CardJeu $card, Packages $packages): array
     {
         return [
             'id' => $card->getId(),

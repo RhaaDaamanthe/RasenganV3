@@ -4,8 +4,10 @@ namespace App\Controller;
 
 use App\Entity\CardAnime;
 use App\Entity\CardFilm;
+use App\Entity\CardJeu;
 use App\Entity\UserCardAnime;
 use App\Entity\UserCardFilm;
+use App\Entity\UserCardJeu;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,11 +18,12 @@ final class HomeController extends AbstractController
     #[Route('/', name: 'app_home')]
     public function index(EntityManagerInterface $entityManager): Response
     {
-        // Récupérer toutes les cartes (anime + film)
+        // Récupérer toutes les cartes (anime + film + jeu vidéo)
         $animeCards = $entityManager->getRepository(CardAnime::class)->findAll();
         $filmCards  = $entityManager->getRepository(CardFilm::class)->findAll();
+        $jeuCards   = $entityManager->getRepository(CardJeu::class)->findAll();
 
-        $allCards = array_merge($animeCards, $filmCards);
+        $allCards = array_merge($animeCards, $filmCards, $jeuCards);
 
         // Construire un tableau d'images (chemins publics) et filtrer les entrées vides
         $allImagePaths = [];
@@ -49,7 +52,7 @@ final class HomeController extends AbstractController
     }
 
     /**
-     * @return array<int, array{pseudo: string, nom: string, imagePath: ?string, rarite: string, obtainedAt: \DateTimeImmutable}>
+     * @return array<int, array{pseudo: string, nom: string, imagePath: ?string, rarite: string, type: string, relative: string}>
      */
     private function getRecentDrops(EntityManagerInterface $entityManager, int $limit = 8): array
     {
@@ -69,21 +72,37 @@ final class HomeController extends AbstractController
             ->getQuery()
             ->getResult();
 
-        $drops = array_merge($recentAnime, $recentFilm);
+        $recentJeu = $entityManager->getRepository(UserCardJeu::class)
+            ->createQueryBuilder('ucj')
+            ->where('ucj.obtainedAt IS NOT NULL')
+            ->orderBy('ucj.obtainedAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        $drops = array_merge($recentAnime, $recentFilm, $recentJeu);
 
         usort($drops, fn ($a, $b) => $b->getObtainedAt() <=> $a->getObtainedAt());
 
         $drops = array_slice($drops, 0, $limit);
 
-        return array_map(function (UserCardAnime|UserCardFilm $userCard) {
-            $card = $userCard instanceof UserCardAnime ? $userCard->getCardAnime() : $userCard->getCardFilm();
+        return array_map(function (UserCardAnime|UserCardFilm|UserCardJeu $userCard) {
+            $card = match (true) {
+                $userCard instanceof UserCardAnime => $userCard->getCardAnime(),
+                $userCard instanceof UserCardFilm => $userCard->getCardFilm(),
+                default => $userCard->getCardJeu(),
+            };
 
             return [
                 'pseudo' => $userCard->getUser()?->getPseudo() ?? '?',
                 'nom' => $card->getNom(),
                 'imagePath' => $card->getImagePath(),
                 'rarite' => $card->getRarity()?->getLibelle() ?? '',
-                'type' => $userCard instanceof UserCardAnime ? 'Anime' : 'Film',
+                'type' => match (true) {
+                    $userCard instanceof UserCardAnime => 'Anime',
+                    $userCard instanceof UserCardFilm => 'Film',
+                    default => 'Jeu vidéo',
+                },
                 'relative' => $this->formatRelativeTime($userCard->getObtainedAt()),
             ];
         }, $drops);

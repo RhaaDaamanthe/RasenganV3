@@ -193,6 +193,14 @@
                     <span id="filmCount" class="count global-stat-value" data-value="{{ filmCount }}">0</span>
                     <span class="global-stat-label">Cartes Film</span>
                 </div>
+                {# La tuile n'apparaît qu'une fois des cartes de jeu vidéo réellement distribuées. #}
+                {% if jeuCount > 0 %}
+                    <div class="global-stat-tile">
+                        <span class="global-stat-icon">🎮</span>
+                        <span id="jeuCount" class="count global-stat-value" data-value="{{ jeuCount }}">0</span>
+                        <span class="global-stat-label">Cartes Jeu vidéo</span>
+                    </div>
+                {% endif %}
             </div>
         </section>
 

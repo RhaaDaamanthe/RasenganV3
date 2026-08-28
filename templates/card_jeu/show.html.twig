@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}CardJeu{% endblock %}
+
+{% block body %}
+    <h1>CardJeu</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ card_jeu.id }}</td>
+            </tr>
+            <tr>
+                <th>Nom</th>
+                <td>{{ card_jeu.nom }}</td>
+            </tr>
+            <tr>
+                <th>ImagePath</th>
+                <td>{{ card_jeu.imagePath }}</td>
+            </tr>
+            <tr>
+                <th>Description</th>
+                <td>{{ card_jeu.description }}</td>
+            </tr>
+            <tr>
+                <th>Quantity</th>
+                <td>{{ card_jeu.quantity }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_card_jeu_index') }}">back to list</a>
+
+    <a href="{{ path('app_card_jeu_edit', {'id': card_jeu.id}) }}">edit</a>
+
+    {{ include('card_jeu/_delete_form.html.twig') }}
+{% endblock %}

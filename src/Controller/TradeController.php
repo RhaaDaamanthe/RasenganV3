@@ -6,6 +6,7 @@ use App\Entity\Rarities;
 use App\Entity\TradeOffer;
 use App\Entity\User;
 use App\Entity\UserCardFilm;
+use App\Entity\UserCardJeu;
 use App\Repository\TradeOfferRepository;
 use App\Repository\UserCardAnimeRepository;
 use App\Repository\UserRepository;
@@ -78,8 +79,10 @@ class TradeController extends AbstractController
             'recipient' => $recipient,
             'myCardAnimes' => $userCardAnimeRepository->findByUserSorted($proposer),
             'myCardFilms' => $entityManager->getRepository(UserCardFilm::class)->findBy(['user' => $proposer]),
+            'myCardJeus' => $entityManager->getRepository(UserCardJeu::class)->findBy(['user' => $proposer]),
             'theirCardAnimes' => $userCardAnimeRepository->findByUserSorted($recipient),
             'theirCardFilms' => $entityManager->getRepository(UserCardFilm::class)->findBy(['user' => $recipient]),
+            'theirCardJeus' => $entityManager->getRepository(UserCardJeu::class)->findBy(['user' => $recipient]),
             'rarities' => $entityManager->getRepository(Rarities::class)->findAll(),
             'myWishlist' => $wishlistService->getWishlistCardIds($proposer),
             'theirWishlist' => $wishlistService->getWishlistCardIds($recipient),
@@ -190,7 +193,7 @@ class TradeController extends AbstractController
 
         if ($request->isMethod('POST')) {
             try {
-                $itemsData = $this->parseItemsFromRequest($request, $me, $other, $entityManager);
+                $itemsData = $this->parseItemsFromRequest($request, $me, $other);
                 $newOffer = $tradeService->counter($offer, $me, $itemsData);
 
                 $this->addFlash('success', "✅ Contre-offre envoyée à {$other->getPseudo()} !");
@@ -206,8 +209,10 @@ class TradeController extends AbstractController
             'counterOf' => $offer,
             'myCardAnimes' => $userCardAnimeRepository->findByUserSorted($me),
             'myCardFilms' => $entityManager->getRepository(UserCardFilm::class)->findBy(['user' => $me]),
+            'myCardJeus' => $entityManager->getRepository(UserCardJeu::class)->findBy(['user' => $me]),
             'theirCardAnimes' => $userCardAnimeRepository->findByUserSorted($other),
             'theirCardFilms' => $entityManager->getRepository(UserCardFilm::class)->findBy(['user' => $other]),
+            'theirCardJeus' => $entityManager->getRepository(UserCardJeu::class)->findBy(['user' => $other]),
             'rarities' => $entityManager->getRepository(Rarities::class)->findAll(),
             'myWishlist' => $wishlistService->getWishlistCardIds($me),
             'theirWishlist' => $wishlistService->getWishlistCardIds($other),

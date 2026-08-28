@@ -4,8 +4,10 @@ namespace App\Controller;
 
 use App\Entity\CardAnime;
 use App\Entity\CardFilm;
+use App\Entity\CardJeu;
 use App\Entity\User;
 use App\Entity\UserCardFilm;
+use App\Entity\UserCardJeu;
 use App\Repository\UserRepository;
 use App\Repository\UserCardAnimeRepository;
 use App\Entity\Rarities;
@@ -31,6 +33,7 @@ class CollectionController extends AbstractController
         $totalCards = 0;
         $totalAnimeCards = 0;
         $totalFilmCards = 0;
+        $totalJeuCards = 0;
 
         foreach ($users as $user) {
             // Calcul des cartes anime de l'utilisateur
@@ -51,8 +54,17 @@ class CollectionController extends AbstractController
                 ->getQuery()
                 ->getSingleScalarResult();
 
+            // Calcul des cartes jeu vidéo de l'utilisateur
+            $jeuCount = $entityManager->getRepository(UserCardJeu::class)
+                ->createQueryBuilder('ucj')
+                ->select('SUM(ucj.quantity)')
+                ->where('ucj.user = :user')
+                ->setParameter('user', $user)
+                ->getQuery()
+                ->getSingleScalarResult();
+
             // Calcul du total des points
-            $totalPoints = (int) $animeCount + (int) $filmCount;
+            $totalPoints = (int) $animeCount + (int) $filmCount + (int) $jeuCount;
 
             // Ajouter l'utilisateur et ses points à la liste
             $playersWithPoints[] = [
@@ -63,7 +75,8 @@ class CollectionController extends AbstractController
             // Mettre à jour les totaux
             $totalAnimeCards += (int) $animeCount;
             $totalFilmCards += (int) $filmCount;
-            $totalCards += (int) $animeCount + (int) $filmCount;
+            $totalJeuCards += (int) $jeuCount;
+            $totalCards += (int) $animeCount + (int) $filmCount + (int) $jeuCount;
         }
 
         // Trier les utilisateurs par points, du plus grand au plus petit
@@ -82,6 +95,7 @@ class CollectionController extends AbstractController
             'totalCards' => $totalCards,      // Total général des cartes
             'animeCount' => $totalAnimeCards, // Total des cartes Anime
             'filmCount' => $totalFilmCards,   // Total des cartes Film
+            'jeuCount' => $totalJeuCards,     // Total des cartes Jeu vidéo
         ]);
     }
 
@@ -113,8 +127,19 @@ class CollectionController extends AbstractController
             ->getQuery()
             ->getResult();
 
+        $userCardJeus = $entityManager->getRepository(UserCardJeu::class)
+            ->createQueryBuilder('ucj')
+            ->leftJoin('ucj.cardJeu', 'cj')
+            ->leftJoin('cj.rarity', 'r')
+            ->where('ucj.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('r.id', 'DESC')
+            ->addOrderBy('cj.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+
         // Fusionner les collections de cartes
-        $allUserCards = array_merge($userCardAnimes, $userCardFilms);
+        $allUserCards = array_merge($userCardAnimes, $userCardFilms, $userCardJeus);
 
         // Filtrage des cartes
         $filteredCards = array_filter($allUserCards, function ($userCard) use ($search, $selectedRarity, $selectedSection) {
@@ -125,13 +150,17 @@ class CollectionController extends AbstractController
             } elseif (method_exists($userCard, 'getCardFilm') && $userCard->getCardFilm()) {
                 $card = $userCard->getCardFilm();
                 $type = 'film';
+            } elseif (method_exists($userCard, 'getCardJeu') && $userCard->getCardJeu()) {
+                $card = $userCard->getCardJeu();
+                $type = 'jeu';
             } else {
                 return false;
             }
 
-            // Filtrer selon la section (anime ou film)
+            // Filtrer selon la section (anime, film ou jeu vidéo)
             if ($selectedSection === 'anime' && $type !== 'anime') return false;
             if ($selectedSection === 'film' && $type !== 'film') return false;
+            if ($selectedSection === 'jeu' && $type !== 'jeu') return false;
 
             // Filtrer par rareté
             if ($selectedRarity && $card->getRarity() && $card->getRarity()->getLibelle() !== $selectedRarity) {
@@ -160,6 +189,14 @@ class CollectionController extends AbstractController
                 if ($type === 'film' && $card->getFilm()) {
                     $filmName = mb_strtolower($card->getFilm()->getNom());
                     if (stripos($filmName, $searchLower) !== false) {
+                        return true;
+                    }
+                }
+
+                // Recherche dans le nom du jeu vidéo
+                if ($type === 'jeu' && $card->getJeu()) {
+                    $jeuName = mb_strtolower($card->getJeu()->getNom());
+                    if (stripos($jeuName, $searchLower) !== false) {
                         return true;
                     }
                 }
@@ -213,6 +250,20 @@ class CollectionController extends AbstractController
             ->getQuery()
             ->getResult();
 
+        $wishlistJeu = $entityManager->createQueryBuilder()
+            ->select('cj')
+            ->from(CardJeu::class, 'cj')
+            ->join('cj.wishlistedByUsers', 'wu')
+            ->leftJoin('cj.jeu', 'j')
+            ->leftJoin('cj.rarity', 'r')
+            ->where('wu = :user')
+            ->setParameter('user', $user)
+            ->orderBy('j.nom', 'ASC')
+            ->addOrderBy('r.id', 'DESC')
+            ->addOrderBy('cj.nom', 'ASC')
+            ->getQuery()
+            ->getResult();
+
         // Cartes de la wishlist déjà entièrement distribuées à d'autres joueurs (rupture de stock)
         $outOfStockAnimeIds = [];
         $wishlistAnimeIds = array_map(fn (CardAnime $c) => $c->getId(), $wishlistAnime);
@@ -252,6 +303,25 @@ class CollectionController extends AbstractController
             }
         }
 
+        $outOfStockJeuIds = [];
+        $wishlistJeuIds = array_map(fn (CardJeu $c) => $c->getId(), $wishlistJeu);
+        if ($wishlistJeuIds) {
+            $distributed = $entityManager->getRepository(UserCardJeu::class)
+                ->createQueryBuilder('ucj')
+                ->select('IDENTITY(ucj.cardJeu) as cardId, SUM(ucj.quantity) as total')
+                ->where('ucj.cardJeu IN (:ids)')
+                ->setParameter('ids', $wishlistJeuIds)
+                ->groupBy('ucj.cardJeu')
+                ->getQuery()
+                ->getResult();
+            $distributedById = array_column($distributed, 'total', 'cardId');
+            foreach ($wishlistJeu as $card) {
+                if ((int) ($distributedById[$card->getId()] ?? 0) >= $card->getQuantity()) {
+                    $outOfStockJeuIds[] = $card->getId();
+                }
+            }
+        }
+
         return $this->render('collection/player_collection.html.twig', [
             'user' => $user,
             'paginatedCards' => $paginatedCards,
@@ -264,8 +334,10 @@ class CollectionController extends AbstractController
             'rarityStats' => $rarityStatsService->getRarityBreakdown($user),
             'wishlistAnime' => $wishlistAnime,
             'wishlistFilm' => $wishlistFilm,
+            'wishlistJeu' => $wishlistJeu,
             'outOfStockAnimeIds' => $outOfStockAnimeIds,
             'outOfStockFilmIds' => $outOfStockFilmIds,
+            'outOfStockJeuIds' => $outOfStockJeuIds,
             'isOwnProfile' => $this->getUser() === $user,
         ]);
     }

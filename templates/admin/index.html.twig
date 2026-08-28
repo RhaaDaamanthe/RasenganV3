@@ -22,12 +22,13 @@
             <div class="admin-section">
                 <div class="section-header cards">
                     <h2>🎴 Gestion des cartes</h2>
-                    <p>Créer, modifier ou supprimer des cartes d'animés et de films</p>
+                    <p>Créer, modifier ou supprimer des cartes d'animés, de films et de jeux vidéo</p>
                 </div>
                 <div class="section-content">
                     <div class="admin-buttons">
                         <a href="{{ path('app_card_anime_index') }}" class="btn btn-primary">Gérer les cartes d'animé</a>
                         <a href="{{ path('app_card_film_index') }}" class="btn btn-primary">Gérer les cartes de film</a>
+                        <a href="{{ path('app_card_jeu_index') }}" class="btn btn-primary">Gérer les cartes de jeu vidéo 🔒</a>
                     </div>
                 </div>
             </div>
@@ -36,12 +37,13 @@
             <div class="admin-section">
                 <div class="section-header media">
                     <h2>🎬 Gestion des médias</h2>
-                    <p>Créer, modifier ou supprimer des animés et films pour les associer aux cartes</p>
+                    <p>Créer, modifier ou supprimer des animés, films et jeux vidéo pour les associer aux cartes</p>
                 </div>
                 <div class="section-content">
                     <div class="admin-buttons">
                         <a href="{{ path('app_anime_index') }}" class="btn btn-success">Gérer les animés</a>
                         <a href="{{ path('app_film_index') }}" class="btn btn-success">Gérer les films</a>
+                        <a href="{{ path('app_jeu_index') }}" class="btn btn-success">Gérer les jeux vidéo 🔒</a>
                     </div>
                 </div>
             </div>
@@ -56,6 +58,7 @@
                     <div class="admin-buttons">
                         <a href="{{ path('app_assign_anime_users') }}" class="btn btn-violet">Attribuer des cartes d'animés</a>
                         <a href="{{ path('app_assign_film_users') }}" class="btn btn-violet">Attribuer des cartes de films</a>
+                        <a href="{{ path('app_assign_jeu_users') }}" class="btn btn-violet">Attribuer des cartes de jeux vidéo 🔒</a>
                     </div>
                 </div>
             </div>
@@ -107,6 +110,20 @@
                     <div class="admin-buttons">
                         <a href="{{ path('app_wheel_anime_users') }}" class="btn btn-warning">Roue (Anime)</a>
                         <a href="{{ path('app_wheel_film_users') }}" class="btn btn-warning">Roue (Film)</a>
+                        <a href="{{ path('app_wheel_jeu_users') }}" class="btn btn-warning">Roue (Jeu vidéo) 🔒</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Jeux vidéo (pas encore ouverte aux joueurs) -->
+            <div class="admin-section">
+                <div class="section-header cards">
+                    <h2>🎮 Jeux vidéo <span class="section-flag">bêta</span></h2>
+                    <p>Section complète mais fermée aux joueurs : la tuile « ????? » du catalogue reste inactive. Tout est déjà utilisable ici.</p>
+                </div>
+                <div class="section-content">
+                    <div class="admin-buttons">
+                        <a href="{{ path('app_catalogue_all_jeu_cards') }}" class="btn btn-info">Voir le catalogue jeux vidéo</a>
                     </div>
                 </div>
             </div>

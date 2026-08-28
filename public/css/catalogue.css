@@ -78,6 +78,24 @@ main {
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
+/* Tuile d'une section pas encore ouverte aux joueurs (jeux vidéo) :
+   volontairement inerte, ni cliquable ni survolable. */
+.card-locked {
+  cursor: not-allowed;
+  filter: grayscale(1);
+  opacity: 0.55;
+}
+
+.card-locked:hover {
+  transform: none;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.card-locked img,
+.card-locked .card-content {
+  pointer-events: none;
+}
+
 .card img {
   width: 100%;
   height: auto;
@@ -150,6 +168,17 @@ main {
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
   max-height: 300px;
   overflow-y: auto;
+}
+
+.catalogue-list-badge {
+  font-size: 0.6em;
+  vertical-align: middle;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(250, 157, 17, 0.25);
+  color: #fa9d11;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 /* Style du scroll */

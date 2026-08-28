@@ -24,7 +24,9 @@
                     <h2 class="card-title">Cartes films & séries</h2>
                 </div>
             </div>
-            <div class="card">
+            {# Jeux vidéo : la section existe et fonctionne, mais reste fermée aux joueurs.
+               La tuile n'a donc pas de data-url et n'est pas cliquable. #}
+            <div class="card card-locked" aria-disabled="true" title="Bientôt disponible">
                 <img src="{{ asset('images/Anime.png') }}" alt="?????" />
                 <div class="card-content">
                     <h2 class="card-title">?????</h2>
@@ -60,6 +62,25 @@
                     </ul>
                     <p>Total de cartes films : <strong>{{ totalFilms }}</strong></p>
                 </div>
+                {# Réservé aux admins tant que la section jeux vidéo n'est pas ouverte. #}
+                {% if is_granted('ROLE_ADMIN') %}
+                    <div class="catalogue-list">
+                        <h3>Jeux vidéo <span class="catalogue-list-badge">admin</span></h3>
+                        <ul id="jeu-list">
+                            {% set totalJeux = 0 %}
+                            {% for jeu in jeux %}
+                                {% set totalJeux = totalJeux + jeu.card_count %}
+                                <li>
+                                    <a href="{{ path('app_catalogue_jeu_cards', {id: jeu.id}) }}">{{ jeu.nom }}</a> ({{ jeu.card_count }})
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        <p>
+                            Total de cartes jeux vidéo : <strong>{{ totalJeux }}</strong>
+                            — <a href="{{ path('app_catalogue_all_jeu_cards') }}">voir toutes les cartes</a>
+                        </p>
+                    </div>
+                {% endif %}
             </div>
         </section>
     </main>
@@ -68,7 +89,7 @@
 {% block javascripts %}
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            document.querySelectorAll(".card").forEach((card) => {
+            document.querySelectorAll(".card:not(.card-locked)").forEach((card) => {
                 card.addEventListener("click", () => {
                     const url = card.getAttribute("data-url");
                     if (url) {

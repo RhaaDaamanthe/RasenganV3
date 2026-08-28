@@ -55,7 +55,7 @@
 <main>
     <div class="admin-container assign-cards-page">
         <div class="dashboard-hero">
-            <h1>🎁 Attribuer des cartes {{ type == 'anime' ? 'd\'animé' : 'de film' }} à {{ user.pseudo }}</h1>
+            <h1>🎁 Attribuer des cartes {{ { anime: 'd\'animé', film: 'de film', jeu: 'de jeu vidéo' }[type] }} à {{ user.pseudo }}</h1>
         </div>
 
         {% for message in app.flashes('success') %}
@@ -154,7 +154,7 @@
         {% endif %}
 
         <div class="media-list-page-footer">
-            <a href="{{ path(type == 'anime' ? 'app_assign_anime_users' : 'app_assign_film_users') }}" class="btn btn-secondary">← Retour à la liste des joueurs</a>
+            <a href="{{ path({ anime: 'app_assign_anime_users', film: 'app_assign_film_users', jeu: 'app_assign_jeu_users' }[type]) }}" class="btn btn-secondary">← Retour à la liste des joueurs</a>
         </div>
     </div>
 </main>

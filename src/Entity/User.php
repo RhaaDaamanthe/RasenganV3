@@ -60,6 +60,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $userCardFilms;
 
     /**
+     * @var Collection<int, UserCardJeu>
+     */
+    #[ORM\OneToMany(targetEntity: UserCardJeu::class, mappedBy: 'user')]
+    private Collection $userCardJeus;
+
+    /**
      * @var Collection<int, Badge>
      */
     #[ORM\ManyToMany(targetEntity: Badge::class, inversedBy: 'users')]
@@ -80,6 +86,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\JoinTable(name: 'user_wishlist_film')]
     private Collection $wishlistCardFilms;
 
+    /**
+     * @var Collection<int, CardJeu>
+     */
+    #[ORM\ManyToMany(targetEntity: CardJeu::class, inversedBy: 'wishlistedByUsers')]
+    #[ORM\JoinTable(name: 'user_wishlist_jeu')]
+    private Collection $wishlistCardJeus;
+
     // Ajout du constructeur
     public function __construct()
     {
@@ -89,9 +102,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->isAdmin = false;
         $this->userCardAnimes = new ArrayCollection();
         $this->userCardFilms = new ArrayCollection();
+        $this->userCardJeus = new ArrayCollection();
         $this->badges = new ArrayCollection();
         $this->wishlistCardAnimes = new ArrayCollection();
         $this->wishlistCardFilms = new ArrayCollection();
+        $this->wishlistCardJeus = new ArrayCollection();
     }
 
     // -----------------------
@@ -285,6 +300,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    /**
+     * @return Collection<int, UserCardJeu>
+     */
+    public function getUserCardJeus(): Collection
+    {
+        return $this->userCardJeus;
+    }
+
+    public function addUserCardJeu(UserCardJeu $userCardJeu): static
+    {
+        if (!$this->userCardJeus->contains($userCardJeu)) {
+            $this->userCardJeus->add($userCardJeu);
+            $userCardJeu->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUserCardJeu(UserCardJeu $userCardJeu): static
+    {
+        if ($this->userCardJeus->removeElement($userCardJeu)) {
+            // set the owning side to null (unless already changed)
+            if ($userCardJeu->getUser() === $this) {
+                $userCardJeu->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
     public function getTotalCardAnimeCount(): int
     {
         $count = 0;
@@ -307,9 +352,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $count;
     }
 
+    public function getTotalCardJeuCount(): int
+    {
+        $count = 0;
+
+        foreach ($this->getUserCardJeus() as $userCard) {
+            $count += $userCard->getQuantity();
+        }
+
+        return $count;
+    }
+
     public function getTotalCardsCount(): int
     {
-        return $this->getTotalCardAnimeCount() + $this->getTotalCardFilmCount();
+        return $this->getTotalCardAnimeCount() + $this->getTotalCardFilmCount() + $this->getTotalCardJeuCount();
     }
 
     public function getTotalPoints(): int
@@ -338,6 +394,25 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     // 🔹 Cartes de film
     foreach ($this->getUserCardFilms() as $userCard) {
         $rarity = $userCard->getCardFilm()?->getRarity();
+        $quantity = $userCard->getQuantity();
+
+        if ($rarity) {
+            $pointsPerCard = match ($rarity->getLibelle()) {
+                'Communes' => 1,
+                'Rares' => 2,
+                'Épiques' => 3,
+                'Legendaires' => 4,
+                'Mythiques' => 5,
+                'Events' => 6,
+                default => 0,
+            };
+            $points += $pointsPerCard * $quantity;
+        }
+    }
+
+    // 🔹 Cartes de jeu vidéo
+    foreach ($this->getUserCardJeus() as $userCard) {
+        $rarity = $userCard->getCardJeu()?->getRarity();
         $quantity = $userCard->getQuantity();
 
         if ($rarity) {
@@ -425,6 +500,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeWishlistCardFilm(CardFilm $card): static
     {
         $this->wishlistCardFilms->removeElement($card);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CardJeu>
+     */
+    public function getWishlistCardJeus(): Collection
+    {
+        return $this->wishlistCardJeus;
+    }
+
+    public function addWishlistCardJeu(CardJeu $card): static
+    {
+        if (!$this->wishlistCardJeus->contains($card)) {
+            $this->wishlistCardJeus->add($card);
+        }
+
+        return $this;
+    }
+
+    public function removeWishlistCardJeu(CardJeu $card): static
+    {
+        $this->wishlistCardJeus->removeElement($card);
 
         return $this;
     }

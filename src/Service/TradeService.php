@@ -4,11 +4,13 @@ namespace App\Service;
 
 use App\Entity\CardAnime;
 use App\Entity\CardFilm;
+use App\Entity\CardJeu;
 use App\Entity\TradeOffer;
 use App\Entity\TradeOfferItem;
 use App\Entity\User;
 use App\Entity\UserCardAnime;
 use App\Entity\UserCardFilm;
+use App\Entity\UserCardJeu;
 use App\Repository\TradeOfferRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
@@ -67,8 +69,10 @@ class TradeService
 
             if ($card instanceof CardAnime) {
                 $item->setCardAnime($card);
-            } else {
+            } elseif ($card instanceof CardFilm) {
                 $item->setCardFilm($card);
+            } else {
+                $item->setCardJeu($card);
             }
 
             if ($owner === $proposer) {
@@ -204,7 +208,7 @@ class TradeService
                 throw new \InvalidArgumentException('La quantité doit être supérieure à 0.');
             }
 
-            if (!in_array($data['type'], ['anime', 'film'], true)) {
+            if (!in_array($data['type'], ['anime', 'film', 'jeu'], true)) {
                 throw new \InvalidArgumentException('Type de carte invalide.');
             }
 
@@ -226,14 +230,20 @@ class TradeService
         return $aggregated;
     }
 
-    private function findCard(string $type, int $cardId): CardAnime|CardFilm
+    private function findCard(string $type, int $cardId): CardAnime|CardFilm|CardJeu
     {
-        $card = $type === 'anime'
-            ? $this->entityManager->getRepository(CardAnime::class)->find($cardId)
-            : $this->entityManager->getRepository(CardFilm::class)->find($cardId);
+        $card = match ($type) {
+            'anime' => $this->entityManager->getRepository(CardAnime::class)->find($cardId),
+            'film' => $this->entityManager->getRepository(CardFilm::class)->find($cardId),
+            default => $this->entityManager->getRepository(CardJeu::class)->find($cardId),
+        };
 
         if (!$card) {
-            throw new \InvalidArgumentException($type === 'anime' ? 'Carte anime introuvable.' : 'Carte film introuvable.');
+            throw new \InvalidArgumentException(match ($type) {
+                'anime' => 'Carte anime introuvable.',
+                'film' => 'Carte film introuvable.',
+                default => 'Carte jeu vidéo introuvable.',
+            });
         }
 
         return $card;
@@ -307,8 +317,10 @@ class TradeService
 
             if ($card instanceof CardAnime) {
                 $this->wishlistService->removeAnimeCardFromWishlist($receiver, $card);
-            } else {
+            } elseif ($card instanceof CardFilm) {
                 $this->wishlistService->removeFilmCardFromWishlist($receiver, $card);
+            } else {
+                $this->wishlistService->removeJeuCardFromWishlist($receiver, $card);
             }
         }
     }
@@ -320,7 +332,7 @@ class TradeService
         }
     }
 
-    private function assertOwnsCard(User $owner, CardAnime|CardFilm $card, int $quantity): void
+    private function assertOwnsCard(User $owner, CardAnime|CardFilm|CardJeu $card, int $quantity): void
     {
         $userCard = $this->findUserCard($owner, $card);
 
@@ -334,18 +346,23 @@ class TradeService
         }
     }
 
-    private function findUserCard(User $owner, CardAnime|CardFilm $card): UserCardAnime|UserCardFilm|null
+    private function findUserCard(User $owner, CardAnime|CardFilm|CardJeu $card): UserCardAnime|UserCardFilm|UserCardJeu|null
     {
         if ($card instanceof CardAnime) {
             return $this->entityManager->getRepository(UserCardAnime::class)
                 ->findOneBy(['user' => $owner, 'cardAnime' => $card]);
         }
 
-        return $this->entityManager->getRepository(UserCardFilm::class)
-            ->findOneBy(['user' => $owner, 'cardFilm' => $card]);
+        if ($card instanceof CardFilm) {
+            return $this->entityManager->getRepository(UserCardFilm::class)
+                ->findOneBy(['user' => $owner, 'cardFilm' => $card]);
+        }
+
+        return $this->entityManager->getRepository(UserCardJeu::class)
+            ->findOneBy(['user' => $owner, 'cardJeu' => $card]);
     }
 
-    private function transferCard(User $from, User $to, CardAnime|CardFilm $card, int $quantity): void
+    private function transferCard(User $from, User $to, CardAnime|CardFilm|CardJeu $card, int $quantity): void
     {
         $fromUserCard = $this->findUserCard($from, $card);
 
@@ -360,13 +377,17 @@ class TradeService
         if ($toUserCard) {
             $toUserCard->setQuantity($toUserCard->getQuantity() + $quantity);
         } else {
-            $toUserCard = $card instanceof CardAnime ? new UserCardAnime() : new UserCardFilm();
-            $toUserCard->setUser($to);
             if ($card instanceof CardAnime) {
+                $toUserCard = new UserCardAnime();
                 $toUserCard->setCardAnime($card);
-            } else {
+            } elseif ($card instanceof CardFilm) {
+                $toUserCard = new UserCardFilm();
                 $toUserCard->setCardFilm($card);
+            } else {
+                $toUserCard = new UserCardJeu();
+                $toUserCard->setCardJeu($card);
             }
+            $toUserCard->setUser($to);
             $toUserCard->setQuantity($quantity);
             $toUserCard->setObtainedAt(new \DateTimeImmutable());
             $this->entityManager->persist($toUserCard);

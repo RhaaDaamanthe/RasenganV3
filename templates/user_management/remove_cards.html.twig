@@ -47,6 +47,7 @@
                             <option value="">Toutes les sections</option>
                             <option value="anime" {% if selectedSection == 'anime' %}selected{% endif %}>Animés</option>
                             <option value="film" {% if selectedSection == 'film' %}selected{% endif %}>Films</option>
+                            <option value="jeu" {% if selectedSection == 'jeu' %}selected{% endif %}>Jeux vidéo</option>
                         </select>
                     </div>
                 </div>
@@ -117,7 +118,39 @@
             </div>
         {% endif %}
 
-        {% if userCardAnimes is empty and userCardFilms is empty %}
+        <!-- Cartes de jeu vidéo -->
+        {% if userCardJeus is not empty %}
+            <h2 class="section-title">🎮 Cartes de jeu vidéo</h2>
+            <div class="card-grid">
+                {% for userCard in userCardJeus %}
+                    {% set card = userCard.cardJeu %}
+                    <div class="admin-card">
+                        <img src="{{ asset(card.imagePath) }}" alt="{{ card.nom }}" class="card-image">
+                        <div class="card-content">
+                            <h3>{{ card.nom }}</h3>
+                            <p><strong>Quantité:</strong> x{{ userCard.quantity }}</p>
+                            <p><strong>Jeu vidéo:</strong> {{ card.jeu ? card.jeu.nom : 'Non lié' }}</p>
+                        </div>
+                        <div class="admin-card-actions admin-card-actions-column">
+                            <form method="post">
+                                <input type="hidden" name="user_card_id" value="{{ userCard.id }}">
+                                <input type="hidden" name="type" value="jeu">
+                                <input type="hidden" name="action" value="remove_one">
+                                <button type="submit" class="btn btn-warning" onclick="return confirm('Retirer 1 carte ?')">-1 carte</button>
+                            </form>
+                            <form method="post">
+                                <input type="hidden" name="user_card_id" value="{{ userCard.id }}">
+                                <input type="hidden" name="type" value="jeu">
+                                <input type="hidden" name="action" value="remove_all">
+                                <button type="submit" class="btn btn-danger" onclick="return confirm('Retirer TOUTES les cartes ?')">Tout retirer</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if userCardAnimes is empty and userCardFilms is empty and userCardJeus is empty %}
             <p style="text-align: center; margin: 50px 0;">{{ user.pseudo }} n'a aucune carte.</p>
         {% endif %}
 

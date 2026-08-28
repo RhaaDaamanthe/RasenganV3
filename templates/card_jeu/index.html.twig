@@ -1,0 +1,75 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gérer les cartes de jeu vidéo{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/admin.css') }}" />
+{% endblock %}
+
+{% block body %}
+<main>
+    <div class="admin-container">
+        <div class="dashboard-hero">
+            <h1>🎴 Gérer les cartes de jeu vidéo</h1>
+        </div>
+
+        <div class="actions-header">
+            <a href="{{ path('app_card_jeu_new') }}" class="btn btn-action">
+                Créer une nouvelle carte
+            </a>
+
+            {# Barre de recherche fonctionnelle #}
+            <div class="search-container">
+                <input type="text" id="card-search" placeholder="Rechercher par nom, description ou jeu vidéo..." aria-label="Rechercher une carte" onkeyup="filterCards()">
+                <i class="fas fa-search"></i>
+            </div>
+        </div>
+
+        <div class="card-grid" id="card-grid">
+            {% for card_jeu in card_jeus %}
+                {# Ajout des attributs data-* pour le filtrage JavaScript #}
+                <div class="admin-card"
+                     data-name="{{ card_jeu.nom|lower }}"
+                     data-description="{{ card_jeu.description|lower }}"
+                     data-anime="{{ card_jeu.jeu ? card_jeu.jeu.nom|lower : 'non lié' }}">
+
+                    {% if card_jeu.imagePath %}
+                        <img src="{{ asset(card_jeu.imagePath) }}" alt="{{ card_jeu.nom }}" class="card-image">
+                    {% endif %}
+
+                    <div class="card-content">
+                        <h3>{{ card_jeu.nom }}</h3>
+                        {% if card_jeu.jeu %}
+                            <p><strong>Jeu vidéo:</strong> {{ card_jeu.jeu.nom }}</p>
+                        {% else %}
+                            <p><strong>Jeu vidéo:</strong> Non lié</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="admin-card-actions">
+                        <a href="{{ path('app_card_jeu_edit', {'id': card_jeu.id}) }}" class="btn btn-warning">Modifier</a>
+                        <form method="post" action="{{ path('app_card_jeu_delete', {'id': card_jeu.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette carte ?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ card_jeu.id) }}">
+                            <button type="submit" class="btn btn-danger">Supprimer</button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <p id="no-cards-message">Aucune carte de jeu vidéo trouvée.</p>
+            {% endfor %}
+        </div>
+        <p id="no-results-message" style="display: none; text-align: center; margin-top: 20px;">Aucun résultat ne correspond à votre recherche.</p>
+
+        <div class="media-list-page-footer">
+            <a href="{{ path('app_admin') }}" class="btn btn-secondary">← Retour au tableau de bord</a>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/admin.js') }}"></script>
+{% endblock %}

@@ -4,8 +4,10 @@ namespace App\Controller;
 
 use App\Entity\CardAnime;
 use App\Entity\CardFilm;
+use App\Entity\CardJeu;
 use App\Entity\UserCardAnime;
 use App\Entity\UserCardFilm;
+use App\Entity\UserCardJeu;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -70,6 +72,42 @@ class WishlistController extends AbstractController
             $wishlisted = true;
         } else {
             $user->removeWishlistCardFilm($card);
+            $wishlisted = false;
+        }
+
+        $entityManager->flush();
+
+        return $this->json(['success' => true, 'wishlisted' => $wishlisted]);
+    }
+
+    /**
+     * Section jeux vidéo encore fermée aux joueurs : fonctionnelle, mais réservée
+     * aux admins le temps du lancement. Retirer l'attribut IsGranted pour l'ouvrir.
+     */
+    #[Route('/catalogue/jeu/wishlist/{id}/toggle', name: 'app_wishlist_toggle_jeu', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function toggleJeu(CardJeu $card, Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
+        if (!$this->isCsrfTokenValid('wishlist-toggle', (string) $request->request->get('_token'))) {
+            return $this->json(['success' => false, 'message' => 'Jeton de sécurité invalide.'], 400);
+        }
+
+        $user = $this->getUser();
+        $alreadyWishlisted = $user->getWishlistCardJeus()->contains($card);
+
+        if (!$alreadyWishlisted) {
+            $owned = $entityManager->getRepository(UserCardJeu::class)->findOneBy([
+                'user' => $user,
+                'cardJeu' => $card,
+            ]);
+            if ($owned !== null && $owned->getQuantity() > 0) {
+                return $this->json(['success' => false, 'message' => 'Vous possédez déjà cette carte.'], 400);
+            }
+
+            $user->addWishlistCardJeu($card);
+            $wishlisted = true;
+        } else {
+            $user->removeWishlistCardJeu($card);
             $wishlisted = false;
         }
 
