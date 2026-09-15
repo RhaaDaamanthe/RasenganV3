@@ -6,7 +6,7 @@
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
-    <link rel="stylesheet" href="{{ asset('css/profil.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/profil.css') }}?v=20260915-showcase4" />
 {% endblock %}
 
 {% block body %}
@@ -83,6 +83,49 @@
                 </div>
             </div>
         </div>
+
+        <section class="settings-card showcase-picker-settings" id="showcase-settings">
+            <div class="showcase-picker-heading">
+                <div>
+                    <h3>🖼️ Ma vitrine</h3>
+                    <p class="text-muted">Clique sur {{ showcaseCapacity }} cartes pour les afficher sur ton profil. Reclique sur une carte pour la retirer.</p>
+                </div>
+                <strong class="showcase-picker-counter"><span id="showcase-selected-count">{{ showcaseSelection|length }}</span>/{{ showcaseCapacity }}</strong>
+            </div>
+
+            <input type="search" id="showcase-card-search" class="showcase-card-search" placeholder="Rechercher une carte ou une œuvre..." autocomplete="off">
+
+            <form method="post" action="{{ path('app_profile_showcase_update') }}" id="showcase-form">
+                <input type="hidden" name="_token" value="{{ csrf_token('showcase-update') }}">
+                <div id="showcase-hidden-inputs"></div>
+
+                <div class="showcase-picker-grid" id="showcase-picker-grid">
+                    {% for choice in showcaseChoices %}
+                        <button type="button"
+                                class="showcase-picker-card{% if choice.value in showcaseSelection %} selected{% endif %}"
+                                data-value="{{ choice.value }}"
+                                data-search="{{ (choice.name ~ ' ' ~ choice.title)|lower }}"
+                                aria-pressed="{{ choice.value in showcaseSelection ? 'true' : 'false' }}">
+                            {% if choice.imagePath %}
+                                <img src="{{ asset(choice.imagePath) }}" alt="{{ choice.name }}" loading="lazy">
+                            {% else %}
+                                <img src="{{ asset('images/placeholder.png') }}" alt="{{ choice.name }}" loading="lazy">
+                            {% endif %}
+                            <span class="showcase-picker-order"></span>
+                            <span class="showcase-picker-card-info">
+                                <strong>{{ choice.name }}</strong>
+                                <small>{{ choice.type == 'anime' ? '📺' : (choice.type == 'film' ? '🎬' : '🎮') }} {{ choice.title }}</small>
+                            </span>
+                        </button>
+                    {% else %}
+                        <p class="text-muted">Tu dois posséder au moins une carte pour composer ta vitrine.</p>
+                    {% endfor %}
+                </div>
+                <p id="showcase-no-result" class="text-muted" hidden>Aucune carte ne correspond à la recherche.</p>
+
+                <button type="submit" class="btn-primary showcase-save">Enregistrer ma vitrine</button>
+            </form>
+        </section>
     </div>
 </main>
 
@@ -98,6 +141,65 @@ document.addEventListener('DOMContentLoaded', () => {
             input.value = item.dataset.path;
         });
     });
+
+    const showcaseCards = Array.from(document.querySelectorAll('.showcase-picker-card'));
+    const showcaseCounter = document.getElementById('showcase-selected-count');
+    const showcaseInputs = document.getElementById('showcase-hidden-inputs');
+    const showcaseSearch = document.getElementById('showcase-card-search');
+    const showcaseNoResult = document.getElementById('showcase-no-result');
+    const showcaseCapacity = {{ showcaseCapacity }};
+    let showcaseSelection = {{ showcaseSelection|json_encode|raw }};
+
+    function renderShowcaseSelection() {
+        showcaseInputs.innerHTML = '';
+        showcaseCounter.textContent = showcaseSelection.length;
+
+        showcaseCards.forEach(card => {
+            const position = showcaseSelection.indexOf(card.dataset.value);
+            const selected = position !== -1;
+            card.classList.toggle('selected', selected);
+            card.setAttribute('aria-pressed', selected ? 'true' : 'false');
+            card.querySelector('.showcase-picker-order').textContent = selected ? position + 1 : '';
+        });
+
+        showcaseSelection.forEach(value => {
+            const hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = 'showcase_cards[]';
+            hidden.value = value;
+            showcaseInputs.appendChild(hidden);
+        });
+    }
+
+    showcaseCards.forEach(card => {
+        card.addEventListener('click', () => {
+            const position = showcaseSelection.indexOf(card.dataset.value);
+            if (position !== -1) {
+                showcaseSelection.splice(position, 1);
+            } else if (showcaseSelection.length < showcaseCapacity) {
+                showcaseSelection.push(card.dataset.value);
+            } else {
+                document.querySelector('.showcase-picker-card.selected')?.animate(
+                    [{ transform: 'translateX(-4px)' }, { transform: 'translateX(4px)' }, { transform: 'translateX(0)' }],
+                    { duration: 220 }
+                );
+            }
+            renderShowcaseSelection();
+        });
+    });
+
+    showcaseSearch?.addEventListener('input', () => {
+        const query = showcaseSearch.value.trim().toLowerCase();
+        let visible = 0;
+        showcaseCards.forEach(card => {
+            const matches = card.dataset.search.includes(query);
+            card.hidden = !matches;
+            visible += matches ? 1 : 0;
+        });
+        showcaseNoResult.hidden = visible > 0;
+    });
+
+    renderShowcaseSelection();
 });
 </script>
 {% endblock %}

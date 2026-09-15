@@ -11,7 +11,9 @@ use App\Entity\UserCardJeu;
 use App\Repository\UserRepository;
 use App\Repository\UserCardAnimeRepository;
 use App\Entity\Rarities;
+use App\Entity\ShowcaseCard;
 use App\Service\RarityStatsService;
+use App\Service\CollectionProgressService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -105,7 +107,8 @@ class CollectionController extends AbstractController
         UserCardAnimeRepository $userCardAnimeRepository,
         EntityManagerInterface $entityManager,
         Request $request,
-        RarityStatsService $rarityStatsService
+        RarityStatsService $rarityStatsService,
+        CollectionProgressService $collectionProgressService,
     ): Response {
         // Récupère les filtres depuis l'URL
         $search = $request->query->get('search', '');
@@ -264,6 +267,16 @@ class CollectionController extends AbstractController
             ->getQuery()
             ->getResult();
 
+        $showcaseCards = $entityManager->getRepository(ShowcaseCard::class)->findBy(
+            ['user' => $user],
+            ['position' => 'ASC'],
+        );
+        $showcaseByPosition = [];
+        foreach ($showcaseCards as $showcaseCard) {
+            $showcaseByPosition[$showcaseCard->getPosition()] = $showcaseCard;
+        }
+
+
         // Cartes de la wishlist déjà entièrement distribuées à d'autres joueurs (rupture de stock)
         $outOfStockAnimeIds = [];
         $wishlistAnimeIds = array_map(fn (CardAnime $c) => $c->getId(), $wishlistAnime);
@@ -332,6 +345,9 @@ class CollectionController extends AbstractController
             'selectedSection' => $selectedSection,
             'rarities' => $rarities,
             'rarityStats' => $rarityStatsService->getRarityBreakdown($user),
+            'collectionProgress' => $collectionProgressService->getProgressByTitle($user),
+            'showcaseCapacity' => ShowcaseCard::DEFAULT_CAPACITY,
+            'showcaseByPosition' => $showcaseByPosition,
             'wishlistAnime' => $wishlistAnime,
             'wishlistFilm' => $wishlistFilm,
             'wishlistJeu' => $wishlistJeu,
@@ -341,4 +357,5 @@ class CollectionController extends AbstractController
             'isOwnProfile' => $this->getUser() === $user,
         ]);
     }
+
 }

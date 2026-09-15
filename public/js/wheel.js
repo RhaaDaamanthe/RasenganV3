@@ -39,6 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const wheelResult = document.getElementById("wheel-result");
     const resultImage = document.getElementById("result-image");
     const resultName = document.getElementById("result-name");
+    const wishlistHit = document.getElementById("wheel-wishlist-hit");
     const decisionActions = document.getElementById("wheel-decision-actions");
     const afterActions = document.getElementById("wheel-after-actions");
     const cancelBtn = document.getElementById("cancel-btn");
@@ -196,6 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
         cardErrorMessage.style.display = "none";
         doubleChoiceError.style.display = "none";
         statusMessage.textContent = "";
+        wishlistHit.hidden = true;
         spinRarityBtn.disabled = false;
         spinCardBtn.disabled = false;
         redoubleBtn.disabled = false;
@@ -295,6 +297,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     currentWinnerCardId = data.winner.id;
                     currentCardRarityId = rarityId;
                     resultName.textContent = data.winner.nom;
+                    wishlistHit.hidden = !data.wishlisted;
 
                     if (data.winner.imagePath) {
                         resultImage.src = data.winner.imagePath;

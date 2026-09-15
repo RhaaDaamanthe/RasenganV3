@@ -5,7 +5,7 @@
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/profil.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/profil.css') }}?v=20260915-showcase4">
 {% endblock %}
 
 {% block body %}
@@ -38,7 +38,6 @@
         </button>
         <button type="button" class="profile-tab-btn" data-tab="vitrine">
             <span class="tab-btn-inner">🖼️ Vitrine</span>
-            <span class="tab-soon">Bientôt</span>
         </button>
         <button type="button" class="profile-tab-btn" data-tab="wishlist">
             <span class="tab-btn-inner">💖 Wishlist</span>
@@ -269,14 +268,70 @@
             {% else %}
                 <p><em>{{ user.pseudo }} n'a pas encore de cartes communes/rares/épiques/légendaires à analyser.</em></p>
             {% endif %}
+
+            <div class="work-progress-header">
+                <h3>📚 Progression par œuvre</h3>
+                <p>Chaque carte différente compte une fois, indépendamment des doublons.</p>
+            </div>
+
+            {% for group in [
+                { key: 'anime', label: '📺 Animés', rows: collectionProgress.anime },
+                { key: 'film', label: '🎬 Films & séries', rows: collectionProgress.film },
+                { key: 'jeu', label: '🎮 Jeux vidéo', rows: collectionProgress.jeu }
+            ] %}
+                {% if group.rows|length > 0 and (group.key != 'jeu' or is_granted('ROLE_ADMIN')) %}
+                    <section class="work-progress-section work-progress-{{ group.key }}">
+                        <header class="work-progress-section-header">
+                            <h4>{{ group.label }}</h4>
+                            <span>{{ group.rows|length }} œuvre{{ group.rows|length > 1 ? 's' : '' }}</span>
+                        </header>
+                        <div class="work-progress-grid">
+                            {% for row in group.rows %}
+                                <article class="work-progress-card{% if row.owned == row.total %} complete{% endif %}">
+                                    <div class="work-progress-info">
+                                        <strong>{{ row.name }}</strong>
+                                        <span>{{ row.owned }}/{{ row.total }} · {{ row.percent|number_format(1) }}%</span>
+                                    </div>
+                                    <div class="work-progress-track" role="progressbar" aria-valuenow="{{ row.percent }}" aria-valuemin="0" aria-valuemax="100" aria-label="Progression de {{ row.name }}">
+                                        <span style="width: {{ row.percent }}%"></span>
+                                    </div>
+                                    {% if row.owned == row.total %}<span class="work-progress-complete">✓ Terminée</span>{% endif %}
+                                </article>
+                            {% endfor %}
+                        </div>
+                    </section>
+                {% endif %}
+            {% endfor %}
         </div>
     </div>
 
-    <div class="profile-tab-panel" data-tab-panel="vitrine" hidden>
-        <div class="profile-tab-panel-soon">
-            <span class="soon-icon">🖼️</span>
-            <h3>Vitrine à venir</h3>
-            <p>{{ user.pseudo }} pourra bientôt mettre en avant ses cartes préférées ici.</p>
+    <div class="profile-tab-panel" data-tab-panel="vitrine" id="vitrine" hidden>
+        <div class="badges-panel-light showcase-panel">
+            <h3>🖼️ Vitrine de {{ user.pseudo }}</h3>
+            <p class="showcase-intro">Les {{ showcaseCapacity }} cartes que {{ isOwnProfile ? 'vous souhaitez' : user.pseudo ~ ' souhaite' }} mettre à l’honneur.</p>
+
+            <div class="showcase-grid">
+                {% for position in 1..showcaseCapacity %}
+                    {% set slot = showcaseByPosition[position]|default(null) %}
+                    {% set card = slot ? slot.card : null %}
+                    <article class="showcase-slot{% if not card %} empty{% endif %}"{% if card %} title="{{ card.nom }} — {{ slot.type == 'anime' ? card.anime.nom : (slot.type == 'film' ? card.film.nom : card.jeu.nom) }}"{% endif %}>
+                        <span class="showcase-position">#{{ position }}</span>
+                        {% if card %}
+                            {% if card.imagePath %}
+                                <img src="{{ asset(card.imagePath) }}" alt="{{ card.nom }}">
+                            {% else %}
+                                <img src="{{ asset('images/placeholder.png') }}" alt="{{ card.nom }}">
+                            {% endif %}
+                        {% else %}
+                            <div class="showcase-empty-content">
+                                <span>＋</span>
+                                <small>Emplacement libre</small>
+                            </div>
+                        {% endif %}
+                    </article>
+                {% endfor %}
+            </div>
+
         </div>
     </div>
 
@@ -288,9 +343,9 @@
                 <div class="wishlist-search">
                     <input type="search"
                            id="wishlist-search"
-                           placeholder="Rechercher une carte..."
+                           placeholder="Rechercher une carte, un anime, un film ou un jeu..."
                            autocomplete="off"
-                           aria-label="Rechercher une carte dans la wishlist">
+                           aria-label="Rechercher une carte ou une œuvre dans la wishlist">
                 </div>
 
                 {% for group in [
@@ -306,8 +361,14 @@
 
                         <div class="wishlist-grid">
                             {% for card in group.cards %}
+                                {% set oeuvre = group.key == 'anime'
+                                    ? card.anime.nom|default('')
+                                    : (group.key == 'film'
+                                        ? card.film.nom|default('')
+                                        : card.jeu.nom|default(''))
+                                %}
                                 <div class="wishlist-card{% if isOwnProfile %} wishlist-remove-card{% endif %}{% if card.id in group.outOfStock %} wishlist-card-taken{% endif %}"
-                                     data-name="{{ card.nom|lower }}">
+                                     data-search="{{ (card.nom ~ ' ' ~ oeuvre)|lower }}">
                                     {% if isOwnProfile %}
                                         <button type="button"
                                                 class="wishlist-btn active"
@@ -325,7 +386,7 @@
                             {% endfor %}
                         </div>
 
-                        <p class="wishlist-no-match" hidden><em>Aucune carte ne correspond à la recherche.</em></p>
+                        <p class="wishlist-no-match" hidden><em>Aucune carte ou œuvre ne correspond à la recherche.</em></p>
                     </section>
                 {% endfor %}
             {% else %}
@@ -356,7 +417,11 @@
             });
         });
 
-        // Filtre la wishlist (animés + films) sur le nom de la carte.
+        if (window.location.hash === '#vitrine') {
+            document.querySelector('.profile-tab-btn[data-tab="vitrine"]')?.click();
+        }
+
+        // Filtre la wishlist sur le nom de la carte et de son œuvre (anime, film ou jeu).
         var wishlistSearch = document.getElementById('wishlist-search');
         if (wishlistSearch) {
             wishlistSearch.addEventListener('input', function () {
@@ -367,7 +432,7 @@
                     var visible = 0;
 
                     cards.forEach(function (card) {
-                        var match = card.dataset.name.indexOf(query) !== -1;
+                        var match = card.dataset.search.indexOf(query) !== -1;
                         card.hidden = !match;
                         if (match) {
                             visible++;

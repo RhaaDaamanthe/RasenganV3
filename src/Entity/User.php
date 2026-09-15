@@ -93,6 +93,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\JoinTable(name: 'user_wishlist_jeu')]
     private Collection $wishlistCardJeus;
 
+    /**
+     * @var Collection<int, ShowcaseCard>
+     */
+    #[ORM\OneToMany(targetEntity: ShowcaseCard::class, mappedBy: 'user', orphanRemoval: true)]
+    #[ORM\OrderBy(['position' => 'ASC'])]
+    private Collection $showcaseCards;
+
     // Ajout du constructeur
     public function __construct()
     {
@@ -107,6 +114,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->wishlistCardAnimes = new ArrayCollection();
         $this->wishlistCardFilms = new ArrayCollection();
         $this->wishlistCardJeus = new ArrayCollection();
+        $this->showcaseCards = new ArrayCollection();
     }
 
     // -----------------------
@@ -526,6 +534,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->wishlistCardJeus->removeElement($card);
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, ShowcaseCard>
+     */
+    public function getShowcaseCards(): Collection
+    {
+        return $this->showcaseCards;
     }
 
 }

@@ -1075,6 +1075,16 @@ h1 {
     color: #c0392b;
 }
 
+.wheel-wishlist-hit {
+    margin: 0;
+    padding: 9px 14px;
+    border: 1px solid #e99abb;
+    border-radius: 999px;
+    background: #fff0f6;
+    color: #a61e4d;
+    font-weight: 700;
+}
+
 .wheel-result-card {
     display: flex;
     flex-direction: column;

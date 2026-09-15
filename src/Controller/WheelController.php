@@ -195,6 +195,7 @@ class WheelController extends AbstractController
         return $this->json([
             'success' => true,
             'winner' => $this->cardToArray($winner, $packages),
+            'wishlisted' => $user->getWishlistCardAnimes()->contains($winner),
             'pool' => array_map(fn (CardAnime $c) => $this->cardToArray($c, $packages), array_slice($pool, 0, 11)),
         ]);
     }
@@ -227,6 +228,7 @@ class WheelController extends AbstractController
         return $this->json([
             'success' => true,
             'winner' => $this->cardToArray($winner, $packages),
+            'wishlisted' => $user->getWishlistCardFilms()->contains($winner),
             'pool' => array_map(fn (CardFilm $c) => $this->cardToArray($c, $packages), array_slice($pool, 0, 11)),
         ]);
     }
@@ -259,6 +261,7 @@ class WheelController extends AbstractController
         return $this->json([
             'success' => true,
             'winner' => $this->cardToArray($winner, $packages),
+            'wishlisted' => $user->getWishlistCardJeus()->contains($winner),
             'pool' => array_map(fn (CardJeu $c) => $this->cardToArray($c, $packages), array_slice($pool, 0, 11)),
         ]);
     }
