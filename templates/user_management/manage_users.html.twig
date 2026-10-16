@@ -60,6 +60,7 @@
                         </button>
                     </form>
                     <form method="post" action="{{ path('app_reset_user_password', {'id': user.id}) }}" class="user-card-form">
+                        <input type="hidden" name="_token" value="{{ csrf_token('reset-password' ~ user.id) }}">
                         <input type="text" name="new_password" placeholder="Nouveau mot de passe" required class="user-card-input">
                         <button type="submit" class="btn btn-primary" onclick="return confirm('Réinitialiser le mot de passe de {{ user.pseudo }} ?')">
                             🔑 Réinitialiser

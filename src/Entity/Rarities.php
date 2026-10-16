@@ -10,6 +10,27 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: RaritiesRepository::class)]
 class Rarities
 {
+    /**
+     * Ids des raretés en base. Ils sont figés par les données (roue, statistiques,
+     * templates) : ne jamais renuméroter la table.
+     */
+    public const COMMUNE = 1;
+    public const RARE = 2;
+    public const EPIQUE = 3;
+    public const LEGENDAIRE = 4;
+    public const MYTHIQUE = 5;
+    public const EVENT = 6;
+
+    /** Points rapportés par une carte, selon le libellé de sa rareté. */
+    private const POINTS_PAR_LIBELLE = [
+        'Communes' => 1,
+        'Rares' => 2,
+        'Épiques' => 3,
+        'Legendaires' => 4,
+        'Mythiques' => 5,
+        'Events' => 6,
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -54,6 +75,24 @@ class Rarities
     public function getLibelle(): ?string
     {
         return $this->libelle;
+    }
+
+    public function isMythique(): bool
+    {
+        return $this->id === self::MYTHIQUE;
+    }
+
+    /**
+     * Légendaire, Mythique ou Event : les cartes dont on affiche le propriétaire dans le catalogue.
+     */
+    public function isAuMoinsLegendaire(): bool
+    {
+        return in_array($this->id, [self::LEGENDAIRE, self::MYTHIQUE, self::EVENT], true);
+    }
+
+    public function getPoints(): int
+    {
+        return self::POINTS_PAR_LIBELLE[$this->libelle] ?? 0;
     }
 
     public function setLibelle(string $libelle): static

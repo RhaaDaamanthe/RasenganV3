@@ -53,7 +53,7 @@ $PHP bin/console debug:router         # toutes les routes
 $PHP bin/console lint:twig templates  # vérifier les templates
 $PHP bin/console cache:clear
 $PHP bin/console doctrine:migrations:migrate      # nécessite la base
-$PHP bin/console app:recalculate-collector-badges # recalcul des badges
+$PHP bin/console app:badges:recalculate-collector # recalcul des badges
 $PHP -S localhost:8000 -t public public/index.php # serveur de dev sans Symfony CLI
 $PHP vendor/bin/phpunit                           # suite de tests
 ```
@@ -70,8 +70,17 @@ fonctionnels HTTP (`WebTestCase`) ne sont donc pas disponibles pour l'instant ; 
 aux tests unitaires (`TestCase`) et, si besoin, aux tests de service (`KernelTestCase`,
 fourni par framework-bundle).
 
-La suite ne contient qu'un test : `tests/DiscordNotifierAttachmentIdsTest.php`, qui
-couvre la récupération des ids de pièces jointes Discord depuis les URLs d'embed.
+Tests existants :
+- `tests/DiscordNotifierAttachmentIdsTest.php` — récupération des ids de pièces jointes
+  Discord depuis les URLs d'embed ;
+- `tests/DiscordNotifierDeferTest.php` — envoi Discord différé à `kernel.terminate`
+  pendant une requête HTTP, immédiat en console, ordre des envois conservé ;
+- `tests/CardTypeTest.php` — cohérence de l'enum `CardType` avec les entités (les noms de
+  propriétés qu'il fournit doivent exister, puisqu'ils servent à construire du DQL) ;
+- `tests/WheelOddsTest.php` — tables de poids, plancher de rareté, seuils du tirage ;
+- `tests/RaritiesTest.php` — points par rareté, `isMythique()`, `isAuMoinsLegendaire()` ;
+- `tests/TradeServiceTest.php` — règles de `TradeService` (validation d'une offre,
+  droits sur accepter / refuser / annuler) avec un EntityManager simulé, sans base.
 
 ## Stack et dépendances
 
@@ -96,17 +105,30 @@ src/
   Entity/       18 entités Doctrine
   Repository/   repositories Doctrine (DQL / QueryBuilder)
   Service/      logique métier réutilisable (voir plus bas)
+  Enum/         CardType (animé / film / jeu vidéo, voir plus bas)
+  Exception/    exceptions métier (stock épuisé, carte déjà possédée, déblocage impossible)
   Form/         Symfony Forms (Anime, Film, CardAnime, CardFilm, Badge, profil, inscription)
-  Command/      commandes console (hash de mots de passe, recalcul badges)
+  Command/      commandes console (recalcul badges)
 config/packages/  doctrine, security, twig, cache, csrf, validator...
 migrations/       migrations Doctrine (versions horodatées)
 templates/        Twig, un dossier par domaine, tous étendent base.html.twig
 public/           point d'entrée index.php, css/, js/, images/
 ```
 
-Les contrôleurs sont **épais** : une grande partie de la logique (mythiques, roue,
-catalogue) vit directement dans le contrôleur, pas dans un service. Ne pas supposer
-qu'un service existe : vérifier avant.
+Beaucoup de contrôleurs restent **épais** (collection, profil, CRUD des cartes...) : ne pas
+supposer qu'un service existe, vérifier avant. La roue, le catalogue, l'attribution
+manuelle et les mythiques ont été factorisés : chaque route garde son action dédiée
+(`animeSpinCard`, `filmSpinCard`...) mais délègue à une méthode privée commune
+paramétrée par `CardType`.
+
+### Familles de cartes (`App\Enum\CardType`)
+
+`CardType::Anime|Film|Jeu` (valeur = segment d'URL / de nom de route : `anime`, `film`,
+`jeu`) centralise ce qui distingue les familles : `cardClass()`, `userCardClass()`,
+`requirementClass()`, `cardProperty()` (`cardAnime`...), `titleProperty()` (`anime`...),
+`discordLabel()`, `titleOf()`, `cardOf()`, `newUserCard()`, `wishlistOf()`,
+`userCardsOf()`. `CardType::fromCard($card)` retrouve la famille d'une carte. Pour du code
+commun aux trois familles, passer par cet enum plutôt que de dupliquer.
 
 ### Services (`src/Service`)
 
@@ -114,16 +136,35 @@ qu'un service existe : vérifier avant.
   `counter`. À l'acceptation il verrouille les lignes (`lockUserCards`), transfère les
   cartes, **invalide** les autres offres devenues impossibles
   (`invalidateImpossibleOffers`) et nettoie les wishlists.
+- **CardAttributionService** — `attribuer(user, carte, quantité, unParJoueur, notifierDiscord)` :
+  seul point d'entrée pour donner une carte (roue, attribution manuelle, mythiques).
+  Verrouille la ligne de la carte (`SELECT … FOR UPDATE`) pour ne jamais dépasser son
+  `quantity`, lève `App\Exception\StockEpuiseException` / `CarteDejaPossedeeException`, puis
+  rafraîchit les badges, notifie Discord (sauf `notifierDiscord: false`) et retire la carte
+  de la wishlist.
+- **MythicRecipeService** — `getStatus()` (JSON de la fenêtre des mythiques) et `unlock()`
+  (vérifie la recette, puis attribue via `CardAttributionService`, sans Discord). Les cartes
+  requises ne sont **pas consommées** : c'est voulu. Lève `DeblocageImpossibleException`
+  dont le message est affiché tel quel au joueur.
 - **WishlistService** — ajout/retrait, ids en wishlist, et `findTradeSuggestions()` qui
   croise « mes doublons » avec « ce que l'autre veut ».
 - **BadgeService** — `refreshCollectorBadges()` / `refreshSeniorityBadges()` (paliers) et
   `getBadgeShowcase()` pour la vitrine du profil.
 - **RarityStatsService** — répartition de la collection par rareté (barres du profil).
+- **CollectionProgressService** — progression par œuvre (vignette = carte la plus rare
+  possédée, détail possédé/total par rareté), triée de la plus fournie à la moins fournie.
 - **DiscordNotifier** — webhooks Discord (drops et échanges). Regroupe les drops
   successifs d'un même joueur en **batch** (TTL 1800 s, stocké en cache), édite le message
   existant, joint l'image de la carte, mentionne le joueur via son `discordId`, couleur
   d'embed selon la rareté. Câblé dans `config/services.yaml` avec
-  `DISCORD_DROP_WEBHOOK_URL` / `DISCORD_TRADE_WEBHOOK_URL`.
+  `DISCORD_DROP_WEBHOOK_URL` / `DISCORD_TRADE_WEBHOOK_URL`. Pendant une requête HTTP,
+  l'appel au webhook est **différé** après l'envoi de la réponse (`flushPending()`, écouteur
+  de `kernel.terminate` / `console.terminate`) ; en console il part immédiatement. Le gain
+  n'existe que si le serveur sait terminer la réponse avant la fin du script (PHP-FPM,
+  LiteSpeed) ; sous Apache mod_php (WAMP) le navigateur attend quand même.
+- **WheelOdds** — tables de poids de la roue (`RARITY_WEIGHTS`, `RARITY_WEIGHTS_333`),
+  plancher de rareté (`weightsForMinimumRarity`) et tirage (`pick` / `roll`). Sans
+  dépendance, testé unitairement.
 
 ### Modèle de domaine
 
@@ -136,9 +177,12 @@ qu'un service existe : vérifier avant.
 - **CardAnime / CardFilm / CardJeu** — la carte : `nom`, `description`, `imagePath`,
   `quantity` (tirage total), `rarity`, plus ses `requirements` si elle est mythique. Les
   trois familles sont **strictement parallèles** : toute évolution sur l'une doit être
-  répercutée sur les autres (entité, repository, contrôleur, template).
+  répercutée sur les autres (entité, repository, contrôleur, template, et `CardType`).
 - **Rarities** — `libelle` (Communes, Rares, Épiques, Legendaires, Mythiques) et
-  `quantiteParDefaut`. Les ids 1→4 sont utilisés en dur dans les poids de la roue.
+  `quantiteParDefaut`. Les ids sont figés et exposés en constantes : `Rarities::COMMUNE` (1),
+  `RARE` (2), `EPIQUE` (3), `LEGENDAIRE` (4), `MYTHIQUE` (5), `EVENT` (6) — les utiliser
+  plutôt que des nombres. `getPoints()` (points de collection, selon le libellé),
+  `isMythique()` et `isAuMoinsLegendaire()` servent aussi dans les templates.
 - **UserCardAnime / UserCardFilm / UserCardJeu** — possession : `user`, `card`,
   `quantity`, `obtainedAt`. `quantity > 1` = doublon échangeable.
 - **CardAnimeRequirement / CardFilmRequirement / CardJeuRequirement** — recette d'une mythique : carte requise
@@ -160,31 +204,17 @@ l'attribut du contrôleur).
 
 ### Roue (drops)
 
-`WheelController::RARITY_WEIGHTS` = 40/35/20/5 (commune / rare / épique / légendaire) et un
+`WheelOdds::RARITY_WEIGHTS` = 40/35/20/5 (commune / rare / épique / légendaire) et un
 mode `RARITY_WEIGHTS_333` = 33/33/33/1. Les mythiques ne se tirent pas : elles se craftent.
 Les raretés sans carte disponible sont exclues avant le tirage ; l'attribution passe par
-`app_wheel_*_confirm`, qui crée ou incrémente le `UserCard*`, rafraîchit les badges,
-nettoie la wishlist et notifie Discord. Le rendu visuel est dans `public/js/wheel.js`.
+`app_wheel_*_confirm`, qui délègue à `CardAttributionService::attribuer()`. Le rendu visuel
+est dans `public/js/wheel.js`.
 
-### Jeux vidéo (section non encore ouverte aux joueurs)
+### Jeux vidéo
 
-La famille **Jeu / CardJeu / UserCardJeu / CardJeuRequirement** est complète et
-fonctionnelle (roue, attribution, catalogue, wishlist, mythiques, échanges, badges,
-stats, drops Discord — type `Jeu vidéo`), mais **volontairement fermée aux joueurs** en
-attendant le lancement :
-
-- dans `templates/catalogue/index.html.twig`, la troisième tuile reste « ????? », porte
-  la classe `card-locked`, n'a pas de `data-url` et est exclue du listener JS : elle
-  n'est **pas cliquable** ;
-- les routes joueur de la section (`app_catalogue_jeu_cards`,
-  `app_catalogue_all_jeu_cards`, `app_mythic_jeu_*`, `app_wishlist_toggle_jeu`) portent
-  `#[IsGranted('ROLE_ADMIN')]` ;
-- la liste des jeux dans le catalogue et l'option « Jeux vidéo » du filtre de section
-  d'une collection ne s'affichent que pour un admin.
-
-**Pour ouvrir la section aux joueurs** : retirer les `#[IsGranted('ROLE_ADMIN')]` de ces
-routes, retirer la classe `card-locked` de la tuile et lui rendre son `data-url` +
-son libellé, puis lever les `is_granted('ROLE_ADMIN')` des templates concernés.
+La famille **Jeu / CardJeu / UserCardJeu / CardJeuRequirement** est complète et ouverte
+à tous les joueurs (roue, attribution, catalogue, wishlist, mythiques, échanges, badges,
+stats, drops Discord — type `Jeu vidéo`), au même titre que les animés et les films.
 
 Les images de cartes de jeu vidéo vont dans `public/images/Cartes/Jeux_<Rareté>/`
 (comme `Films_<Rareté>/` pour les films).
@@ -199,7 +229,7 @@ Les images de cartes de jeu vidéo vont dans `public/images/Cartes/Jeux_<Rareté
 - Les images de cartes sont rangées par rareté sous `public/images/Cartes/<Rareté>/`
   (`Films_<Rareté>/` pour les films, `Jeux_<Rareté>/` pour les jeux vidéo) ; l'upload
   calcule le dossier cible à partir du libellé de rareté.
-- `AGENTS.md` est une **copie** de ce fichier : modifier les deux ensemble.
+- Ce fichier est la **seule source** des instructions : `CLAUDE.md` se contente de l'importer (`@AGENTS.md`). Ne rien écrire dans `CLAUDE.md`.
 - Ne pas committer `.env` (il contient l'`APP_SECRET`, les identifiants de base et les
   webhooks Discord réels) et ne pas relayer son contenu.
 

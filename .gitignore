@@ -13,3 +13,9 @@
 /phpunit.xml
 /.phpunit.cache/
 ###< phpunit/phpunit ###
+
+###> superpowers-symfony (skills Claude Code locaux) ###
+/.claude/skills/
+/.claude/agents/
+/.claude/commands/
+###< superpowers-symfony ###

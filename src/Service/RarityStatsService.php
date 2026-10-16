@@ -2,7 +2,7 @@
 
 namespace App\Service;
 
-use App\Controller\WheelController;
+use App\Entity\Rarities;
 use App\Entity\User;
 use App\Entity\UserCardAnime;
 use App\Entity\UserCardFilm;
@@ -17,17 +17,17 @@ class RarityStatsService
     private const MAX_BAR_DELTA = 25.0;
 
     private const RARITY_SLUGS = [
-        1 => 'commune',
-        2 => 'rare',
-        3 => 'epique',
-        4 => 'legendaire',
+        Rarities::COMMUNE => 'commune',
+        Rarities::RARE => 'rare',
+        Rarities::EPIQUE => 'epique',
+        Rarities::LEGENDAIRE => 'legendaire',
     ];
 
     private const RARITY_LABELS = [
-        1 => 'Communes',
-        2 => 'Rares',
-        3 => 'Épiques',
-        4 => 'Légendaires',
+        Rarities::COMMUNE => 'Communes',
+        Rarities::RARE => 'Rares',
+        Rarities::EPIQUE => 'Épiques',
+        Rarities::LEGENDAIRE => 'Légendaires',
     ];
 
     public function __construct(private EntityManagerInterface $em)
@@ -39,12 +39,12 @@ class RarityStatsService
         $owned = $this->countOwnedByRarity($user);
 
         $total = 0;
-        foreach (WheelController::RARITY_WEIGHTS as $rarityId => $expectedPercent) {
+        foreach (WheelOdds::RARITY_WEIGHTS as $rarityId => $expectedPercent) {
             $total += $owned[$rarityId] ?? 0;
         }
 
         $breakdown = [];
-        foreach (WheelController::RARITY_WEIGHTS as $rarityId => $expectedPercent) {
+        foreach (WheelOdds::RARITY_WEIGHTS as $rarityId => $expectedPercent) {
             $qty = $owned[$rarityId] ?? 0;
             $actualPercent = $total > 0 ? ($qty / $total * 100) : 0.0;
             $delta = $actualPercent - $expectedPercent;

@@ -64,6 +64,7 @@ class TradeController extends AbstractController
 
         if ($request->isMethod('POST')) {
             try {
+                $this->assertFormCsrf($request, 'trade_new' . $recipient->getId());
                 $itemsData = $this->parseItemsFromRequest($request, $proposer, $recipient);
                 $offer = $tradeService->proposeTrade($proposer, $recipient, $itemsData);
 
@@ -193,6 +194,7 @@ class TradeController extends AbstractController
 
         if ($request->isMethod('POST')) {
             try {
+                $this->assertFormCsrf($request, 'trade_counter' . $offer->getId());
                 $itemsData = $this->parseItemsFromRequest($request, $me, $other);
                 $newOffer = $tradeService->counter($offer, $me, $itemsData);
 
@@ -273,6 +275,17 @@ class TradeController extends AbstractController
     {
         if (!$this->isCsrfTokenValid($intention . $offer->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Jeton CSRF invalide.');
+        }
+    }
+
+    /**
+     * Variante pour les formulaires de composition d'offre : un jeton expiré (session
+     * perdue) réaffiche le formulaire avec un message plutôt qu'une page 403.
+     */
+    private function assertFormCsrf(Request $request, string $tokenId): void
+    {
+        if (!$this->isCsrfTokenValid($tokenId, (string) $request->request->get('_token'))) {
+            throw new \InvalidArgumentException('Jeton de sécurité invalide, veuillez réessayer.');
         }
     }
 }

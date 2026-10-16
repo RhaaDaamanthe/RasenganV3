@@ -6,6 +6,7 @@ use App\Entity\CardAnime;
 use App\Entity\CardFilm;
 use App\Entity\CardJeu;
 use App\Entity\User;
+use App\Entity\UserCardAnime;
 use App\Entity\UserCardFilm;
 use App\Entity\UserCardJeu;
 use App\Repository\UserRepository;
@@ -18,7 +19,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 class CollectionController extends AbstractController
 {
@@ -37,36 +38,19 @@ class CollectionController extends AbstractController
         $totalFilmCards = 0;
         $totalJeuCards = 0;
 
+        // Une requête groupée par famille (au lieu de trois requêtes par joueur) :
+        // [userId => nombre de cartes possédées].
+        $animeCounts = $this->countCardsByUser($entityManager, UserCardAnime::class);
+        $filmCounts = $this->countCardsByUser($entityManager, UserCardFilm::class);
+        $jeuCounts = $this->countCardsByUser($entityManager, UserCardJeu::class);
+
         foreach ($users as $user) {
-            // Calcul des cartes anime de l'utilisateur
-            $animeCount = $entityManager->getRepository(\App\Entity\UserCardAnime::class)
-                ->createQueryBuilder('uca')
-                ->select('SUM(uca.quantity)')
-                ->where('uca.user = :user')
-                ->setParameter('user', $user)
-                ->getQuery()
-                ->getSingleScalarResult();
-
-            // Calcul des cartes film de l'utilisateur
-            $filmCount = $entityManager->getRepository(\App\Entity\UserCardFilm::class)
-                ->createQueryBuilder('ucf')
-                ->select('SUM(ucf.quantity)')
-                ->where('ucf.user = :user')
-                ->setParameter('user', $user)
-                ->getQuery()
-                ->getSingleScalarResult();
-
-            // Calcul des cartes jeu vidéo de l'utilisateur
-            $jeuCount = $entityManager->getRepository(UserCardJeu::class)
-                ->createQueryBuilder('ucj')
-                ->select('SUM(ucj.quantity)')
-                ->where('ucj.user = :user')
-                ->setParameter('user', $user)
-                ->getQuery()
-                ->getSingleScalarResult();
+            $animeCount = $animeCounts[$user->getId()] ?? 0;
+            $filmCount = $filmCounts[$user->getId()] ?? 0;
+            $jeuCount = $jeuCounts[$user->getId()] ?? 0;
 
             // Calcul du total des points
-            $totalPoints = (int) $animeCount + (int) $filmCount + (int) $jeuCount;
+            $totalPoints = $animeCount + $filmCount + $jeuCount;
 
             // Ajouter l'utilisateur et ses points à la liste
             $playersWithPoints[] = [
@@ -75,10 +59,10 @@ class CollectionController extends AbstractController
             ];
 
             // Mettre à jour les totaux
-            $totalAnimeCards += (int) $animeCount;
-            $totalFilmCards += (int) $filmCount;
-            $totalJeuCards += (int) $jeuCount;
-            $totalCards += (int) $animeCount + (int) $filmCount + (int) $jeuCount;
+            $totalAnimeCards += $animeCount;
+            $totalFilmCards += $filmCount;
+            $totalJeuCards += $jeuCount;
+            $totalCards += $totalPoints;
         }
 
         // Trier les utilisateurs par points, du plus grand au plus petit
@@ -358,4 +342,25 @@ class CollectionController extends AbstractController
         ]);
     }
 
+    /**
+     * @param class-string $userCardClass
+     *
+     * @return array<int, int> nombre de cartes possédées, indexé par id de joueur
+     */
+    private function countCardsByUser(EntityManagerInterface $entityManager, string $userCardClass): array
+    {
+        $rows = $entityManager->getRepository($userCardClass)
+            ->createQueryBuilder('uc')
+            ->select('IDENTITY(uc.user) AS userId, SUM(uc.quantity) AS total')
+            ->groupBy('uc.user')
+            ->getQuery()
+            ->getArrayResult();
+
+        $counts = [];
+        foreach ($rows as $row) {
+            $counts[(int) $row['userId']] = (int) $row['total'];
+        }
+
+        return $counts;
+    }
 }

@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-    const type = overlay.dataset.type; // "anime" ou "film"
+    const type = overlay.dataset.type; // "anime", "film" ou "jeu"
     const csrfToken = overlay.dataset.csrf;
     const wishlistCsrfToken = overlay.dataset.wishlistCsrf;
     const titleEl = overlay.querySelector(".mythic-modal-title");
@@ -68,10 +68,10 @@ document.addEventListener("DOMContentLoaded", () => {
                             data-csrf="${wishlistCsrfToken}"
                             title="${req.wishlisted ? "Retirer de ma wishlist" : "Ajouter à ma wishlist"}">${req.wishlisted ? "♥" : "♡"}</button>`
                     : "";
-                const viaAltNote = req.viaAlt ? ` <small class="requirement-via-alt">(via ${req.viaAlt})</small>` : "";
+                const viaAltNote = req.viaAlt ? ` <small class="requirement-via-alt">(via ${escapeHtml(req.viaAlt)})</small>` : "";
                 li.innerHTML = `
                     <span class="requirement-status">${req.ok ? "✓" : "✗"}</span>
-                    <span class="requirement-nom">${req.nom}${viaAltNote}</span>
+                    <span class="requirement-nom">${req.nom}${viaAltNote}${alternativesNote(req)}</span>
                     <span class="requirement-count">${req.owned} / ${req.needed}</span>
                     ${wishlistBtn}
                 `;
@@ -93,6 +93,28 @@ document.addEventListener("DOMContentLoaded", () => {
             statusEl.textContent = "Il vous manque des cartes pour débloquer cette mythique.";
             unlockBtn.disabled = true;
         }
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Liste des cartes acceptées à la place de la carte requise, affichée tant que la
+    // ligne n'est pas validée (une fois validée, seul le « via » utilisé est indiqué).
+    function alternativesNote(req) {
+        if (req.ok || !req.alternatives || req.alternatives.length === 0) {
+            return "";
+        }
+
+        const items = req.alternatives.map(alt => {
+            const progress = alt.owned > 0 ? ` (${alt.owned} / ${req.needed})` : "";
+            const cls = alt.owned > 0 ? "requirement-alt partial" : "requirement-alt";
+            return `<span class="${cls}">${escapeHtml(alt.nom)}${progress}</span>`;
+        });
+
+        return ` <small class="requirement-alternatives">ou : ${items.join(", ")}</small>`;
     }
 
     function closeModal() {

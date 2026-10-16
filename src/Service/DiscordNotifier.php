@@ -6,6 +6,10 @@ use App\Entity\TradeOffer;
 use App\Entity\User;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Console\ConsoleEvents;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Mime\Part\DataPart;
 use Symfony\Component\Mime\Part\Multipart\FormDataPart;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -26,11 +30,19 @@ class DiscordNotifier
     /** Un seul message de drop est "ouvert" à la fois : c'est toujours le dernier publié. */
     private const BATCH_KEY = 'discord_drop_current_batch';
 
+    /**
+     * Envois Discord en attente, exécutés après la réponse HTTP (voir defer()).
+     *
+     * @var list<\Closure(): void>
+     */
+    private array $pending = [];
+
     public function __construct(
         private readonly HttpClientInterface $httpClient,
         private readonly LoggerInterface $logger,
         private readonly UrlGeneratorInterface $urlGenerator,
         private readonly CacheItemPoolInterface $cache,
+        private readonly RequestStack $requestStack,
         private readonly string $publicDir,
         private readonly ?string $webhookUrl,
         private readonly ?string $tradeWebhookUrl = null,
@@ -74,18 +86,54 @@ class DiscordNotifier
         // s'ouvre : on n'édite ainsi jamais autre chose que le dernier message du salon.
         $owner = $this->ownerKey($user, $type);
 
-        try {
-            $batch = $this->loadBatch($owner);
+        $this->defer(function () use ($owner, $user, $embed, $absoluteImagePath): void {
+            try {
+                $batch = $this->loadBatch($owner);
 
-            if ($batch !== null && \count($batch['embeds']) < self::MAX_EMBEDS) {
-                $this->appendToBatch($owner, $user, $batch, $embed, $absoluteImagePath);
-            } else {
-                $this->startBatch($owner, $user, $embed, $absoluteImagePath);
+                if ($batch !== null && \count($batch['embeds']) < self::MAX_EMBEDS) {
+                    $this->appendToBatch($owner, $user, $batch, $embed, $absoluteImagePath);
+                } else {
+                    $this->startBatch($owner, $user, $embed, $absoluteImagePath);
+                }
+            } catch (\Throwable $e) {
+                // Un souci Discord (rate limit, réseau, webhook invalide) ne doit jamais faire échouer l'attribution de carte.
+                $this->logger->warning('Échec de la notification Discord', ['exception' => $e]);
             }
-        } catch (\Throwable $e) {
-            // Un souci Discord (rate limit, réseau, webhook invalide) ne doit jamais faire échouer l'attribution de carte.
-            $this->logger->warning('Échec de la notification Discord', ['exception' => $e]);
+        });
+    }
+
+    /**
+     * Exécute les envois mis en attente pendant la requête. Appelé une fois la réponse
+     * envoyée au navigateur (kernel.terminate), ou en fin de commande console.
+     */
+    #[AsEventListener(event: KernelEvents::TERMINATE)]
+    #[AsEventListener(event: ConsoleEvents::TERMINATE)]
+    public function flushPending(): void
+    {
+        // Les envois se font dans l'ordre d'appel : le regroupement des drops en dépend.
+        while ($task = array_shift($this->pending)) {
+            $task();
         }
+    }
+
+    /**
+     * Un webhook lent ne doit pas ralentir la page (la roue attend la réponse avant
+     * d'afficher la carte) : pendant une requête HTTP, l'appel à Discord est reporté
+     * après l'envoi de la réponse. Hors requête (console), il part immédiatement.
+     *
+     * Le contenu du message est construit avant l'appel : seul l'envoi est différé.
+     *
+     * @param \Closure(): void $task
+     */
+    private function defer(\Closure $task): void
+    {
+        if ($this->requestStack->getMainRequest() === null) {
+            $task();
+
+            return;
+        }
+
+        $this->pending[] = $task;
     }
 
     /**
@@ -214,12 +262,14 @@ class DiscordNotifier
 
         $payload = ['embeds' => [$embed]] + $this->mentionPayload($mention);
 
-        try {
-            $this->request('POST', $webhookUrl, $payload, $absoluteImagePath, $filename);
-        } catch (\Throwable $e) {
-            // Un souci Discord (rate limit, réseau, webhook invalide) ne doit jamais faire échouer l'action métier.
-            $this->logger->warning('Échec de la notification Discord', ['exception' => $e]);
-        }
+        $this->defer(function () use ($webhookUrl, $payload, $absoluteImagePath, $filename): void {
+            try {
+                $this->request('POST', $webhookUrl, $payload, $absoluteImagePath, $filename);
+            } catch (\Throwable $e) {
+                // Un souci Discord (rate limit, réseau, webhook invalide) ne doit jamais faire échouer l'action métier.
+                $this->logger->warning('Échec de la notification Discord', ['exception' => $e]);
+            }
+        });
     }
 
     /**

@@ -561,6 +561,18 @@ select {
   font-style: italic;
 }
 
+.requirement-alternatives {
+  display: block;
+  color: #888;
+  font-weight: normal;
+  font-style: italic;
+}
+
+.requirement-alt.partial {
+  color: #a3690a;
+  font-weight: 600;
+}
+
 .mythic-modal-status {
   text-align: center;
   font-weight: bold;
