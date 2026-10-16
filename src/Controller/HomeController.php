@@ -18,20 +18,21 @@ final class HomeController extends AbstractController
     #[Route('/', name: 'app_home')]
     public function index(EntityManagerInterface $entityManager): Response
     {
-        // Récupérer toutes les cartes (anime + film + jeu vidéo)
-        $animeCards = $entityManager->getRepository(CardAnime::class)->findAll();
-        $filmCards  = $entityManager->getRepository(CardFilm::class)->findAll();
-        $jeuCards   = $entityManager->getRepository(CardJeu::class)->findAll();
-
-        $allCards = array_merge($animeCards, $filmCards, $jeuCards);
-
-        // Construire un tableau d'images (chemins publics) et filtrer les entrées vides
+        // Seuls les chemins d'image servent au carrousel : on ne charge que cette colonne
+        // plutôt que d'hydrater toutes les cartes des trois familles.
         $allImagePaths = [];
-        foreach ($allCards as $card) {
-            $path = $card->getImagePath();
-            if ($path && trim($path) !== '') {
-                // Normaliser: si imagePath est déjà 'images/...' on garde tel quel
-                $allImagePaths[] = $path;
+        foreach ([CardAnime::class, CardFilm::class, CardJeu::class] as $cardClass) {
+            $paths = $entityManager->getRepository($cardClass)
+                ->createQueryBuilder('c')
+                ->select('c.imagePath')
+                ->where('c.imagePath IS NOT NULL')
+                ->getQuery()
+                ->getSingleColumnResult();
+
+            foreach ($paths as $path) {
+                if (trim($path) !== '') {
+                    $allImagePaths[] = $path;
+                }
             }
         }
 

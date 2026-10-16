@@ -184,7 +184,7 @@ class WheelController extends AbstractController
         $titleId = $request->request->get('titleId');
         $titleId = ($titleId !== null && $titleId !== '') ? (int) $titleId : null;
 
-        $eligible = $this->getEligibleAnimeCards($entityManager, $rarityId, $titleId);
+        $eligible = $this->getEligibleCards($entityManager, CardAnime::class, $rarityId, $titleId);
         if (count($eligible) === 0) {
             return $this->json(['success' => false, 'message' => 'Toutes les cartes de cette rareté sont déjà complètes.']);
         }
@@ -217,7 +217,7 @@ class WheelController extends AbstractController
         $titleId = $request->request->get('titleId');
         $titleId = ($titleId !== null && $titleId !== '') ? (int) $titleId : null;
 
-        $eligible = $this->getEligibleFilmCards($entityManager, $rarityId, $titleId);
+        $eligible = $this->getEligibleCards($entityManager, CardFilm::class, $rarityId, $titleId);
         if (count($eligible) === 0) {
             return $this->json(['success' => false, 'message' => 'Toutes les cartes de cette rareté sont déjà complètes.']);
         }
@@ -250,7 +250,7 @@ class WheelController extends AbstractController
         $titleId = $request->request->get('titleId');
         $titleId = ($titleId !== null && $titleId !== '') ? (int) $titleId : null;
 
-        $eligible = $this->getEligibleJeuCards($entityManager, $rarityId, $titleId);
+        $eligible = $this->getEligibleCards($entityManager, CardJeu::class, $rarityId, $titleId);
         if (count($eligible) === 0) {
             return $this->json(['success' => false, 'message' => 'Toutes les cartes de cette rareté sont déjà complètes.']);
         }
@@ -463,108 +463,40 @@ class WheelController extends AbstractController
     }
 
     /**
-     * @return CardAnime[]
+     * Cartes d'une rareté (et éventuellement d'une œuvre) dont le stock n'est pas épuisé.
+     *
+     * Une seule requête : le total distribué est calculé par une sous-requête corrélée
+     * au lieu d'un SUM lancé carte par carte.
+     *
+     * @param class-string<CardAnime|CardFilm|CardJeu> $cardClass
+     *
+     * @return array<int, CardAnime|CardFilm|CardJeu>
      */
-    private function getEligibleAnimeCards(EntityManagerInterface $entityManager, int $rarityId, ?int $titleId = null): array
+    private function getEligibleCards(EntityManagerInterface $entityManager, string $cardClass, int $rarityId, ?int $titleId = null): array
     {
-        $qb = $entityManager->getRepository(CardAnime::class)
-            ->createQueryBuilder('ca')
-            ->where('ca.rarity = :rarityId')
+        [$userCardClass, $cardProperty, $titleProperty] = match ($cardClass) {
+            CardAnime::class => [UserCardAnime::class, 'cardAnime', 'anime'],
+            CardFilm::class => [UserCardFilm::class, 'cardFilm', 'film'],
+            CardJeu::class => [UserCardJeu::class, 'cardJeu', 'jeu'],
+        };
+
+        $distributed = $entityManager->createQueryBuilder()
+            ->select('COALESCE(SUM(uc.quantity), 0)')
+            ->from($userCardClass, 'uc')
+            ->where("uc.$cardProperty = c");
+
+        $qb = $entityManager->getRepository($cardClass)
+            ->createQueryBuilder('c')
+            ->where('c.rarity = :rarityId')
+            ->andWhere('c.quantity > (' . $distributed->getDQL() . ')')
             ->setParameter('rarityId', $rarityId);
 
         if ($titleId !== null) {
-            $qb->andWhere('IDENTITY(ca.anime) = :titleId')
+            $qb->andWhere("IDENTITY(c.$titleProperty) = :titleId")
                 ->setParameter('titleId', $titleId);
         }
 
-        $cards = $qb->getQuery()->getResult();
-
-        $eligible = [];
-        foreach ($cards as $card) {
-            $distributed = $entityManager->getRepository(UserCardAnime::class)
-                ->createQueryBuilder('uca')
-                ->select('SUM(uca.quantity)')
-                ->where('uca.cardAnime = :card')
-                ->setParameter('card', $card)
-                ->getQuery()
-                ->getSingleScalarResult();
-
-            if (($distributed ?? 0) < $card->getQuantity()) {
-                $eligible[] = $card;
-            }
-        }
-
-        return $eligible;
-    }
-
-    /**
-     * @return CardFilm[]
-     */
-    private function getEligibleFilmCards(EntityManagerInterface $entityManager, int $rarityId, ?int $titleId = null): array
-    {
-        $qb = $entityManager->getRepository(CardFilm::class)
-            ->createQueryBuilder('cf')
-            ->where('cf.rarity = :rarityId')
-            ->setParameter('rarityId', $rarityId);
-
-        if ($titleId !== null) {
-            $qb->andWhere('IDENTITY(cf.film) = :titleId')
-                ->setParameter('titleId', $titleId);
-        }
-
-        $cards = $qb->getQuery()->getResult();
-
-        $eligible = [];
-        foreach ($cards as $card) {
-            $distributed = $entityManager->getRepository(UserCardFilm::class)
-                ->createQueryBuilder('ucf')
-                ->select('SUM(ucf.quantity)')
-                ->where('ucf.cardFilm = :card')
-                ->setParameter('card', $card)
-                ->getQuery()
-                ->getSingleScalarResult();
-
-            if (($distributed ?? 0) < $card->getQuantity()) {
-                $eligible[] = $card;
-            }
-        }
-
-        return $eligible;
-    }
-
-    /**
-     * @return CardJeu[]
-     */
-    private function getEligibleJeuCards(EntityManagerInterface $entityManager, int $rarityId, ?int $titleId = null): array
-    {
-        $qb = $entityManager->getRepository(CardJeu::class)
-            ->createQueryBuilder('cj')
-            ->where('cj.rarity = :rarityId')
-            ->setParameter('rarityId', $rarityId);
-
-        if ($titleId !== null) {
-            $qb->andWhere('IDENTITY(cj.jeu) = :titleId')
-                ->setParameter('titleId', $titleId);
-        }
-
-        $cards = $qb->getQuery()->getResult();
-
-        $eligible = [];
-        foreach ($cards as $card) {
-            $distributed = $entityManager->getRepository(UserCardJeu::class)
-                ->createQueryBuilder('ucj')
-                ->select('SUM(ucj.quantity)')
-                ->where('ucj.cardJeu = :card')
-                ->setParameter('card', $card)
-                ->getQuery()
-                ->getSingleScalarResult();
-
-            if (($distributed ?? 0) < $card->getQuantity()) {
-                $eligible[] = $card;
-            }
-        }
-
-        return $eligible;
+        return $qb->getQuery()->getResult();
     }
 
     private function cardToArray(CardAnime|CardFilm|CardJeu $card, Packages $packages): array

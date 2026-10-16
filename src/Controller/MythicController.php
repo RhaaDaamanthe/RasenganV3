@@ -3,8 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\CardAnime;
+use App\Entity\CardAnimeRequirement;
 use App\Entity\CardFilm;
+use App\Entity\CardFilmRequirement;
 use App\Entity\CardJeu;
+use App\Entity\CardJeuRequirement;
+use App\Entity\User;
 use App\Entity\UserCardAnime;
 use App\Entity\UserCardFilm;
 use App\Entity\UserCardJeu;
@@ -34,10 +38,13 @@ class MythicController extends AbstractController
         ]);
         $alreadyOwned = $userCard !== null && $userCard->getQuantity() > 0;
 
-        $requirements = [];
-        $canUnlock = $card->getRequirements()->count() > 0;
+        $recipe = $this->loadRecipe($entityManager, CardAnimeRequirement::class, $card);
+        $ownedById = $this->ownedQuantities($entityManager, $user, UserCardAnime::class, 'cardAnime', $recipe);
 
-        foreach ($card->getRequirements() as $requirement) {
+        $requirements = [];
+        $canUnlock = count($recipe) > 0;
+
+        foreach ($recipe as $requirement) {
             $requiredCard = $requirement->getRequiredCard();
 
             if ($requiredCard === null) {
@@ -54,11 +61,7 @@ class MythicController extends AbstractController
 
             $needed = $requirement->getQuantityRequired();
 
-            $owned = $entityManager->getRepository(UserCardAnime::class)->findOneBy([
-                'user' => $user,
-                'cardAnime' => $requiredCard,
-            ]);
-            $ownedQuantity = $owned?->getQuantity() ?? 0;
+            $ownedQuantity = $ownedById[$requiredCard->getId()] ?? 0;
             $ok = $ownedQuantity >= $needed;
 
             // Toutes les alternatives sont renvoyées (pas seulement celle qui valide la
@@ -66,11 +69,7 @@ class MythicController extends AbstractController
             $viaAlt = null;
             $alternatives = [];
             foreach ($requirement->getAlternativeCards() as $altCard) {
-                $altOwned = $entityManager->getRepository(UserCardAnime::class)->findOneBy([
-                    'user' => $user,
-                    'cardAnime' => $altCard,
-                ]);
-                $altQuantity = $altOwned?->getQuantity() ?? 0;
+                $altQuantity = $ownedById[$altCard->getId()] ?? 0;
                 $alternatives[] = [
                     'nom' => $altCard->getNom(),
                     'owned' => $altQuantity,
@@ -124,11 +123,14 @@ class MythicController extends AbstractController
             return $this->json(['success' => false, 'message' => 'Vous possédez déjà cette carte.'], 400);
         }
 
-        if ($card->getRequirements()->count() === 0) {
+        $recipe = $this->loadRecipe($entityManager, CardAnimeRequirement::class, $card);
+        $ownedById = $this->ownedQuantities($entityManager, $user, UserCardAnime::class, 'cardAnime', $recipe);
+
+        if (count($recipe) === 0) {
             return $this->json(['success' => false, 'message' => 'Aucune combinaison n\'est configurée pour cette carte.'], 400);
         }
 
-        foreach ($card->getRequirements() as $requirement) {
+        foreach ($recipe as $requirement) {
             $requiredCard = $requirement->getRequiredCard();
 
             if ($requiredCard === null) {
@@ -137,19 +139,11 @@ class MythicController extends AbstractController
 
             $needed = $requirement->getQuantityRequired();
 
-            $owned = $entityManager->getRepository(UserCardAnime::class)->findOneBy([
-                'user' => $user,
-                'cardAnime' => $requiredCard,
-            ]);
-            $satisfied = ($owned?->getQuantity() ?? 0) >= $needed;
+            $satisfied = ($ownedById[$requiredCard->getId()] ?? 0) >= $needed;
 
             if (!$satisfied) {
                 foreach ($requirement->getAlternativeCards() as $altCard) {
-                    $altOwned = $entityManager->getRepository(UserCardAnime::class)->findOneBy([
-                        'user' => $user,
-                        'cardAnime' => $altCard,
-                    ]);
-                    if (($altOwned?->getQuantity() ?? 0) >= $needed) {
+                    if (($ownedById[$altCard->getId()] ?? 0) >= $needed) {
                         $satisfied = true;
                         break;
                     }
@@ -190,10 +184,13 @@ class MythicController extends AbstractController
         ]);
         $alreadyOwned = $userCard !== null && $userCard->getQuantity() > 0;
 
-        $requirements = [];
-        $canUnlock = $card->getRequirements()->count() > 0;
+        $recipe = $this->loadRecipe($entityManager, CardFilmRequirement::class, $card);
+        $ownedById = $this->ownedQuantities($entityManager, $user, UserCardFilm::class, 'cardFilm', $recipe);
 
-        foreach ($card->getRequirements() as $requirement) {
+        $requirements = [];
+        $canUnlock = count($recipe) > 0;
+
+        foreach ($recipe as $requirement) {
             $requiredCard = $requirement->getRequiredCard();
 
             if ($requiredCard === null) {
@@ -210,11 +207,7 @@ class MythicController extends AbstractController
 
             $needed = $requirement->getQuantityRequired();
 
-            $owned = $entityManager->getRepository(UserCardFilm::class)->findOneBy([
-                'user' => $user,
-                'cardFilm' => $requiredCard,
-            ]);
-            $ownedQuantity = $owned?->getQuantity() ?? 0;
+            $ownedQuantity = $ownedById[$requiredCard->getId()] ?? 0;
             $ok = $ownedQuantity >= $needed;
 
             // Toutes les alternatives sont renvoyées (pas seulement celle qui valide la
@@ -222,11 +215,7 @@ class MythicController extends AbstractController
             $viaAlt = null;
             $alternatives = [];
             foreach ($requirement->getAlternativeCards() as $altCard) {
-                $altOwned = $entityManager->getRepository(UserCardFilm::class)->findOneBy([
-                    'user' => $user,
-                    'cardFilm' => $altCard,
-                ]);
-                $altQuantity = $altOwned?->getQuantity() ?? 0;
+                $altQuantity = $ownedById[$altCard->getId()] ?? 0;
                 $alternatives[] = [
                     'nom' => $altCard->getNom(),
                     'owned' => $altQuantity,
@@ -280,11 +269,14 @@ class MythicController extends AbstractController
             return $this->json(['success' => false, 'message' => 'Vous possédez déjà cette carte.'], 400);
         }
 
-        if ($card->getRequirements()->count() === 0) {
+        $recipe = $this->loadRecipe($entityManager, CardFilmRequirement::class, $card);
+        $ownedById = $this->ownedQuantities($entityManager, $user, UserCardFilm::class, 'cardFilm', $recipe);
+
+        if (count($recipe) === 0) {
             return $this->json(['success' => false, 'message' => 'Aucune combinaison n\'est configurée pour cette carte.'], 400);
         }
 
-        foreach ($card->getRequirements() as $requirement) {
+        foreach ($recipe as $requirement) {
             $requiredCard = $requirement->getRequiredCard();
 
             if ($requiredCard === null) {
@@ -293,19 +285,11 @@ class MythicController extends AbstractController
 
             $needed = $requirement->getQuantityRequired();
 
-            $owned = $entityManager->getRepository(UserCardFilm::class)->findOneBy([
-                'user' => $user,
-                'cardFilm' => $requiredCard,
-            ]);
-            $satisfied = ($owned?->getQuantity() ?? 0) >= $needed;
+            $satisfied = ($ownedById[$requiredCard->getId()] ?? 0) >= $needed;
 
             if (!$satisfied) {
                 foreach ($requirement->getAlternativeCards() as $altCard) {
-                    $altOwned = $entityManager->getRepository(UserCardFilm::class)->findOneBy([
-                        'user' => $user,
-                        'cardFilm' => $altCard,
-                    ]);
-                    if (($altOwned?->getQuantity() ?? 0) >= $needed) {
+                    if (($ownedById[$altCard->getId()] ?? 0) >= $needed) {
                         $satisfied = true;
                         break;
                     }
@@ -346,10 +330,13 @@ class MythicController extends AbstractController
         ]);
         $alreadyOwned = $userCard !== null && $userCard->getQuantity() > 0;
 
-        $requirements = [];
-        $canUnlock = $card->getRequirements()->count() > 0;
+        $recipe = $this->loadRecipe($entityManager, CardJeuRequirement::class, $card);
+        $ownedById = $this->ownedQuantities($entityManager, $user, UserCardJeu::class, 'cardJeu', $recipe);
 
-        foreach ($card->getRequirements() as $requirement) {
+        $requirements = [];
+        $canUnlock = count($recipe) > 0;
+
+        foreach ($recipe as $requirement) {
             $requiredCard = $requirement->getRequiredCard();
 
             if ($requiredCard === null) {
@@ -366,11 +353,7 @@ class MythicController extends AbstractController
 
             $needed = $requirement->getQuantityRequired();
 
-            $owned = $entityManager->getRepository(UserCardJeu::class)->findOneBy([
-                'user' => $user,
-                'cardJeu' => $requiredCard,
-            ]);
-            $ownedQuantity = $owned?->getQuantity() ?? 0;
+            $ownedQuantity = $ownedById[$requiredCard->getId()] ?? 0;
             $ok = $ownedQuantity >= $needed;
 
             // Toutes les alternatives sont renvoyées (pas seulement celle qui valide la
@@ -378,11 +361,7 @@ class MythicController extends AbstractController
             $viaAlt = null;
             $alternatives = [];
             foreach ($requirement->getAlternativeCards() as $altCard) {
-                $altOwned = $entityManager->getRepository(UserCardJeu::class)->findOneBy([
-                    'user' => $user,
-                    'cardJeu' => $altCard,
-                ]);
-                $altQuantity = $altOwned?->getQuantity() ?? 0;
+                $altQuantity = $ownedById[$altCard->getId()] ?? 0;
                 $alternatives[] = [
                     'nom' => $altCard->getNom(),
                     'owned' => $altQuantity,
@@ -436,11 +415,14 @@ class MythicController extends AbstractController
             return $this->json(['success' => false, 'message' => 'Vous possédez déjà cette carte.'], 400);
         }
 
-        if ($card->getRequirements()->count() === 0) {
+        $recipe = $this->loadRecipe($entityManager, CardJeuRequirement::class, $card);
+        $ownedById = $this->ownedQuantities($entityManager, $user, UserCardJeu::class, 'cardJeu', $recipe);
+
+        if (count($recipe) === 0) {
             return $this->json(['success' => false, 'message' => 'Aucune combinaison n\'est configurée pour cette carte.'], 400);
         }
 
-        foreach ($card->getRequirements() as $requirement) {
+        foreach ($recipe as $requirement) {
             $requiredCard = $requirement->getRequiredCard();
 
             if ($requiredCard === null) {
@@ -449,19 +431,11 @@ class MythicController extends AbstractController
 
             $needed = $requirement->getQuantityRequired();
 
-            $owned = $entityManager->getRepository(UserCardJeu::class)->findOneBy([
-                'user' => $user,
-                'cardJeu' => $requiredCard,
-            ]);
-            $satisfied = ($owned?->getQuantity() ?? 0) >= $needed;
+            $satisfied = ($ownedById[$requiredCard->getId()] ?? 0) >= $needed;
 
             if (!$satisfied) {
                 foreach ($requirement->getAlternativeCards() as $altCard) {
-                    $altOwned = $entityManager->getRepository(UserCardJeu::class)->findOneBy([
-                        'user' => $user,
-                        'cardJeu' => $altCard,
-                    ]);
-                    if (($altOwned?->getQuantity() ?? 0) >= $needed) {
+                    if (($ownedById[$altCard->getId()] ?? 0) >= $needed) {
                         $satisfied = true;
                         break;
                     }
@@ -489,5 +463,70 @@ class MythicController extends AbstractController
             'message' => 'Carte mythique débloquée !',
             'pseudo' => $user->getPseudo(),
         ]);
+    }
+
+    /**
+     * Ingrédients d'une mythique, avec la carte requise et les alternatives chargées dans
+     * la même requête (sinon une requête par ingrédient et par alternative).
+     *
+     * @param class-string $requirementClass
+     *
+     * @return array<int, CardAnimeRequirement|CardFilmRequirement|CardJeuRequirement>
+     */
+    private function loadRecipe(EntityManagerInterface $entityManager, string $requirementClass, CardAnime|CardFilm|CardJeu $card): array
+    {
+        return $entityManager->getRepository($requirementClass)
+            ->createQueryBuilder('r')
+            ->addSelect('rc', 'alt')
+            ->leftJoin('r.requiredCard', 'rc')
+            ->leftJoin('r.alternativeCards', 'alt')
+            ->where('r.mythicCard = :card')
+            ->setParameter('card', $card)
+            ->orderBy('r.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Quantités possédées par le joueur pour toutes les cartes citées dans la recette
+     * (requises et alternatives), en une seule requête.
+     *
+     * @param class-string $userCardClass
+     * @param array<int, CardAnimeRequirement|CardFilmRequirement|CardJeuRequirement> $recipe
+     *
+     * @return array<int, int> quantité indexée par id de carte
+     */
+    private function ownedQuantities(EntityManagerInterface $entityManager, User $user, string $userCardClass, string $cardProperty, array $recipe): array
+    {
+        $cardIds = [];
+        foreach ($recipe as $requirement) {
+            if ($requirement->getRequiredCard() !== null) {
+                $cardIds[] = $requirement->getRequiredCard()->getId();
+            }
+            foreach ($requirement->getAlternativeCards() as $altCard) {
+                $cardIds[] = $altCard->getId();
+            }
+        }
+
+        if ($cardIds === []) {
+            return [];
+        }
+
+        $rows = $entityManager->getRepository($userCardClass)
+            ->createQueryBuilder('uc')
+            ->select("IDENTITY(uc.$cardProperty) AS cardId, uc.quantity AS quantity")
+            ->where('uc.user = :user')
+            ->andWhere("uc.$cardProperty IN (:cardIds)")
+            ->setParameter('user', $user)
+            ->setParameter('cardIds', array_unique($cardIds))
+            ->getQuery()
+            ->getArrayResult();
+
+        $quantities = [];
+        foreach ($rows as $row) {
+            $quantities[(int) $row['cardId']] = (int) $row['quantity'];
+        }
+
+        return $quantities;
     }
 }
