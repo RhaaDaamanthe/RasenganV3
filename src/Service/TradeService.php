@@ -192,6 +192,35 @@ class TradeService
     }
 
     /**
+     * Clôt les offres restées sans réponse au-delà de leur durée de validité.
+     *
+     * Pas de tâche planifiée : appelé avant chaque affichage des échanges, ce qui
+     * suffit puisqu'une offre expirée n'a d'effet que lorsqu'on la consulte.
+     */
+    public function expireOverdueOffers(): int
+    {
+        return $this->tradeOfferRepository->expireOverdue(new \DateTimeImmutable());
+    }
+
+    /**
+     * Marque cette offre comme expirée si sa date limite est passée.
+     *
+     * @return bool true si l'offre vient d'expirer
+     */
+    public function expireIfOverdue(TradeOffer $offer): bool
+    {
+        if (!$offer->isOverdue()) {
+            return false;
+        }
+
+        $offer->setStatus(TradeOffer::STATUS_EXPIRED);
+        $offer->setResolvedAt($offer->getExpiresAt());
+        $this->entityManager->flush();
+
+        return true;
+    }
+
+    /**
      * Regroupe les lignes portant sur la même carte du même joueur en additionnant les quantités.
      *
      * @param array<int, array{owner: User, type: string, cardId: int, quantity: int}> $itemsData
@@ -328,6 +357,10 @@ class TradeService
 
     private function assertPending(TradeOffer $offer): void
     {
+        if ($this->expireIfOverdue($offer)) {
+            throw new \InvalidArgumentException('Cette offre a expiré.');
+        }
+
         if (!$offer->isPending()) {
             throw new \InvalidArgumentException('Cette offre a déjà été traitée.');
         }

@@ -24,8 +24,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class TradeController extends AbstractController
 {
     #[Route('', name: 'app_trade_list')]
-    public function list(TradeOfferRepository $tradeOfferRepository, UserRepository $userRepository): Response
+    public function list(TradeOfferRepository $tradeOfferRepository, UserRepository $userRepository, TradeService $tradeService): Response
     {
+        $tradeService->expireOverdueOffers();
+
         /** @var User $user */
         $user = $this->getUser();
 
@@ -112,9 +114,11 @@ class TradeController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_trade_show', requirements: ['id' => '\d+'])]
-    public function show(TradeOffer $offer): Response
+    public function show(TradeOffer $offer, TradeService $tradeService): Response
     {
         $this->assertParticipant($offer);
+
+        $tradeService->expireIfOverdue($offer);
 
         return $this->render('trade/show.html.twig', [
             'offer' => $offer,

@@ -80,7 +80,9 @@ Tests existants :
 - `tests/WheelOddsTest.php` — tables de poids, plancher de rareté, seuils du tirage ;
 - `tests/RaritiesTest.php` — points par rareté, `isMythique()`, `isAuMoinsLegendaire()` ;
 - `tests/TradeServiceTest.php` — règles de `TradeService` (validation d'une offre,
-  droits sur accepter / refuser / annuler) avec un EntityManager simulé, sans base.
+  droits sur accepter / refuser / annuler, expiration) avec un EntityManager simulé, sans base ;
+- `tests/DiscordNotifierTradeTest.php` — notifications d'échange : un embed par carte,
+  image jointe quand elle existe.
 
 ## Stack et dépendances
 
@@ -156,7 +158,8 @@ commun aux trois familles, passer par cet enum plutôt que de dupliquer.
 - **DiscordNotifier** — webhooks Discord (drops et échanges). Regroupe les drops
   successifs d'un même joueur en **batch** (TTL 1800 s, stocké en cache), édite le message
   existant, joint l'image de la carte, mentionne le joueur via son `discordId`, couleur
-  d'embed selon la rareté. Câblé dans `config/services.yaml` avec
+  d'embed selon la rareté. Les notifications d'échange ajoutent un embed par carte engagée
+  (image jointe, rareté, catégorie), dans la limite de 10 embeds par message. Câblé dans `config/services.yaml` avec
   `DISCORD_DROP_WEBHOOK_URL` / `DISCORD_TRADE_WEBHOOK_URL`. Pendant une requête HTTP,
   l'appel au webhook est **différé** après l'envoi de la réponse (`flushPending()`, écouteur
   de `kernel.terminate` / `console.terminate`) ; en console il part immédiatement. Le gain
@@ -189,7 +192,10 @@ commun aux trois familles, passer par cet enum plutôt que de dupliquer.
   (ou `placeholderNom` si la carte n'existe pas encore), `quantityRequired`, et des
   `alternativeCards` acceptées en remplacement.
 - **TradeOffer / TradeOfferItem** — offre avec statuts `pending`, `accepted`, `declined`,
-  `cancelled`, `countered`, `invalidated`, contre-offres chaînées via `parentOffer`.
+  `cancelled`, `countered`, `invalidated`, `expired`, contre-offres chaînées via `parentOffer`.
+  Une offre est valable **1 semaine** (`TradeOffer::DUREE_VALIDITE`, champ `expiresAt`) ;
+  sans tâche planifiée, l'expiration est appliquée à l'affichage
+  (`TradeService::expireOverdueOffers()` / `expireIfOverdue()`) et à toute action sur l'offre.
   Un item porte `owner` + `cardAnime` **ou** `cardFilm` **ou** `cardJeu` + `quantity`.
 - **Badge** — `name`, `icon`, `type`, `level`, `objective`, `rarity`, `position`.
 - **RememberMeToken** — persistance du « se souvenir de moi ».

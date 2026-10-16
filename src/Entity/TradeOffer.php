@@ -22,6 +22,12 @@ class TradeOffer
      */
     public const STATUS_INVALIDATED = 'invalidated';
 
+    /** Offre restée sans réponse au-delà de sa date d'expiration. */
+    public const STATUS_EXPIRED = 'expired';
+
+    /** Durée de validité d'une offre, à partir de sa création. */
+    public const DUREE_VALIDITE = '+7 days';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -44,6 +50,9 @@ class TradeOffer
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $resolvedAt = null;
 
+    #[ORM\Column]
+    private ?\DateTimeImmutable $expiresAt = null;
+
     #[ORM\ManyToOne(targetEntity: TradeOffer::class, inversedBy: 'counterOffers')]
     private ?TradeOffer $parentOffer = null;
 
@@ -62,6 +71,7 @@ class TradeOffer
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
+        $this->expiresAt = $this->createdAt->modify(self::DUREE_VALIDITE);
         $this->counterOffers = new ArrayCollection();
         $this->items = new ArrayCollection();
     }
@@ -115,6 +125,27 @@ class TradeOffer
     public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    public function getExpiresAt(): ?\DateTimeImmutable
+    {
+        return $this->expiresAt;
+    }
+
+    public function setExpiresAt(\DateTimeImmutable $expiresAt): static
+    {
+        $this->expiresAt = $expiresAt;
+
+        return $this;
+    }
+
+    /**
+     * Offre en attente dont la date limite est passée, mais pas encore marquée
+     * comme expirée en base (voir TradeService::expireOverdueOffers()).
+     */
+    public function isOverdue(?\DateTimeImmutable $now = null): bool
+    {
+        return $this->isPending() && $this->expiresAt !== null && $this->expiresAt <= ($now ?? new \DateTimeImmutable());
     }
 
     public function getResolvedAt(): ?\DateTimeImmutable

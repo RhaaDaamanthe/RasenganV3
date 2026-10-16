@@ -105,4 +105,24 @@ class TradeOfferRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    /**
+     * Passe en "expirée" toutes les offres en attente dont la date limite est dépassée.
+     *
+     * @return int nombre d'offres expirées
+     */
+    public function expireOverdue(\DateTimeImmutable $now): int
+    {
+        return $this->createQueryBuilder('t')
+            ->update()
+            ->set('t.status', ':expired')
+            ->set('t.resolvedAt', 't.expiresAt')
+            ->andWhere('t.status = :pending')
+            ->andWhere('t.expiresAt <= :now')
+            ->setParameter('expired', TradeOffer::STATUS_EXPIRED)
+            ->setParameter('pending', TradeOffer::STATUS_PENDING)
+            ->setParameter('now', $now)
+            ->getQuery()
+            ->execute();
+    }
 }

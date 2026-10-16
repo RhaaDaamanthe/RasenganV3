@@ -3,6 +3,8 @@
 namespace App\Service;
 
 use App\Entity\TradeOffer;
+use App\Entity\TradeOfferItem;
+use App\Enum\CardType;
 use App\Entity\User;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;
@@ -163,8 +165,14 @@ class DiscordNotifier
                     'value' => $this->describeSide($offer, $recipient),
                     'inline' => true,
                 ],
+                [
+                    'name' => 'Expire',
+                    // Horodatage Discord : affiché dans le fuseau de chacun, en relatif ("dans 7 jours").
+                    'value' => \sprintf('<t:%d:R>', $offer->getExpiresAt()->getTimestamp()),
+                    'inline' => false,
+                ],
             ],
-        ], $recipient);
+        ], $recipient, $offer);
     }
 
     /**
@@ -196,7 +204,7 @@ class DiscordNotifier
                     'inline' => true,
                 ],
             ],
-        ], $proposer);
+        ], $proposer, $offer);
     }
 
     /**
@@ -238,13 +246,13 @@ class DiscordNotifier
     }
 
     /**
-     * Envoie un embed isolé sur un webhook, avec pièce jointe optionnelle.
-     * Utilisé par les notifications d'échange, qui ne sont pas regroupées.
+     * Envoie une notification d'échange (non regroupée) : un embed récapitulatif,
+     * suivi d'un embed par carte engagée, avec son visuel comme pour les drops.
      *
      * @param array<string, mixed> $embed
      * @param User|null            $mention joueur à notifier, s'il a renseigné son identifiant Discord
      */
-    private function send(?string $webhookUrl, array $embed, ?User $mention = null, ?string $absoluteImagePath = null): void
+    private function send(?string $webhookUrl, array $embed, ?User $mention, TradeOffer $offer): void
     {
         if (!$webhookUrl) {
             return;
@@ -254,22 +262,65 @@ class DiscordNotifier
             unset($embed['url']);
         }
 
-        $filename = null;
-        if ($absoluteImagePath !== null) {
-            $filename = $this->attachmentName(0, $absoluteImagePath);
-            $embed['image'] = ['url' => 'attachment://' . $filename];
+        $embeds = [$embed];
+        $files = [];
+
+        foreach ($offer->getItems() as $item) {
+            // Discord plafonne à 10 embeds : au-delà, les cartes restent listées dans le récapitulatif.
+            if (\count($embeds) >= self::MAX_EMBEDS) {
+                break;
+            }
+
+            if ($item->getCard() === null) {
+                continue;
+            }
+
+            $cardEmbed = $this->tradeCardEmbed($offer, $item);
+
+            $absoluteImagePath = $this->resolveImagePath($item->getCard()->getImagePath());
+            if ($absoluteImagePath !== null) {
+                $filename = $this->attachmentName(\count($embeds), $absoluteImagePath);
+                $cardEmbed['image'] = ['url' => 'attachment://' . $filename];
+                $files[$filename] = $absoluteImagePath;
+            }
+
+            $embeds[] = $cardEmbed;
         }
 
-        $payload = ['embeds' => [$embed]] + $this->mentionPayload($mention);
+        $payload = ['embeds' => $embeds] + $this->mentionPayload($mention);
 
-        $this->defer(function () use ($webhookUrl, $payload, $absoluteImagePath, $filename): void {
+        $this->defer(function () use ($webhookUrl, $payload, $files): void {
             try {
-                $this->request('POST', $webhookUrl, $payload, $absoluteImagePath, $filename);
+                $this->request('POST', $webhookUrl, $payload, $files);
             } catch (\Throwable $e) {
                 // Un souci Discord (rate limit, réseau, webhook invalide) ne doit jamais faire échouer l'action métier.
                 $this->logger->warning('Échec de la notification Discord', ['exception' => $e]);
             }
         });
+    }
+
+    /**
+     * Embed d'une carte engagée dans un échange, sur le modèle de celui d'un drop.
+     *
+     * @return array<string, mixed>
+     */
+    private function tradeCardEmbed(TradeOffer $offer, TradeOfferItem $item): array
+    {
+        $card = $item->getCard();
+        $type = CardType::fromCard($card);
+        $rarity = $card->getRarity()?->getLibelle() ?? '';
+        $receiver = $item->getOwner() === $offer->getProposer() ? $offer->getRecipient() : $offer->getProposer();
+
+        return [
+            'title' => $item->getQuantity() > 1 ? \sprintf('%s x%d', $card->getNom(), $item->getQuantity()) : $card->getNom(),
+            'description' => \sprintf('**%s** ➜ **%s**', $item->getOwner()->getPseudo(), $receiver->getPseudo()),
+            'color' => $this->colorForRarity($rarity),
+            'fields' => [
+                ['name' => 'Catégorie', 'value' => $type->titleOf($card)?->getNom() ?: '—', 'inline' => true],
+                ['name' => 'Rareté', 'value' => $rarity ?: '—', 'inline' => true],
+                ['name' => 'Type', 'value' => $type->discordLabel(), 'inline' => true],
+            ],
+        ];
     }
 
     /**
@@ -287,7 +338,7 @@ class DiscordNotifier
         $payload = ['embeds' => [$embed]] + $this->mentionPayload($user);
 
         // wait=true force Discord à renvoyer le message créé, dont on a besoin pour l'éditer ensuite.
-        $message = $this->request('POST', $this->webhookUrl . '?wait=true', $payload, $absoluteImagePath, $filename);
+        $message = $this->request('POST', $this->webhookUrl . '?wait=true', $payload, $filename !== null ? [$filename => $absoluteImagePath] : []);
         if ($message === null) {
             return;
         }
@@ -334,8 +385,7 @@ class DiscordNotifier
             'PATCH',
             $this->webhookUrl . '/messages/' . $batch['messageId'],
             $payload,
-            $absoluteImagePath,
-            $filename
+            $filename !== null ? [$filename => $absoluteImagePath] : []
         );
 
         if ($message === null) {
@@ -375,19 +425,21 @@ class DiscordNotifier
     }
 
     /**
-     * Exécute la requête, en multipart si une image doit être jointe.
+     * Exécute la requête, en multipart si des images doivent être jointes.
      *
-     * @param array<string, mixed> $payload
+     * @param array<string, mixed>  $payload
+     * @param array<string, string> $files   nom de la pièce jointe => chemin absolu
      *
      * @return array<string, mixed>|null le message renvoyé par Discord, ou null si l'appel a échoué
      */
-    private function request(string $method, string $url, array $payload, ?string $absoluteImagePath, ?string $filename): ?array
+    private function request(string $method, string $url, array $payload, array $files = []): ?array
     {
-        if ($absoluteImagePath !== null && $filename !== null) {
-            $formData = new FormDataPart([
-                'payload_json' => json_encode($payload, JSON_THROW_ON_ERROR),
-                'files[0]' => DataPart::fromPath($absoluteImagePath, $filename),
-            ]);
+        if ($files) {
+            $parts = ['payload_json' => json_encode($payload, JSON_THROW_ON_ERROR)];
+            foreach (array_keys($files) as $index => $filename) {
+                $parts[\sprintf('files[%d]', $index)] = DataPart::fromPath($files[$filename], $filename);
+            }
+            $formData = new FormDataPart($parts);
 
             $response = $this->httpClient->request($method, $url, [
                 'headers' => $formData->getPreparedHeaders()->toArray(),

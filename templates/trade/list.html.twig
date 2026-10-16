@@ -30,7 +30,7 @@
         .trade-status.accepted { background: rgba(76, 175, 80, 0.2); color: #7ed48b; }
         .trade-status.declined, .trade-status.cancelled { background: rgba(220, 60, 60, 0.2); color: #ff8a8a; }
         .trade-status.countered { background: rgba(120, 120, 220, 0.2); color: #b3b3ff; }
-        .trade-status.invalidated { background: rgba(150, 150, 150, 0.2); color: #c9c9c9; }
+        .trade-status.invalidated, .trade-status.expired { background: rgba(150, 150, 150, 0.2); color: #c9c9c9; }
         .trade-new-picker { display: flex; flex-wrap: wrap; gap: 10px; }
         .trade-player-entry { display: inline-flex; align-items: stretch; }
         .trade-new-picker a {
@@ -78,7 +78,7 @@
     {% else %}
         {% for offer in received %}
             <a href="{{ path('app_trade_show', {id: offer.id}) }}" class="trade-row">
-                <span>{{ offer.proposer.pseudo }} vous propose un échange</span>
+                <span>{{ offer.proposer.pseudo }} vous propose un échange <small style="opacity:0.6;">· expire le {{ offer.expiresAt|date('d/m à H:i') }}</small></span>
                 <span class="trade-status">{{ trade.statusLabel(offer.status) }}</span>
             </a>
         {% endfor %}
@@ -90,7 +90,7 @@
     {% else %}
         {% for offer in sent %}
             <a href="{{ path('app_trade_show', {id: offer.id}) }}" class="trade-row">
-                <span>Offre envoyée à {{ offer.recipient.pseudo }}</span>
+                <span>Offre envoyée à {{ offer.recipient.pseudo }} <small style="opacity:0.6;">· expire le {{ offer.expiresAt|date('d/m à H:i') }}</small></span>
                 <span class="trade-status">{{ trade.statusLabel(offer.status) }}</span>
             </a>
         {% endfor %}

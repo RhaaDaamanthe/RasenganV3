@@ -14,6 +14,7 @@ use App\Form\ProfileSettingsType;
 use App\Repository\TradeOfferRepository;
 use App\Repository\UserCardAnimeRepository;
 use App\Service\BadgeService;
+use App\Service\TradeService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,8 +28,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class UserController extends AbstractController
 {
     #[Route('', name: 'app_user_profile', methods: ['GET'])]
-    public function showProfile(BadgeService $badgeService, TradeOfferRepository $tradeOfferRepository): Response
+    public function showProfile(BadgeService $badgeService, TradeOfferRepository $tradeOfferRepository, TradeService $tradeService): Response
     {
+        $tradeService->expireOverdueOffers();
+
         $user = $this->getUser();
 
         return $this->render('user/index.html.twig', [

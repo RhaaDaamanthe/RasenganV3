@@ -53,6 +53,16 @@
 
     <p class="trade-status-banner">Statut : {{ trade.statusLabel(offer.status) }}</p>
 
+    {% if offer.pending %}
+        <p style="text-align:center; color:#ffb066; margin-top:-14px;">
+            Cette offre expire le {{ offer.expiresAt|date('d/m/Y à H:i') }}.
+        </p>
+    {% elseif offer.status == 'expired' %}
+        <p style="text-align:center; color:#c9c9c9; margin-top:-14px;">
+            Restée sans réponse pendant une semaine, cette offre a expiré.
+        </p>
+    {% endif %}
+
     {% if offer.status == 'invalidated' %}
         <p style="text-align:center; color:#ff8a8a; margin-top:-14px;">
             Une des cartes engagées a été échangée entre-temps : cette offre a été annulée automatiquement.

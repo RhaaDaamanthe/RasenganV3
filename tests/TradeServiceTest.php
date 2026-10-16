@@ -211,6 +211,29 @@ class TradeServiceTest extends TestCase
         $this->service->accept($offer, $this->bob);
     }
 
+    public function testNewOfferExpiresAfterOneWeek(): void
+    {
+        $offer = $this->pendingOffer();
+
+        self::assertEquals($offer->getCreatedAt()->modify('+7 days'), $offer->getExpiresAt());
+        self::assertFalse($offer->isOverdue());
+    }
+
+    public function testOverdueOfferCannotBeAcceptedAndBecomesExpired(): void
+    {
+        $offer = $this->pendingOffer()->setExpiresAt(new \DateTimeImmutable('-1 minute'));
+
+        try {
+            $this->service->accept($offer, $this->bob);
+            self::fail('Une offre expirée ne doit pas pouvoir être acceptée.');
+        } catch (\InvalidArgumentException $e) {
+            self::assertSame('Cette offre a expiré.', $e->getMessage());
+        }
+
+        self::assertSame(TradeOffer::STATUS_EXPIRED, $offer->getStatus());
+        self::assertEquals($offer->getExpiresAt(), $offer->getResolvedAt());
+    }
+
     private function card(int $id, string $nom): CardAnime
     {
         $card = (new CardAnime())->setNom($nom);
