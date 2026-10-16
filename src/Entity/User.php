@@ -380,61 +380,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     $points = 0;
 
-    // 🔹 Cartes d'animé
+    // Cartes d'animé, de film et de jeu vidéo : points de la rareté × quantité possédée
     foreach ($this->getUserCardAnimes() as $userCard) {
-        $rarity = $userCard->getCardAnime()?->getRarity();
-        $quantity = $userCard->getQuantity();
-
-        if ($rarity) {
-            $pointsPerCard = match ($rarity->getLibelle()) {
-                'Communes' => 1,
-                'Rares' => 2,
-                'Épiques' => 3,
-                'Legendaires' => 4,
-                'Mythiques' => 5,
-                'Events' => 6,
-                default => 0,
-            };
-            $points += $pointsPerCard * $quantity;
-        }
+        $points += ($userCard->getCardAnime()?->getRarity()?->getPoints() ?? 0) * $userCard->getQuantity();
     }
 
-    // 🔹 Cartes de film
     foreach ($this->getUserCardFilms() as $userCard) {
-        $rarity = $userCard->getCardFilm()?->getRarity();
-        $quantity = $userCard->getQuantity();
-
-        if ($rarity) {
-            $pointsPerCard = match ($rarity->getLibelle()) {
-                'Communes' => 1,
-                'Rares' => 2,
-                'Épiques' => 3,
-                'Legendaires' => 4,
-                'Mythiques' => 5,
-                'Events' => 6,
-                default => 0,
-            };
-            $points += $pointsPerCard * $quantity;
-        }
+        $points += ($userCard->getCardFilm()?->getRarity()?->getPoints() ?? 0) * $userCard->getQuantity();
     }
 
-    // 🔹 Cartes de jeu vidéo
     foreach ($this->getUserCardJeus() as $userCard) {
-        $rarity = $userCard->getCardJeu()?->getRarity();
-        $quantity = $userCard->getQuantity();
-
-        if ($rarity) {
-            $pointsPerCard = match ($rarity->getLibelle()) {
-                'Communes' => 1,
-                'Rares' => 2,
-                'Épiques' => 3,
-                'Legendaires' => 4,
-                'Mythiques' => 5,
-                'Events' => 6,
-                default => 0,
-            };
-            $points += $pointsPerCard * $quantity;
-        }
+        $points += ($userCard->getCardJeu()?->getRarity()?->getPoints() ?? 0) * $userCard->getQuantity();
     }
 
     return $points;

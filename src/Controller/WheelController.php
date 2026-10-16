@@ -11,6 +11,7 @@ use App\Enum\CardType;
 use App\Exception\StockEpuiseException;
 use App\Repository\UserRepository;
 use App\Service\CardAttributionService;
+use App\Service\WheelOdds;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Asset\Packages;
@@ -24,22 +25,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class WheelController extends AbstractController
 {
-    public const RARITY_WEIGHTS = [
-        1 => 40, // Communes
-        2 => 35, // Rares
-        3 => 20, // Épiques
-        4 => 5,  // Legendaires
-    ];
-
-    public const RARITY_WEIGHTS_333 = [
-        1 => 33, // Communes
-        2 => 33, // Rares
-        3 => 33, // Épiques
-        4 => 1,  // Legendaires
-    ];
-
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
+        private readonly WheelOdds $wheelOdds,
     ) {
     }
 
@@ -92,8 +80,7 @@ class WheelController extends AbstractController
             return $this->json(['success' => false, 'message' => 'Jeton de sécurité invalide.'], 400);
         }
 
-        $mode = $request->request->get('mode');
-        $baseWeights = $mode === '333' ? self::RARITY_WEIGHTS_333 : self::RARITY_WEIGHTS;
+        $baseWeights = $this->wheelOdds->weightsForMode($request->request->get('mode'));
 
         $minRarityId = $request->request->get('minRarityId');
         $minRarityId = ($minRarityId !== null && $minRarityId !== '') ? (int) $minRarityId : null;
@@ -101,19 +88,7 @@ class WheelController extends AbstractController
             return $this->json(['success' => false, 'message' => 'Rareté minimum invalide.'], 400);
         }
 
-        $weights = $this->getWeightsForMinimumRarity($baseWeights, $minRarityId);
-
-        $roll = mt_rand(1, 100);
-        $cumulative = 0;
-        $chosenId = array_key_first($weights);
-
-        foreach ($weights as $id => $weight) {
-            $cumulative += $weight;
-            if ($roll <= $cumulative) {
-                $chosenId = $id;
-                break;
-            }
-        }
+        $chosenId = $this->wheelOdds->roll($this->wheelOdds->weightsForMinimumRarity($baseWeights, $minRarityId));
 
         $rarity = $this->entityManager->getRepository(Rarities::class)->find($chosenId);
         if ($rarity === null) {
@@ -166,7 +141,7 @@ class WheelController extends AbstractController
         }
 
         $won = mt_rand(1, 100) <= $chance;
-        $rarityId = $step === 'to-rare' ? 2 : 3;
+        $rarityId = $step === 'to-rare' ? Rarities::RARE : Rarities::EPIQUE;
 
         return $this->json([
             'success' => true,
@@ -219,8 +194,8 @@ class WheelController extends AbstractController
         return $this->render('wheel/spin.html.twig', [
             'user' => $user,
             'type' => $type->value,
-            'rarities' => $this->getEligibleRaritiesAsArray(self::RARITY_WEIGHTS),
-            'rarities333' => $this->getEligibleRaritiesAsArray(self::RARITY_WEIGHTS_333),
+            'rarities' => $this->getEligibleRaritiesAsArray(WheelOdds::RARITY_WEIGHTS),
+            'rarities333' => $this->getEligibleRaritiesAsArray(WheelOdds::RARITY_WEIGHTS_333),
             'titles' => $titles,
         ]);
     }
@@ -232,7 +207,7 @@ class WheelController extends AbstractController
         }
 
         $rarityId = (int) $request->request->get('rarityId');
-        if (!array_key_exists($rarityId, self::RARITY_WEIGHTS)) {
+        if (!array_key_exists($rarityId, WheelOdds::RARITY_WEIGHTS)) {
             return $this->json(['success' => false, 'message' => 'Rareté invalide.'], 400);
         }
 
@@ -295,54 +270,6 @@ class WheelController extends AbstractController
             'libelle' => $r->getLibelle(),
             'weight' => $weights[$r->getId()],
         ], $rarities);
-    }
-
-    /**
-     * Applique un plancher de rareté à une table de poids de base. Le taux de
-     * Légendaire ne bouge jamais ; seules les raretés en dessous se
-     * redistribuent le reste proportionnellement entre elles.
-     *
-     * @return array<int, float|int>
-     */
-    private function getWeightsForMinimumRarity(array $baseWeights, ?int $minRarityId): array
-    {
-        if ($minRarityId === null) {
-            return $baseWeights;
-        }
-
-        $filtered = array_filter(
-            $baseWeights,
-            fn (int $id) => $id >= $minRarityId,
-            ARRAY_FILTER_USE_KEY
-        );
-
-        if ($filtered === []) {
-            return $baseWeights;
-        }
-
-        if (count($filtered) === 1) {
-            return [array_key_first($filtered) => 100];
-        }
-
-        $legendaryId = 4;
-        if (array_key_exists($legendaryId, $filtered)) {
-            $legendaryWeight = $baseWeights[$legendaryId];
-            $others = array_diff_key($filtered, [$legendaryId => true]);
-            $othersTotal = array_sum($others);
-            $remainingBudget = 100 - $legendaryWeight;
-
-            $result = $othersTotal > 0
-                ? array_map(fn (int $weight) => $weight / $othersTotal * $remainingBudget, $others)
-                : [];
-            $result[$legendaryId] = $legendaryWeight;
-            ksort($result);
-
-            return $result;
-        }
-
-        $total = array_sum($filtered);
-
-        return array_map(fn (int $weight) => $weight / $total * 100, $filtered);
     }
 
     /**

@@ -87,21 +87,11 @@ final class UserController extends AbstractController
             }
         }
 
-        // TRI PAR RARETÉ (Commun → Légendaire)
-        $rarityOrder = [
-            'Commun' => 1,
-            'Rare' => 2,
-            'Épique' => 3,
-            'Légendaire' => 4,
-        ];
-
-        usort($userCards, function ($a, $b) use ($rarityOrder) {
-            $rarityA = $a->getRarity()?->getLibelle() ?? 'Inconnue';
-            $rarityB = $b->getRarity()?->getLibelle() ?? 'Inconnue';
-            $orderA = $rarityOrder[$rarityA] ?? 99;
-            $orderB = $rarityOrder[$rarityB] ?? 99;
-            return $orderA <=> $orderB;
-        });
+        // TRI PAR RARETÉ (Commune → Légendaire, puis Mythique et Event) : les ids de
+        // rareté suivent cet ordre (voir les constantes de Rarities). Le tri se faisait
+        // auparavant sur des libellés ("Commun", "Légendaire") qui ne correspondaient pas
+        // à ceux de la base ("Communes", "Legendaires"), si bien qu'il ne triait rien.
+        usort($userCards, fn ($a, $b) => ($a->getRarity()?->getId() ?? 99) <=> ($b->getRarity()?->getId() ?? 99));
 
         // GROUPER PAR RARETÉ
         $cardsByRarity = [];

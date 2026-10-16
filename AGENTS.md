@@ -73,8 +73,14 @@ fourni par framework-bundle).
 Tests existants :
 - `tests/DiscordNotifierAttachmentIdsTest.php` — récupération des ids de pièces jointes
   Discord depuis les URLs d'embed ;
+- `tests/DiscordNotifierDeferTest.php` — envoi Discord différé à `kernel.terminate`
+  pendant une requête HTTP, immédiat en console, ordre des envois conservé ;
 - `tests/CardTypeTest.php` — cohérence de l'enum `CardType` avec les entités (les noms de
-  propriétés qu'il fournit doivent exister, puisqu'ils servent à construire du DQL).
+  propriétés qu'il fournit doivent exister, puisqu'ils servent à construire du DQL) ;
+- `tests/WheelOddsTest.php` — tables de poids, plancher de rareté, seuils du tirage ;
+- `tests/RaritiesTest.php` — points par rareté, `isMythique()`, `isAuMoinsLegendaire()` ;
+- `tests/TradeServiceTest.php` — règles de `TradeService` (validation d'une offre,
+  droits sur accepter / refuser / annuler) avec un EntityManager simulé, sans base.
 
 ## Stack et dépendances
 
@@ -151,7 +157,14 @@ commun aux trois familles, passer par cet enum plutôt que de dupliquer.
   successifs d'un même joueur en **batch** (TTL 1800 s, stocké en cache), édite le message
   existant, joint l'image de la carte, mentionne le joueur via son `discordId`, couleur
   d'embed selon la rareté. Câblé dans `config/services.yaml` avec
-  `DISCORD_DROP_WEBHOOK_URL` / `DISCORD_TRADE_WEBHOOK_URL`.
+  `DISCORD_DROP_WEBHOOK_URL` / `DISCORD_TRADE_WEBHOOK_URL`. Pendant une requête HTTP,
+  l'appel au webhook est **différé** après l'envoi de la réponse (`flushPending()`, écouteur
+  de `kernel.terminate` / `console.terminate`) ; en console il part immédiatement. Le gain
+  n'existe que si le serveur sait terminer la réponse avant la fin du script (PHP-FPM,
+  LiteSpeed) ; sous Apache mod_php (WAMP) le navigateur attend quand même.
+- **WheelOdds** — tables de poids de la roue (`RARITY_WEIGHTS`, `RARITY_WEIGHTS_333`),
+  plancher de rareté (`weightsForMinimumRarity`) et tirage (`pick` / `roll`). Sans
+  dépendance, testé unitairement.
 
 ### Modèle de domaine
 
@@ -166,7 +179,10 @@ commun aux trois familles, passer par cet enum plutôt que de dupliquer.
   trois familles sont **strictement parallèles** : toute évolution sur l'une doit être
   répercutée sur les autres (entité, repository, contrôleur, template, et `CardType`).
 - **Rarities** — `libelle` (Communes, Rares, Épiques, Legendaires, Mythiques) et
-  `quantiteParDefaut`. Les ids 1→4 sont utilisés en dur dans les poids de la roue.
+  `quantiteParDefaut`. Les ids sont figés et exposés en constantes : `Rarities::COMMUNE` (1),
+  `RARE` (2), `EPIQUE` (3), `LEGENDAIRE` (4), `MYTHIQUE` (5), `EVENT` (6) — les utiliser
+  plutôt que des nombres. `getPoints()` (points de collection, selon le libellé),
+  `isMythique()` et `isAuMoinsLegendaire()` servent aussi dans les templates.
 - **UserCardAnime / UserCardFilm / UserCardJeu** — possession : `user`, `card`,
   `quantity`, `obtainedAt`. `quantity > 1` = doublon échangeable.
 - **CardAnimeRequirement / CardFilmRequirement / CardJeuRequirement** — recette d'une mythique : carte requise
@@ -188,7 +204,7 @@ l'attribut du contrôleur).
 
 ### Roue (drops)
 
-`WheelController::RARITY_WEIGHTS` = 40/35/20/5 (commune / rare / épique / légendaire) et un
+`WheelOdds::RARITY_WEIGHTS` = 40/35/20/5 (commune / rare / épique / légendaire) et un
 mode `RARITY_WEIGHTS_333` = 33/33/33/1. Les mythiques ne se tirent pas : elles se craftent.
 Les raretés sans carte disponible sont exclues avant le tirage ; l'attribution passe par
 `app_wheel_*_confirm`, qui délègue à `CardAttributionService::attribuer()`. Le rendu visuel
