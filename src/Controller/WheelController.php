@@ -10,8 +10,10 @@ use App\Entity\User;
 use App\Entity\UserCardAnime;
 use App\Entity\UserCardFilm;
 use App\Entity\UserCardJeu;
+use App\Exception\StockEpuiseException;
 use App\Repository\UserRepository;
 use App\Service\BadgeService;
+use App\Service\CardAttributionService;
 use App\Service\DiscordNotifier;
 use App\Service\WishlistService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -297,7 +299,7 @@ class WheelController extends AbstractController
     }
 
     #[Route('/anime/user/{id}/attribuer', name: 'app_wheel_anime_confirm', methods: ['POST'])]
-    public function animeConfirm(User $user, Request $request, EntityManagerInterface $entityManager, BadgeService $badgeService, WishlistService $wishlistService, DiscordNotifier $discordNotifier): JsonResponse
+    public function animeConfirm(User $user, Request $request, EntityManagerInterface $entityManager, BadgeService $badgeService, WishlistService $wishlistService, DiscordNotifier $discordNotifier, CardAttributionService $cardAttributionService): JsonResponse
     {
         if (!$this->isCsrfTokenValid('wheel-action', (string) $request->request->get('_token'))) {
             return $this->json(['success' => false, 'message' => 'Jeton de sécurité invalide.'], 400);
@@ -308,35 +310,12 @@ class WheelController extends AbstractController
             return $this->json(['success' => false, 'message' => 'Carte introuvable.'], 400);
         }
 
-        $distributed = $entityManager->getRepository(UserCardAnime::class)
-            ->createQueryBuilder('uca')
-            ->select('SUM(uca.quantity)')
-            ->where('uca.cardAnime = :card')
-            ->setParameter('card', $card)
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        if (($distributed ?? 0) >= $card->getQuantity()) {
+        try {
+            $cardAttributionService->attribuer($user, $card);
+        } catch (StockEpuiseException) {
             return $this->json(['success' => false, 'message' => 'Cette carte est maintenant en rupture de stock.']);
         }
 
-        $userCard = $entityManager->getRepository(UserCardAnime::class)->findOneBy([
-            'user' => $user,
-            'cardAnime' => $card,
-        ]);
-
-        if ($userCard) {
-            $userCard->setQuantity($userCard->getQuantity() + 1);
-        } else {
-            $userCard = new UserCardAnime();
-            $userCard->setUser($user);
-            $userCard->setCardAnime($card);
-            $userCard->setQuantity(1);
-            $entityManager->persist($userCard);
-        }
-        $userCard->setObtainedAt(new \DateTimeImmutable());
-
-        $entityManager->flush();
         $badgeService->refreshCollectorBadges($user);
         $discordNotifier->notifyDrop(
             $user,
@@ -352,7 +331,7 @@ class WheelController extends AbstractController
     }
 
     #[Route('/film/user/{id}/attribuer', name: 'app_wheel_film_confirm', methods: ['POST'])]
-    public function filmConfirm(User $user, Request $request, EntityManagerInterface $entityManager, BadgeService $badgeService, WishlistService $wishlistService, DiscordNotifier $discordNotifier): JsonResponse
+    public function filmConfirm(User $user, Request $request, EntityManagerInterface $entityManager, BadgeService $badgeService, WishlistService $wishlistService, DiscordNotifier $discordNotifier, CardAttributionService $cardAttributionService): JsonResponse
     {
         if (!$this->isCsrfTokenValid('wheel-action', (string) $request->request->get('_token'))) {
             return $this->json(['success' => false, 'message' => 'Jeton de sécurité invalide.'], 400);
@@ -363,35 +342,12 @@ class WheelController extends AbstractController
             return $this->json(['success' => false, 'message' => 'Carte introuvable.'], 400);
         }
 
-        $distributed = $entityManager->getRepository(UserCardFilm::class)
-            ->createQueryBuilder('ucf')
-            ->select('SUM(ucf.quantity)')
-            ->where('ucf.cardFilm = :card')
-            ->setParameter('card', $card)
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        if (($distributed ?? 0) >= $card->getQuantity()) {
+        try {
+            $cardAttributionService->attribuer($user, $card);
+        } catch (StockEpuiseException) {
             return $this->json(['success' => false, 'message' => 'Cette carte est maintenant en rupture de stock.']);
         }
 
-        $userCard = $entityManager->getRepository(UserCardFilm::class)->findOneBy([
-            'user' => $user,
-            'cardFilm' => $card,
-        ]);
-
-        if ($userCard) {
-            $userCard->setQuantity($userCard->getQuantity() + 1);
-        } else {
-            $userCard = new UserCardFilm();
-            $userCard->setUser($user);
-            $userCard->setCardFilm($card);
-            $userCard->setQuantity(1);
-            $entityManager->persist($userCard);
-        }
-        $userCard->setObtainedAt(new \DateTimeImmutable());
-
-        $entityManager->flush();
         $badgeService->refreshCollectorBadges($user);
         $discordNotifier->notifyDrop(
             $user,
@@ -407,7 +363,7 @@ class WheelController extends AbstractController
     }
 
     #[Route('/jeu/user/{id}/attribuer', name: 'app_wheel_jeu_confirm', methods: ['POST'])]
-    public function jeuConfirm(User $user, Request $request, EntityManagerInterface $entityManager, BadgeService $badgeService, WishlistService $wishlistService, DiscordNotifier $discordNotifier): JsonResponse
+    public function jeuConfirm(User $user, Request $request, EntityManagerInterface $entityManager, BadgeService $badgeService, WishlistService $wishlistService, DiscordNotifier $discordNotifier, CardAttributionService $cardAttributionService): JsonResponse
     {
         if (!$this->isCsrfTokenValid('wheel-action', (string) $request->request->get('_token'))) {
             return $this->json(['success' => false, 'message' => 'Jeton de sécurité invalide.'], 400);
@@ -418,35 +374,12 @@ class WheelController extends AbstractController
             return $this->json(['success' => false, 'message' => 'Carte introuvable.'], 400);
         }
 
-        $distributed = $entityManager->getRepository(UserCardJeu::class)
-            ->createQueryBuilder('ucj')
-            ->select('SUM(ucj.quantity)')
-            ->where('ucj.cardJeu = :card')
-            ->setParameter('card', $card)
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        if (($distributed ?? 0) >= $card->getQuantity()) {
+        try {
+            $cardAttributionService->attribuer($user, $card);
+        } catch (StockEpuiseException) {
             return $this->json(['success' => false, 'message' => 'Cette carte est maintenant en rupture de stock.']);
         }
 
-        $userCard = $entityManager->getRepository(UserCardJeu::class)->findOneBy([
-            'user' => $user,
-            'cardJeu' => $card,
-        ]);
-
-        if ($userCard) {
-            $userCard->setQuantity($userCard->getQuantity() + 1);
-        } else {
-            $userCard = new UserCardJeu();
-            $userCard->setUser($user);
-            $userCard->setCardJeu($card);
-            $userCard->setQuantity(1);
-            $entityManager->persist($userCard);
-        }
-        $userCard->setObtainedAt(new \DateTimeImmutable());
-
-        $entityManager->flush();
         $badgeService->refreshCollectorBadges($user);
         $discordNotifier->notifyDrop(
             $user,

@@ -69,12 +69,14 @@
                         </div>
                         <div class="admin-card-actions admin-card-actions-column">
                             <form method="post">
+                                <input type="hidden" name="_token" value="{{ csrf_token('remove-user-card' ~ user.id) }}">
                                 <input type="hidden" name="user_card_id" value="{{ userCard.id }}">
                                 <input type="hidden" name="type" value="anime">
                                 <input type="hidden" name="action" value="remove_one">
                                 <button type="submit" class="btn btn-warning" onclick="return confirm('Retirer 1 carte ?')">-1 carte</button>
                             </form>
                             <form method="post">
+                                <input type="hidden" name="_token" value="{{ csrf_token('remove-user-card' ~ user.id) }}">
                                 <input type="hidden" name="user_card_id" value="{{ userCard.id }}">
                                 <input type="hidden" name="type" value="anime">
                                 <input type="hidden" name="action" value="remove_all">
@@ -101,12 +103,14 @@
                         </div>
                         <div class="admin-card-actions admin-card-actions-column">
                             <form method="post">
+                                <input type="hidden" name="_token" value="{{ csrf_token('remove-user-card' ~ user.id) }}">
                                 <input type="hidden" name="user_card_id" value="{{ userCard.id }}">
                                 <input type="hidden" name="type" value="film">
                                 <input type="hidden" name="action" value="remove_one">
                                 <button type="submit" class="btn btn-warning" onclick="return confirm('Retirer 1 carte ?')">-1 carte</button>
                             </form>
                             <form method="post">
+                                <input type="hidden" name="_token" value="{{ csrf_token('remove-user-card' ~ user.id) }}">
                                 <input type="hidden" name="user_card_id" value="{{ userCard.id }}">
                                 <input type="hidden" name="type" value="film">
                                 <input type="hidden" name="action" value="remove_all">
@@ -133,12 +137,14 @@
                         </div>
                         <div class="admin-card-actions admin-card-actions-column">
                             <form method="post">
+                                <input type="hidden" name="_token" value="{{ csrf_token('remove-user-card' ~ user.id) }}">
                                 <input type="hidden" name="user_card_id" value="{{ userCard.id }}">
                                 <input type="hidden" name="type" value="jeu">
                                 <input type="hidden" name="action" value="remove_one">
                                 <button type="submit" class="btn btn-warning" onclick="return confirm('Retirer 1 carte ?')">-1 carte</button>
                             </form>
                             <form method="post">
+                                <input type="hidden" name="_token" value="{{ csrf_token('remove-user-card' ~ user.id) }}">
                                 <input type="hidden" name="user_card_id" value="{{ userCard.id }}">
                                 <input type="hidden" name="type" value="jeu">
                                 <input type="hidden" name="action" value="remove_all">

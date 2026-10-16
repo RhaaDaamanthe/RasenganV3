@@ -96,6 +96,7 @@ src/
   Entity/       18 entités Doctrine
   Repository/   repositories Doctrine (DQL / QueryBuilder)
   Service/      logique métier réutilisable (voir plus bas)
+  Exception/    exceptions métier (stock épuisé, carte déjà possédée)
   Form/         Symfony Forms (Anime, Film, CardAnime, CardFilm, Badge, profil, inscription)
   Command/      commandes console (recalcul badges)
 config/packages/  doctrine, security, twig, cache, csrf, validator...
@@ -114,6 +115,11 @@ qu'un service existe : vérifier avant.
   `counter`. À l'acceptation il verrouille les lignes (`lockUserCards`), transfère les
   cartes, **invalide** les autres offres devenues impossibles
   (`invalidateImpossibleOffers`) et nettoie les wishlists.
+- **CardAttributionService** — `attribuer(user, carte, quantité, unParJoueur)` : seul point
+  d'entrée pour donner une carte (roue, attribution manuelle, mythiques). Verrouille la
+  ligne de la carte (`SELECT … FOR UPDATE`) pour ne jamais dépasser son `quantity`, lève
+  `App\Exception\StockEpuiseException` / `CarteDejaPossedeeException`. Badges, wishlist et
+  Discord restent à la charge de l'appelant.
 - **WishlistService** — ajout/retrait, ids en wishlist, et `findTradeSuggestions()` qui
   croise « mes doublons » avec « ce que l'autre veut ».
 - **BadgeService** — `refreshCollectorBadges()` / `refreshSeniorityBadges()` (paliers) et

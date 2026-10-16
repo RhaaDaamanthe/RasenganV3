@@ -2,18 +2,17 @@
 
 namespace App\Controller;
 
-use App\Entity\User;
 use App\Entity\CardAnime;
 use App\Entity\CardFilm;
 use App\Entity\CardJeu;
-use App\Entity\UserCardAnime;
-use App\Entity\UserCardFilm;
-use App\Entity\UserCardJeu;
-use App\Repository\UserRepository;
+use App\Entity\User;
+use App\Exception\StockEpuiseException;
 use App\Repository\CardAnimeRepository;
 use App\Repository\CardFilmRepository;
 use App\Repository\CardJeuRepository;
+use App\Repository\UserRepository;
 use App\Service\BadgeService;
+use App\Service\CardAttributionService;
 use App\Service\DiscordNotifier;
 use App\Service\WishlistService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -88,7 +87,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
         EntityManagerInterface $entityManager,
         BadgeService $badgeService,
         DiscordNotifier $discordNotifier,
-        WishlistService $wishlistService
+        WishlistService $wishlistService,
+        CardAttributionService $cardAttributionService
     ): Response {
         $search = $request->query->get('search', '');
         $page = max(1, $request->query->getInt('page', 1));
@@ -121,41 +121,32 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
             $cardId = $request->request->get('card_id');
             $quantity = (int) $request->request->get('quantity', 1);
 
-            if ($cardId && $quantity > 0) {
+            if (!$this->isCsrfTokenValid('assign-card' . $user->getId(), (string) $request->request->get('_token'))) {
+                $this->addFlash('error', '❌ Jeton de sécurité invalide.');
+            } elseif ($cardId && $quantity > 0) {
                 $card = $cardAnimeRepository->find($cardId);
                 
                 if ($card) {
-                    // Vérifier si l'utilisateur possède déjà cette carte
-                    $userCard = $entityManager->getRepository(UserCardAnime::class)
-                        ->findOneBy(['user' => $user, 'cardAnime' => $card]);
-
-                    if ($userCard) {
-                        // Augmenter la quantité
-                        $userCard->setQuantity($userCard->getQuantity() + $quantity);
-                    } else {
-                        // Créer une nouvelle attribution
-                        $userCard = new UserCardAnime();
-                        $userCard->setUser($user);
-                        $userCard->setCardAnime($card);
-                        $userCard->setQuantity($quantity);
-                        $entityManager->persist($userCard);
+                    try {
+                        $cardAttributionService->attribuer($user, $card, $quantity);
+                        $badgeService->refreshCollectorBadges($user);
+                        $discordNotifier->notifyDrop(
+                            $user,
+                            $card->getNom(),
+                            $card->getAnime()?->getNom() ?? '',
+                            $card->getRarity()?->getLibelle() ?? '',
+                            'Anime',
+                            $card->getImagePath(),
+                        );
+                        $wishlistService->removeAnimeCardFromWishlist($user, $card);
+                        $this->addFlash('success', "✅ {$quantity}x {$card->getNom()} attribuée(s) à {$user->getPseudo()} !");
+                    } catch (StockEpuiseException $e) {
+                        $this->addFlash('error', "❌ Stock insuffisant pour {$card->getNom()} : {$e->getRestant()} exemplaire(s) restant(s).");
                     }
-                    $userCard->setObtainedAt(new \DateTimeImmutable());
-
-                    $entityManager->flush();
-                    $badgeService->refreshCollectorBadges($user);
-                    $discordNotifier->notifyDrop(
-                        $user,
-                        $card->getNom(),
-                        $card->getAnime()?->getNom() ?? '',
-                        $card->getRarity()?->getLibelle() ?? '',
-                        'Anime',
-                        $card->getImagePath(),
-                    );
-                    $wishlistService->removeAnimeCardFromWishlist($user, $card);
-                    $this->addFlash('success', "✅ {$quantity}x {$card->getNom()} attribuée(s) à {$user->getPseudo()} !");
                 }
             }
+
+            return $this->redirect($request->getRequestUri());
         }
 
         return $this->render('card_assignment/assign_cards.html.twig', [
@@ -177,7 +168,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
         EntityManagerInterface $entityManager,
         BadgeService $badgeService,
         DiscordNotifier $discordNotifier,
-        WishlistService $wishlistService
+        WishlistService $wishlistService,
+        CardAttributionService $cardAttributionService
     ): Response {
         $search = $request->query->get('search', '');
         $page = max(1, $request->query->getInt('page', 1));
@@ -210,41 +202,32 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
             $cardId = $request->request->get('card_id');
             $quantity = (int) $request->request->get('quantity', 1);
 
-            if ($cardId && $quantity > 0) {
+            if (!$this->isCsrfTokenValid('assign-card' . $user->getId(), (string) $request->request->get('_token'))) {
+                $this->addFlash('error', '❌ Jeton de sécurité invalide.');
+            } elseif ($cardId && $quantity > 0) {
                 $card = $cardFilmRepository->find($cardId);
                 
                 if ($card) {
-                    // Vérifier si l'utilisateur possède déjà cette carte
-                    $userCard = $entityManager->getRepository(UserCardFilm::class)
-                        ->findOneBy(['user' => $user, 'cardFilm' => $card]);
-
-                    if ($userCard) {
-                        // Augmenter la quantité
-                        $userCard->setQuantity($userCard->getQuantity() + $quantity);
-                    } else {
-                        // Créer une nouvelle attribution
-                        $userCard = new UserCardFilm();
-                        $userCard->setUser($user);
-                        $userCard->setCardFilm($card);
-                        $userCard->setQuantity($quantity);
-                        $entityManager->persist($userCard);
+                    try {
+                        $cardAttributionService->attribuer($user, $card, $quantity);
+                        $badgeService->refreshCollectorBadges($user);
+                        $discordNotifier->notifyDrop(
+                            $user,
+                            $card->getNom(),
+                            $card->getFilm()?->getNom() ?? '',
+                            $card->getRarity()?->getLibelle() ?? '',
+                            'Film',
+                            $card->getImagePath(),
+                        );
+                        $wishlistService->removeFilmCardFromWishlist($user, $card);
+                        $this->addFlash('success', "✅ {$quantity}x {$card->getNom()} attribuée(s) à {$user->getPseudo()} !");
+                    } catch (StockEpuiseException $e) {
+                        $this->addFlash('error', "❌ Stock insuffisant pour {$card->getNom()} : {$e->getRestant()} exemplaire(s) restant(s).");
                     }
-                    $userCard->setObtainedAt(new \DateTimeImmutable());
-
-                    $entityManager->flush();
-                    $badgeService->refreshCollectorBadges($user);
-                    $discordNotifier->notifyDrop(
-                        $user,
-                        $card->getNom(),
-                        $card->getFilm()?->getNom() ?? '',
-                        $card->getRarity()?->getLibelle() ?? '',
-                        'Film',
-                        $card->getImagePath(),
-                    );
-                    $wishlistService->removeFilmCardFromWishlist($user, $card);
-                    $this->addFlash('success', "✅ {$quantity}x {$card->getNom()} attribuée(s) à {$user->getPseudo()} !");
                 }
             }
+
+            return $this->redirect($request->getRequestUri());
         }
 
         return $this->render('card_assignment/assign_cards.html.twig', [
@@ -266,7 +249,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
         EntityManagerInterface $entityManager,
         BadgeService $badgeService,
         DiscordNotifier $discordNotifier,
-        WishlistService $wishlistService
+        WishlistService $wishlistService,
+        CardAttributionService $cardAttributionService
     ): Response {
         $search = $request->query->get('search', '');
         $page = max(1, $request->query->getInt('page', 1));
@@ -299,41 +283,32 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
             $cardId = $request->request->get('card_id');
             $quantity = (int) $request->request->get('quantity', 1);
 
-            if ($cardId && $quantity > 0) {
+            if (!$this->isCsrfTokenValid('assign-card' . $user->getId(), (string) $request->request->get('_token'))) {
+                $this->addFlash('error', '❌ Jeton de sécurité invalide.');
+            } elseif ($cardId && $quantity > 0) {
                 $card = $cardJeuRepository->find($cardId);
 
                 if ($card) {
-                    // Vérifier si l'utilisateur possède déjà cette carte
-                    $userCard = $entityManager->getRepository(UserCardJeu::class)
-                        ->findOneBy(['user' => $user, 'cardJeu' => $card]);
-
-                    if ($userCard) {
-                        // Augmenter la quantité
-                        $userCard->setQuantity($userCard->getQuantity() + $quantity);
-                    } else {
-                        // Créer une nouvelle attribution
-                        $userCard = new UserCardJeu();
-                        $userCard->setUser($user);
-                        $userCard->setCardJeu($card);
-                        $userCard->setQuantity($quantity);
-                        $entityManager->persist($userCard);
+                    try {
+                        $cardAttributionService->attribuer($user, $card, $quantity);
+                        $badgeService->refreshCollectorBadges($user);
+                        $discordNotifier->notifyDrop(
+                            $user,
+                            $card->getNom(),
+                            $card->getJeu()?->getNom() ?? '',
+                            $card->getRarity()?->getLibelle() ?? '',
+                            'Jeu vidéo',
+                            $card->getImagePath(),
+                        );
+                        $wishlistService->removeJeuCardFromWishlist($user, $card);
+                        $this->addFlash('success', "✅ {$quantity}x {$card->getNom()} attribuée(s) à {$user->getPseudo()} !");
+                    } catch (StockEpuiseException $e) {
+                        $this->addFlash('error', "❌ Stock insuffisant pour {$card->getNom()} : {$e->getRestant()} exemplaire(s) restant(s).");
                     }
-                    $userCard->setObtainedAt(new \DateTimeImmutable());
-
-                    $entityManager->flush();
-                    $badgeService->refreshCollectorBadges($user);
-                    $discordNotifier->notifyDrop(
-                        $user,
-                        $card->getNom(),
-                        $card->getJeu()?->getNom() ?? '',
-                        $card->getRarity()?->getLibelle() ?? '',
-                        'Jeu vidéo',
-                        $card->getImagePath(),
-                    );
-                    $wishlistService->removeJeuCardFromWishlist($user, $card);
-                    $this->addFlash('success', "✅ {$quantity}x {$card->getNom()} attribuée(s) à {$user->getPseudo()} !");
                 }
             }
+
+            return $this->redirect($request->getRequestUri());
         }
 
         return $this->render('card_assignment/assign_cards.html.twig', [

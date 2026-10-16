@@ -7,6 +7,8 @@ use App\Entity\UserCardAnime;
 use App\Entity\UserCardFilm;
 use App\Entity\UserCardJeu;
 use App\Repository\UserRepository;
+use App\Service\BadgeService;
+use App\Service\TradeService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -38,7 +40,9 @@ class UserManagementController extends AbstractController
     public function removeUserCards(
         User $user,
         Request $request,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        BadgeService $badgeService,
+        TradeService $tradeService
     ): Response {
         $search = $request->query->get('search', '');
         $section = $request->query->get('section', '');
@@ -90,16 +94,29 @@ class UserManagementController extends AbstractController
 
         // Traitement de la suppression
         if ($request->isMethod('POST')) {
-            $userCardId = $request->request->get('user_card_id');
+            if (!$this->isCsrfTokenValid('remove-user-card' . $user->getId(), (string) $request->request->get('_token'))) {
+                $this->addFlash('error', '❌ Jeton de sécurité invalide.');
+
+                return $this->redirectToRoute('app_remove_user_cards', ['id' => $user->getId()]);
+            }
+
+            $userCardId = (int) $request->request->get('user_card_id');
             $type = $request->request->get('type');
             $action = $request->request->get('action'); // 'remove_one' ou 'remove_all'
 
-            if ($userCardId && $type) {
-                $userCard = match ($type) {
-                    'anime' => $entityManager->getRepository(UserCardAnime::class)->find($userCardId),
-                    'jeu' => $entityManager->getRepository(UserCardJeu::class)->find($userCardId),
-                    default => $entityManager->getRepository(UserCardFilm::class)->find($userCardId),
-                };
+            $userCardClass = match ($type) {
+                'anime' => UserCardAnime::class,
+                'film' => UserCardFilm::class,
+                'jeu' => UserCardJeu::class,
+                default => null,
+            };
+
+            if ($userCardId && $userCardClass) {
+                // Filtrer sur le joueur de l'URL : un id d'un autre joueur ne doit rien retirer.
+                $userCard = $entityManager->getRepository($userCardClass)->findOneBy([
+                    'id' => $userCardId,
+                    'user' => $user,
+                ]);
 
                 if ($userCard) {
                     $cardName = match ($type) {
@@ -119,6 +136,11 @@ class UserManagementController extends AbstractController
                     }
                     
                     $entityManager->flush();
+                    $badgeService->refreshCollectorBadges($user);
+                    // Les offres en attente où ce joueur engageait la carte retirée ne
+                    // sont peut-être plus réalisables.
+                    $tradeService->invalidateImpossibleOffersFor($user);
+
                     return $this->redirectToRoute('app_remove_user_cards', ['id' => $user->getId()]);
                 }
             }
@@ -194,6 +216,12 @@ class UserManagementController extends AbstractController
         UserPasswordHasherInterface $passwordHasher,
         EntityManagerInterface $entityManager
     ): Response {
+        if (!$this->isCsrfTokenValid('reset-password' . $user->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', '❌ Jeton de sécurité invalide.');
+
+            return $this->redirectToRoute('app_manage_users');
+        }
+
         $newPassword = $request->request->get('new_password');
 
         if ($newPassword && strlen($newPassword) >= 6) {

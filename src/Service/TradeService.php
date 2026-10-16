@@ -278,9 +278,18 @@ class TradeService
     }
 
     /**
+     * Annule les offres en attente devenues irréalisables parce que ce joueur a perdu
+     * des cartes en dehors d'un échange (retrait par un admin).
+     */
+    public function invalidateImpossibleOffersFor(User $user): void
+    {
+        $this->invalidateImpossibleOffers(null, $user);
+    }
+
+    /**
      * Annule les autres offres en attente devenues irréalisables après cet échange.
      */
-    private function invalidateImpossibleOffers(TradeOffer $acceptedOffer, User ...$users): void
+    private function invalidateImpossibleOffers(?TradeOffer $acceptedOffer, User ...$users): void
     {
         $checked = [];
 

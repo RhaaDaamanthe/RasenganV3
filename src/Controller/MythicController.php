@@ -8,7 +8,10 @@ use App\Entity\CardJeu;
 use App\Entity\UserCardAnime;
 use App\Entity\UserCardFilm;
 use App\Entity\UserCardJeu;
+use App\Exception\CarteDejaPossedeeException;
+use App\Exception\StockEpuiseException;
 use App\Service\BadgeService;
+use App\Service\CardAttributionService;
 use App\Service\WishlistService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -105,7 +108,7 @@ class MythicController extends AbstractController
     }
 
     #[Route('/catalogue/anime/mythic/{id}/unlock', name: 'app_mythic_anime_unlock', methods: ['POST'])]
-    public function animeUnlock(CardAnime $card, Request $request, EntityManagerInterface $entityManager, BadgeService $badgeService, WishlistService $wishlistService): JsonResponse
+    public function animeUnlock(CardAnime $card, Request $request, EntityManagerInterface $entityManager, BadgeService $badgeService, WishlistService $wishlistService, CardAttributionService $cardAttributionService): JsonResponse
     {
         if (!$this->isCsrfTokenValid('mythic-unlock', (string) $request->request->get('_token'))) {
             return $this->json(['success' => false, 'message' => 'Jeton de sécurité invalide.'], 400);
@@ -158,30 +161,14 @@ class MythicController extends AbstractController
             }
         }
 
-        $totalDistributed = $entityManager->getRepository(UserCardAnime::class)
-            ->createQueryBuilder('uca')
-            ->select('SUM(uca.quantity)')
-            ->where('uca.cardAnime = :card')
-            ->setParameter('card', $card)
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        if ($totalDistributed >= $card->getQuantity()) {
-            return $this->json(['success' => false, 'message' => 'Cette carte mythique n\'est plus disponible.'], 400);
+        try {
+            $cardAttributionService->attribuer($user, $card, 1, true);
+        } catch (CarteDejaPossedeeException) {
+            return $this->json(['success' => false, 'message' => 'Vous possédez déjà cette carte.'], 400);
+        } catch (StockEpuiseException) {
+            return $this->json(['success' => false, 'message' => "Cette carte mythique n'est plus disponible."], 400);
         }
 
-        if ($existing !== null) {
-            $existing->setQuantity($existing->getQuantity() + 1);
-        } else {
-            $existing = new UserCardAnime();
-            $existing->setUser($user);
-            $existing->setCardAnime($card);
-            $existing->setQuantity(1);
-            $entityManager->persist($existing);
-        }
-        $existing->setObtainedAt(new \DateTimeImmutable());
-
-        $entityManager->flush();
         $badgeService->refreshCollectorBadges($user);
         $wishlistService->removeAnimeCardFromWishlist($user, $card);
 
@@ -277,7 +264,7 @@ class MythicController extends AbstractController
     }
 
     #[Route('/catalogue/film/mythic/{id}/unlock', name: 'app_mythic_film_unlock', methods: ['POST'])]
-    public function filmUnlock(CardFilm $card, Request $request, EntityManagerInterface $entityManager, BadgeService $badgeService, WishlistService $wishlistService): JsonResponse
+    public function filmUnlock(CardFilm $card, Request $request, EntityManagerInterface $entityManager, BadgeService $badgeService, WishlistService $wishlistService, CardAttributionService $cardAttributionService): JsonResponse
     {
         if (!$this->isCsrfTokenValid('mythic-unlock', (string) $request->request->get('_token'))) {
             return $this->json(['success' => false, 'message' => 'Jeton de sécurité invalide.'], 400);
@@ -330,30 +317,14 @@ class MythicController extends AbstractController
             }
         }
 
-        $totalDistributed = $entityManager->getRepository(UserCardFilm::class)
-            ->createQueryBuilder('ucf')
-            ->select('SUM(ucf.quantity)')
-            ->where('ucf.cardFilm = :card')
-            ->setParameter('card', $card)
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        if ($totalDistributed >= $card->getQuantity()) {
-            return $this->json(['success' => false, 'message' => 'Cette carte mythique n\'est plus disponible.'], 400);
+        try {
+            $cardAttributionService->attribuer($user, $card, 1, true);
+        } catch (CarteDejaPossedeeException) {
+            return $this->json(['success' => false, 'message' => 'Vous possédez déjà cette carte.'], 400);
+        } catch (StockEpuiseException) {
+            return $this->json(['success' => false, 'message' => "Cette carte mythique n'est plus disponible."], 400);
         }
 
-        if ($existing !== null) {
-            $existing->setQuantity($existing->getQuantity() + 1);
-        } else {
-            $existing = new UserCardFilm();
-            $existing->setUser($user);
-            $existing->setCardFilm($card);
-            $existing->setQuantity(1);
-            $entityManager->persist($existing);
-        }
-        $existing->setObtainedAt(new \DateTimeImmutable());
-
-        $entityManager->flush();
         $badgeService->refreshCollectorBadges($user);
         $wishlistService->removeFilmCardFromWishlist($user, $card);
 
@@ -449,7 +420,7 @@ class MythicController extends AbstractController
     }
 
     #[Route('/catalogue/jeu/mythic/{id}/unlock', name: 'app_mythic_jeu_unlock', methods: ['POST'])]
-    public function jeuUnlock(CardJeu $card, Request $request, EntityManagerInterface $entityManager, BadgeService $badgeService, WishlistService $wishlistService): JsonResponse
+    public function jeuUnlock(CardJeu $card, Request $request, EntityManagerInterface $entityManager, BadgeService $badgeService, WishlistService $wishlistService, CardAttributionService $cardAttributionService): JsonResponse
     {
         if (!$this->isCsrfTokenValid('mythic-unlock', (string) $request->request->get('_token'))) {
             return $this->json(['success' => false, 'message' => 'Jeton de sécurité invalide.'], 400);
@@ -502,30 +473,14 @@ class MythicController extends AbstractController
             }
         }
 
-        $totalDistributed = $entityManager->getRepository(UserCardJeu::class)
-            ->createQueryBuilder('ucj')
-            ->select('SUM(ucj.quantity)')
-            ->where('ucj.cardJeu = :card')
-            ->setParameter('card', $card)
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        if ($totalDistributed >= $card->getQuantity()) {
-            return $this->json(['success' => false, 'message' => 'Cette carte mythique n\'est plus disponible.'], 400);
+        try {
+            $cardAttributionService->attribuer($user, $card, 1, true);
+        } catch (CarteDejaPossedeeException) {
+            return $this->json(['success' => false, 'message' => 'Vous possédez déjà cette carte.'], 400);
+        } catch (StockEpuiseException) {
+            return $this->json(['success' => false, 'message' => "Cette carte mythique n'est plus disponible."], 400);
         }
 
-        if ($existing !== null) {
-            $existing->setQuantity($existing->getQuantity() + 1);
-        } else {
-            $existing = new UserCardJeu();
-            $existing->setUser($user);
-            $existing->setCardJeu($card);
-            $existing->setQuantity(1);
-            $entityManager->persist($existing);
-        }
-        $existing->setObtainedAt(new \DateTimeImmutable());
-
-        $entityManager->flush();
         $badgeService->refreshCollectorBadges($user);
         $wishlistService->removeJeuCardFromWishlist($user, $card);
 

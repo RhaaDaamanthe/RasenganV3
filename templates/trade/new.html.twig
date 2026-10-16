@@ -163,6 +163,7 @@
     </p>
 
     <form method="post" id="trade-form">
+        <input type="hidden" name="_token" value="{{ csrf_token(counterOf is defined ? 'trade_counter' ~ counterOf.id : 'trade_new' ~ recipient.id) }}">
         <div class="trade-columns">
             <div class="trade-column">
                 <h3>Vos cartes (offertes)</h3>
