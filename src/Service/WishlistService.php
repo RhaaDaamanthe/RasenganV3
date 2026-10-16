@@ -17,6 +17,18 @@ class WishlistService
     {
     }
 
+    /**
+     * Retire une carte de la wishlist du joueur, quelle que soit sa famille.
+     */
+    public function removeCardFromWishlist(User $user, CardAnime|CardFilm|CardJeu $card): void
+    {
+        match (true) {
+            $card instanceof CardAnime => $this->removeAnimeCardFromWishlist($user, $card),
+            $card instanceof CardFilm => $this->removeFilmCardFromWishlist($user, $card),
+            default => $this->removeJeuCardFromWishlist($user, $card),
+        };
+    }
+
     public function removeAnimeCardFromWishlist(User $user, CardAnime $card): void
     {
         if ($user->getWishlistCardAnimes()->contains($card)) {

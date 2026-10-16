@@ -70,8 +70,11 @@ fonctionnels HTTP (`WebTestCase`) ne sont donc pas disponibles pour l'instant ; 
 aux tests unitaires (`TestCase`) et, si besoin, aux tests de service (`KernelTestCase`,
 fourni par framework-bundle).
 
-La suite ne contient qu'un test : `tests/DiscordNotifierAttachmentIdsTest.php`, qui
-couvre la récupération des ids de pièces jointes Discord depuis les URLs d'embed.
+Tests existants :
+- `tests/DiscordNotifierAttachmentIdsTest.php` — récupération des ids de pièces jointes
+  Discord depuis les URLs d'embed ;
+- `tests/CardTypeTest.php` — cohérence de l'enum `CardType` avec les entités (les noms de
+  propriétés qu'il fournit doivent exister, puisqu'ils servent à construire du DQL).
 
 ## Stack et dépendances
 
@@ -96,7 +99,8 @@ src/
   Entity/       18 entités Doctrine
   Repository/   repositories Doctrine (DQL / QueryBuilder)
   Service/      logique métier réutilisable (voir plus bas)
-  Exception/    exceptions métier (stock épuisé, carte déjà possédée)
+  Enum/         CardType (animé / film / jeu vidéo, voir plus bas)
+  Exception/    exceptions métier (stock épuisé, carte déjà possédée, déblocage impossible)
   Form/         Symfony Forms (Anime, Film, CardAnime, CardFilm, Badge, profil, inscription)
   Command/      commandes console (recalcul badges)
 config/packages/  doctrine, security, twig, cache, csrf, validator...
@@ -105,9 +109,20 @@ templates/        Twig, un dossier par domaine, tous étendent base.html.twig
 public/           point d'entrée index.php, css/, js/, images/
 ```
 
-Les contrôleurs sont **épais** : une grande partie de la logique (mythiques, roue,
-catalogue) vit directement dans le contrôleur, pas dans un service. Ne pas supposer
-qu'un service existe : vérifier avant.
+Beaucoup de contrôleurs restent **épais** (collection, profil, CRUD des cartes...) : ne pas
+supposer qu'un service existe, vérifier avant. La roue, le catalogue, l'attribution
+manuelle et les mythiques ont été factorisés : chaque route garde son action dédiée
+(`animeSpinCard`, `filmSpinCard`...) mais délègue à une méthode privée commune
+paramétrée par `CardType`.
+
+### Familles de cartes (`App\Enum\CardType`)
+
+`CardType::Anime|Film|Jeu` (valeur = segment d'URL / de nom de route : `anime`, `film`,
+`jeu`) centralise ce qui distingue les familles : `cardClass()`, `userCardClass()`,
+`requirementClass()`, `cardProperty()` (`cardAnime`...), `titleProperty()` (`anime`...),
+`discordLabel()`, `titleOf()`, `cardOf()`, `newUserCard()`, `wishlistOf()`,
+`userCardsOf()`. `CardType::fromCard($card)` retrouve la famille d'une carte. Pour du code
+commun aux trois familles, passer par cet enum plutôt que de dupliquer.
 
 ### Services (`src/Service`)
 
@@ -115,11 +130,16 @@ qu'un service existe : vérifier avant.
   `counter`. À l'acceptation il verrouille les lignes (`lockUserCards`), transfère les
   cartes, **invalide** les autres offres devenues impossibles
   (`invalidateImpossibleOffers`) et nettoie les wishlists.
-- **CardAttributionService** — `attribuer(user, carte, quantité, unParJoueur)` : seul point
-  d'entrée pour donner une carte (roue, attribution manuelle, mythiques). Verrouille la
-  ligne de la carte (`SELECT … FOR UPDATE`) pour ne jamais dépasser son `quantity`, lève
-  `App\Exception\StockEpuiseException` / `CarteDejaPossedeeException`. Badges, wishlist et
-  Discord restent à la charge de l'appelant.
+- **CardAttributionService** — `attribuer(user, carte, quantité, unParJoueur, notifierDiscord)` :
+  seul point d'entrée pour donner une carte (roue, attribution manuelle, mythiques).
+  Verrouille la ligne de la carte (`SELECT … FOR UPDATE`) pour ne jamais dépasser son
+  `quantity`, lève `App\Exception\StockEpuiseException` / `CarteDejaPossedeeException`, puis
+  rafraîchit les badges, notifie Discord (sauf `notifierDiscord: false`) et retire la carte
+  de la wishlist.
+- **MythicRecipeService** — `getStatus()` (JSON de la fenêtre des mythiques) et `unlock()`
+  (vérifie la recette, puis attribue via `CardAttributionService`, sans Discord). Les cartes
+  requises ne sont **pas consommées** : c'est voulu. Lève `DeblocageImpossibleException`
+  dont le message est affiché tel quel au joueur.
 - **WishlistService** — ajout/retrait, ids en wishlist, et `findTradeSuggestions()` qui
   croise « mes doublons » avec « ce que l'autre veut ».
 - **BadgeService** — `refreshCollectorBadges()` / `refreshSeniorityBadges()` (paliers) et
@@ -144,7 +164,7 @@ qu'un service existe : vérifier avant.
 - **CardAnime / CardFilm / CardJeu** — la carte : `nom`, `description`, `imagePath`,
   `quantity` (tirage total), `rarity`, plus ses `requirements` si elle est mythique. Les
   trois familles sont **strictement parallèles** : toute évolution sur l'une doit être
-  répercutée sur les autres (entité, repository, contrôleur, template).
+  répercutée sur les autres (entité, repository, contrôleur, template, et `CardType`).
 - **Rarities** — `libelle` (Communes, Rares, Épiques, Legendaires, Mythiques) et
   `quantiteParDefaut`. Les ids 1→4 sont utilisés en dur dans les poids de la roue.
 - **UserCardAnime / UserCardFilm / UserCardJeu** — possession : `user`, `card`,
@@ -171,8 +191,8 @@ l'attribut du contrôleur).
 `WheelController::RARITY_WEIGHTS` = 40/35/20/5 (commune / rare / épique / légendaire) et un
 mode `RARITY_WEIGHTS_333` = 33/33/33/1. Les mythiques ne se tirent pas : elles se craftent.
 Les raretés sans carte disponible sont exclues avant le tirage ; l'attribution passe par
-`app_wheel_*_confirm`, qui crée ou incrémente le `UserCard*`, rafraîchit les badges,
-nettoie la wishlist et notifie Discord. Le rendu visuel est dans `public/js/wheel.js`.
+`app_wheel_*_confirm`, qui délègue à `CardAttributionService::attribuer()`. Le rendu visuel
+est dans `public/js/wheel.js`.
 
 ### Jeux vidéo
 

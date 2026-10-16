@@ -322,15 +322,7 @@ class TradeService
     {
         foreach ($offer->getItems() as $item) {
             $receiver = $item->getOwner() === $offer->getProposer() ? $offer->getRecipient() : $offer->getProposer();
-            $card = $item->getCard();
-
-            if ($card instanceof CardAnime) {
-                $this->wishlistService->removeAnimeCardFromWishlist($receiver, $card);
-            } elseif ($card instanceof CardFilm) {
-                $this->wishlistService->removeFilmCardFromWishlist($receiver, $card);
-            } else {
-                $this->wishlistService->removeJeuCardFromWishlist($receiver, $card);
-            }
+            $this->wishlistService->removeCardFromWishlist($receiver, $item->getCard());
         }
     }
 

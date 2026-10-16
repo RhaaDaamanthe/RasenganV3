@@ -2,397 +2,124 @@
 
 namespace App\Controller;
 
-use App\Entity\CardAnime;
 use App\Entity\Anime;
 use App\Entity\Film;
-use App\Entity\CardFilm;
 use App\Entity\Jeu;
-use App\Entity\CardJeu;
+use App\Entity\Rarities;
+use App\Entity\User;
+use App\Enum\CardType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class CatalogueController extends AbstractController
 {
+    private const CARDS_PER_PAGE = 100;
+
+    public function __construct(
+        private readonly EntityManagerInterface $entityManager,
+    ) {
+    }
+
     #[Route('/catalogue', name: 'app_catalogue')]
-    public function index(EntityManagerInterface $entityManager): Response
+    public function index(): Response
     {
-        // Récupérer les données pour le catalogue des animés
-        $animes = $entityManager->getRepository(CardAnime::class)
-            ->createQueryBuilder('ca')
-            ->select('a.id, a.nom, count(ca.id) as card_count')
-            ->join('ca.anime', 'a')
-            ->groupBy('a.id, a.nom')
-            ->orderBy('a.nom', 'ASC')
-            ->getQuery()
-            ->getResult();
-
-        // Récupérer les données pour le catalogue des films
-        $films = $entityManager->getRepository(CardFilm::class)
-            ->createQueryBuilder('cf')
-            ->select('f.id, f.nom, count(cf.id) as card_count')
-            ->join('cf.film', 'f')
-            ->groupBy('f.id, f.nom')
-            ->orderBy('f.nom', 'ASC')
-            ->getQuery()
-            ->getResult();
-
-        $jeux = $entityManager->getRepository(CardJeu::class)
-            ->createQueryBuilder('cj')
-            ->select('j.id, j.nom, count(cj.id) as card_count')
-            ->join('cj.jeu', 'j')
-            ->groupBy('j.id, j.nom')
-            ->orderBy('j.nom', 'ASC')
-            ->getQuery()
-            ->getResult();
-
         return $this->render('catalogue/index.html.twig', [
-            'animes' => $animes,
-            'films' => $films,
-            'jeux' => $jeux,
+            'animes' => $this->getTitlesWithCardCount(CardType::Anime),
+            'films' => $this->getTitlesWithCardCount(CardType::Film),
+            'jeux' => $this->getTitlesWithCardCount(CardType::Jeu),
         ]);
     }
 
     #[Route('/catalogue/anime/{id}', name: 'app_catalogue_anime_cards')]
-    public function showAnimeCards(Anime $anime, Request $request, EntityManagerInterface $entityManager): Response
+    public function showAnimeCards(Anime $anime, Request $request): Response
     {
-        $page = max(1, $request->query->getInt('page', 1));
-        $limit = 100;
-        $offset = ($page - 1) * $limit;
-
-        // Récupération des paramètres de recherche et filtrage
-        $search = $request->query->get('search', '');
-        $rarity = $request->query->get('rarity', '');
-
-        $repo = $entityManager->getRepository(CardAnime::class);
-        $qb = $repo->createQueryBuilder('ca')
-            ->leftJoin('ca.rarity', 'r')
-            ->where('ca.anime = :anime')
-            ->setParameter('anime', $anime);
-
-        // Filtre de recherche (nom de la carte)
-        if (!empty($search)) {
-            $qb->andWhere('ca.nom LIKE :search')
-               ->setParameter('search', '%' . $search . '%');
-        }
-
-        // Filtre de rareté
-        if (!empty($rarity)) {
-            $qb->andWhere('r.libelle = :rarity')
-               ->setParameter('rarity', $rarity);
-        }
-
-        // Compte total pour la pagination
-        $totalCards = (clone $qb)
-            ->select('count(ca.id)')
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        // Récupération des cartes avec pagination
-        $cards = $qb
-            ->orderBy('r.id', 'DESC')
-            ->addOrderBy('ca.id', 'ASC')
-            ->setFirstResult($offset)
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
-
-        $totalPages = ceil($totalCards / $limit);
-
-        // Récupérer toutes les raretés pour le filtre
-        $rarities = $entityManager->getRepository(\App\Entity\Rarities::class)->findAll();
-
-        return $this->render('catalogue/animeCards.html.twig', [
-            'anime' => $anime,
-            'cards' => $cards,
-            'currentPage' => $page,
-            'totalPages' => $totalPages,
-            'totalCards' => $totalCards,
-            'search' => $search,
-            'selectedRarity' => $rarity,
-            'rarities' => $rarities,
-            'wishlistedIds' => $this->getWishlistedAnimeIds(),
-            'ownedIds' => $this->getOwnedAnimeIds(),
-        ]);
+        return $this->renderCards($request, CardType::Anime, $anime);
     }
 
     #[Route('/catalogue/anime', name: 'app_catalogue_all_anime_cards')]
-    public function showAllAnimeCards(Request $request, EntityManagerInterface $entityManager): Response
+    public function showAllAnimeCards(Request $request): Response
     {
-        $page = max(1, $request->query->getInt('page', 1));
-        $limit = 100;
-        $offset = ($page - 1) * $limit;
-
-        // Récupération des paramètres de recherche et filtrage
-        $search = $request->query->get('search', '');
-        $rarity = $request->query->get('rarity', '');
-
-        $repo = $entityManager->getRepository(CardAnime::class);
-        $qb = $repo->createQueryBuilder('ca')
-            ->leftJoin('ca.rarity', 'r')
-            ->leftJoin('ca.anime', 'a');
-
-        // Filtre de recherche (nom de la carte OU nom de l'animé)
-        if (!empty($search)) {
-            $qb->andWhere('ca.nom LIKE :search OR a.nom LIKE :search')
-               ->setParameter('search', '%' . $search . '%');
-        }
-
-        // Filtre de rareté
-        if (!empty($rarity)) {
-            $qb->andWhere('r.libelle = :rarity')
-               ->setParameter('rarity', $rarity);
-        }
-
-        // Compte total pour la pagination
-        $totalCards = (clone $qb)
-            ->select('count(ca.id)')
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        // Récupération des cartes avec pagination
-        $cards = $qb
-            ->orderBy('r.id', 'DESC')
-            ->addOrderBy('ca.id', 'ASC')
-            ->setFirstResult($offset)
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
-
-        $totalPages = ceil($totalCards / $limit);
-
-        // Récupérer toutes les raretés pour le filtre
-        $rarities = $entityManager->getRepository(\App\Entity\Rarities::class)->findAll();
-
-        return $this->render('catalogue/animeCards.html.twig', [
-            'cards' => $cards,
-            'currentPage' => $page,
-            'totalPages' => $totalPages,
-            'totalCards' => $totalCards,
-            'search' => $search,
-            'selectedRarity' => $rarity,
-            'rarities' => $rarities,
-            'wishlistedIds' => $this->getWishlistedAnimeIds(),
-            'ownedIds' => $this->getOwnedAnimeIds(),
-        ]);
+        return $this->renderCards($request, CardType::Anime);
     }
 
     #[Route('/catalogue/film/{id}', name: 'app_catalogue_film_cards')]
-    public function showFilmCards(Film $film, Request $request, EntityManagerInterface $entityManager): Response
+    public function showFilmCards(Film $film, Request $request): Response
     {
-        $page = max(1, $request->query->getInt('page', 1));
-        $limit = 100;
-        $offset = ($page - 1) * $limit;
-
-        // Récupération des paramètres de recherche et filtrage
-        $search = $request->query->get('search', '');
-        $rarity = $request->query->get('rarity', '');
-
-        $repo = $entityManager->getRepository(CardFilm::class);
-        $qb = $repo->createQueryBuilder('cf')
-            ->leftJoin('cf.rarity', 'r')
-            ->where('cf.film = :film')
-            ->setParameter('film', $film);
-
-        // Filtre de recherche (nom de la carte)
-        if (!empty($search)) {
-            $qb->andWhere('cf.nom LIKE :search')
-               ->setParameter('search', '%' . $search . '%');
-        }
-
-        // Filtre de rareté
-        if (!empty($rarity)) {
-            $qb->andWhere('r.libelle = :rarity')
-               ->setParameter('rarity', $rarity);
-        }
-
-        // Compte total pour la pagination
-        $totalCards = (clone $qb)
-            ->select('count(cf.id)')
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        // Récupération des cartes avec pagination
-        $cards = $qb
-            ->orderBy('r.id', 'DESC')
-            ->addOrderBy('cf.id', 'ASC')
-            ->setFirstResult($offset)
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
-
-        $totalPages = ceil($totalCards / $limit);
-
-        // Récupérer toutes les raretés pour le filtre
-        $rarities = $entityManager->getRepository(\App\Entity\Rarities::class)->findAll();
-
-        return $this->render('catalogue/filmCards.html.twig', [
-            'film' => $film,
-            'cards' => $cards,
-            'currentPage' => $page,
-            'totalPages' => $totalPages,
-            'totalCards' => $totalCards,
-            'search' => $search,
-            'selectedRarity' => $rarity,
-            'rarities' => $rarities,
-            'wishlistedIds' => $this->getWishlistedFilmIds(),
-            'ownedIds' => $this->getOwnedFilmIds(),
-        ]);
+        return $this->renderCards($request, CardType::Film, $film);
     }
 
     #[Route('/catalogue/film', name: 'app_catalogue_all_film_cards')]
-    public function showAllFilmCards(Request $request, EntityManagerInterface $entityManager): Response
+    public function showAllFilmCards(Request $request): Response
     {
-        $page = max(1, $request->query->getInt('page', 1));
-        $limit = 100;
-        $offset = ($page - 1) * $limit;
-
-        // Récupération des paramètres de recherche et filtrage
-        $search = $request->query->get('search', '');
-        $rarity = $request->query->get('rarity', '');
-
-        $repo = $entityManager->getRepository(CardFilm::class);
-        $qb = $repo->createQueryBuilder('cf')
-            ->leftJoin('cf.rarity', 'r')
-            ->leftJoin('cf.film', 'f');
-
-        // Filtre de recherche (nom de la carte OU nom du film)
-        if (!empty($search)) {
-            $qb->andWhere('cf.nom LIKE :search OR f.nom LIKE :search')
-               ->setParameter('search', '%' . $search . '%');
-        }
-
-        // Filtre de rareté
-        if (!empty($rarity)) {
-            $qb->andWhere('r.libelle = :rarity')
-               ->setParameter('rarity', $rarity);
-        }
-
-        // Compte total pour la pagination
-        $totalCards = (clone $qb)
-            ->select('count(cf.id)')
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        // Récupération des cartes avec pagination
-        $cards = $qb
-            ->orderBy('r.id', 'DESC')
-            ->addOrderBy('cf.id', 'ASC')
-            ->setFirstResult($offset)
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
-
-        $totalPages = ceil($totalCards / $limit);
-
-        // Récupérer toutes les raretés pour le filtre
-        $rarities = $entityManager->getRepository(\App\Entity\Rarities::class)->findAll();
-
-        return $this->render('catalogue/filmCards.html.twig', [
-            'cards' => $cards,
-            'currentPage' => $page,
-            'totalPages' => $totalPages,
-            'totalCards' => $totalCards,
-            'search' => $search,
-            'selectedRarity' => $rarity,
-            'rarities' => $rarities,
-            'wishlistedIds' => $this->getWishlistedFilmIds(),
-            'ownedIds' => $this->getOwnedFilmIds(),
-        ]);
+        return $this->renderCards($request, CardType::Film);
     }
 
     /**
      * Cartes d'un jeu vidéo précis.
      */
     #[Route('/catalogue/jeu/{id}', name: 'app_catalogue_jeu_cards')]
-    public function showJeuCards(Jeu $jeu, Request $request, EntityManagerInterface $entityManager): Response
+    public function showJeuCards(Jeu $jeu, Request $request): Response
     {
-        $page = max(1, $request->query->getInt('page', 1));
-        $limit = 100;
-        $offset = ($page - 1) * $limit;
-
-        // Récupération des paramètres de recherche et filtrage
-        $search = $request->query->get('search', '');
-        $rarity = $request->query->get('rarity', '');
-
-        $repo = $entityManager->getRepository(CardJeu::class);
-        $qb = $repo->createQueryBuilder('cj')
-            ->leftJoin('cj.rarity', 'r')
-            ->where('cj.jeu = :jeu')
-            ->setParameter('jeu', $jeu);
-
-        // Filtre de recherche (nom de la carte)
-        if (!empty($search)) {
-            $qb->andWhere('cj.nom LIKE :search')
-               ->setParameter('search', '%' . $search . '%');
-        }
-
-        // Filtre de rareté
-        if (!empty($rarity)) {
-            $qb->andWhere('r.libelle = :rarity')
-               ->setParameter('rarity', $rarity);
-        }
-
-        // Compte total pour la pagination
-        $totalCards = (clone $qb)
-            ->select('count(cj.id)')
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        // Récupération des cartes avec pagination
-        $cards = $qb
-            ->orderBy('r.id', 'DESC')
-            ->addOrderBy('cj.id', 'ASC')
-            ->setFirstResult($offset)
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
-
-        $totalPages = ceil($totalCards / $limit);
-
-        // Récupérer toutes les raretés pour le filtre
-        $rarities = $entityManager->getRepository(\App\Entity\Rarities::class)->findAll();
-
-        return $this->render('catalogue/jeuCards.html.twig', [
-            'jeu' => $jeu,
-            'cards' => $cards,
-            'currentPage' => $page,
-            'totalPages' => $totalPages,
-            'totalCards' => $totalCards,
-            'search' => $search,
-            'selectedRarity' => $rarity,
-            'rarities' => $rarities,
-            'wishlistedIds' => $this->getWishlistedJeuIds(),
-            'ownedIds' => $this->getOwnedJeuIds(),
-        ]);
+        return $this->renderCards($request, CardType::Jeu, $jeu);
     }
 
     #[Route('/catalogue/jeu', name: 'app_catalogue_all_jeu_cards')]
-    public function showAllJeuCards(Request $request, EntityManagerInterface $entityManager): Response
+    public function showAllJeuCards(Request $request): Response
+    {
+        return $this->renderCards($request, CardType::Jeu);
+    }
+
+    /**
+     * Œuvres ayant au moins une carte, avec leur nombre de cartes.
+     *
+     * @return array<int, array{id: int, nom: string, card_count: int}>
+     */
+    private function getTitlesWithCardCount(CardType $type): array
+    {
+        return $this->entityManager->getRepository($type->cardClass())
+            ->createQueryBuilder('c')
+            ->select('t.id, t.nom, count(c.id) as card_count')
+            ->join('c.' . $type->titleProperty(), 't')
+            ->groupBy('t.id, t.nom')
+            ->orderBy('t.nom', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Liste paginée des cartes d'une famille, filtrable par nom et par rareté.
+     *
+     * Avec une œuvre ($title), seules ses cartes sont listées et la recherche porte sur
+     * le nom de la carte ; sans œuvre, toutes les cartes de la famille sont listées et la
+     * recherche porte aussi sur le nom de l'œuvre.
+     */
+    private function renderCards(Request $request, CardType $type, Anime|Film|Jeu|null $title = null): Response
     {
         $page = max(1, $request->query->getInt('page', 1));
-        $limit = 100;
-        $offset = ($page - 1) * $limit;
 
         // Récupération des paramètres de recherche et filtrage
         $search = $request->query->get('search', '');
         $rarity = $request->query->get('rarity', '');
 
-        $repo = $entityManager->getRepository(CardJeu::class);
-        $qb = $repo->createQueryBuilder('cj')
-            ->leftJoin('cj.rarity', 'r')
-            ->leftJoin('cj.jeu', 'j');
+        $qb = $this->entityManager->getRepository($type->cardClass())
+            ->createQueryBuilder('c')
+            ->leftJoin('c.rarity', 'r');
 
-        // Filtre de recherche (nom de la carte OU nom du jeu)
+        if ($title !== null) {
+            $qb->where(sprintf('c.%s = :title', $type->titleProperty()))
+               ->setParameter('title', $title);
+        } else {
+            $qb->leftJoin('c.' . $type->titleProperty(), 't');
+        }
+
         if (!empty($search)) {
-            $qb->andWhere('cj.nom LIKE :search OR j.nom LIKE :search')
+            $qb->andWhere($title !== null ? 'c.nom LIKE :search' : 'c.nom LIKE :search OR t.nom LIKE :search')
                ->setParameter('search', '%' . $search . '%');
         }
 
-        // Filtre de rareté
         if (!empty($rarity)) {
             $qb->andWhere('r.libelle = :rarity')
                ->setParameter('rarity', $rarity);
@@ -400,121 +127,64 @@ class CatalogueController extends AbstractController
 
         // Compte total pour la pagination
         $totalCards = (clone $qb)
-            ->select('count(cj.id)')
+            ->select('count(c.id)')
             ->getQuery()
             ->getSingleScalarResult();
 
-        // Récupération des cartes avec pagination
         $cards = $qb
             ->orderBy('r.id', 'DESC')
-            ->addOrderBy('cj.id', 'ASC')
-            ->setFirstResult($offset)
-            ->setMaxResults($limit)
+            ->addOrderBy('c.id', 'ASC')
+            ->setFirstResult(($page - 1) * self::CARDS_PER_PAGE)
+            ->setMaxResults(self::CARDS_PER_PAGE)
             ->getQuery()
             ->getResult();
 
-        $totalPages = ceil($totalCards / $limit);
-
-        // Récupérer toutes les raretés pour le filtre
-        $rarities = $entityManager->getRepository(\App\Entity\Rarities::class)->findAll();
-
-        return $this->render('catalogue/jeuCards.html.twig', [
+        $parameters = [
             'cards' => $cards,
             'currentPage' => $page,
-            'totalPages' => $totalPages,
+            'totalPages' => ceil($totalCards / self::CARDS_PER_PAGE),
             'totalCards' => $totalCards,
             'search' => $search,
             'selectedRarity' => $rarity,
-            'rarities' => $rarities,
-            'wishlistedIds' => $this->getWishlistedJeuIds(),
-            'ownedIds' => $this->getOwnedJeuIds(),
-        ]);
+            'rarities' => $this->entityManager->getRepository(Rarities::class)->findAll(),
+            'wishlistedIds' => $this->getWishlistedIds($type),
+            'ownedIds' => $this->getOwnedIds($type),
+        ];
+
+        // Le template attend l'œuvre sous son propre nom : `anime`, `film` ou `jeu`.
+        if ($title !== null) {
+            $parameters = [$type->value => $title] + $parameters;
+        }
+
+        return $this->render(sprintf('catalogue/%sCards.html.twig', $type->value), $parameters);
     }
 
     /**
      * @return int[]
      */
-    private function getWishlistedAnimeIds(): array
+    private function getWishlistedIds(CardType $type): array
     {
         $user = $this->getUser();
 
-        return $user
-            ? array_map(fn ($card) => $card->getId(), $user->getWishlistCardAnimes()->toArray())
+        return $user instanceof User
+            ? array_map(fn ($card) => $card->getId(), $type->wishlistOf($user)->toArray())
             : [];
     }
 
     /**
      * @return int[]
      */
-    private function getWishlistedFilmIds(): array
+    private function getOwnedIds(CardType $type): array
     {
         $user = $this->getUser();
 
-        return $user
-            ? array_map(fn ($card) => $card->getId(), $user->getWishlistCardFilms()->toArray())
-            : [];
-    }
-
-    /**
-     * @return int[]
-     */
-    private function getOwnedAnimeIds(): array
-    {
-        $user = $this->getUser();
-
-        if (!$user) {
+        if (!$user instanceof User) {
             return [];
         }
 
         return array_map(
-            fn ($userCard) => $userCard->getCardAnime()->getId(),
-            array_filter($user->getUserCardAnimes()->toArray(), fn ($userCard) => $userCard->getQuantity() > 0)
-        );
-    }
-
-    /**
-     * @return int[]
-     */
-    private function getOwnedFilmIds(): array
-    {
-        $user = $this->getUser();
-
-        if (!$user) {
-            return [];
-        }
-
-        return array_map(
-            fn ($userCard) => $userCard->getCardFilm()->getId(),
-            array_filter($user->getUserCardFilms()->toArray(), fn ($userCard) => $userCard->getQuantity() > 0)
-        );
-    }
-
-    /**
-     * @return int[]
-     */
-    private function getWishlistedJeuIds(): array
-    {
-        $user = $this->getUser();
-
-        return $user
-            ? array_map(fn ($card) => $card->getId(), $user->getWishlistCardJeus()->toArray())
-            : [];
-    }
-
-    /**
-     * @return int[]
-     */
-    private function getOwnedJeuIds(): array
-    {
-        $user = $this->getUser();
-
-        if (!$user) {
-            return [];
-        }
-
-        return array_map(
-            fn ($userCard) => $userCard->getCardJeu()->getId(),
-            array_filter($user->getUserCardJeus()->toArray(), fn ($userCard) => $userCard->getQuantity() > 0)
+            fn ($userCard) => $type->cardOf($userCard)->getId(),
+            array_filter($type->userCardsOf($user)->toArray(), fn ($userCard) => $userCard->getQuantity() > 0)
         );
     }
 }
