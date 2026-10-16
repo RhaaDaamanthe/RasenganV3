@@ -53,7 +53,7 @@ $PHP bin/console debug:router         # toutes les routes
 $PHP bin/console lint:twig templates  # vérifier les templates
 $PHP bin/console cache:clear
 $PHP bin/console doctrine:migrations:migrate      # nécessite la base
-$PHP bin/console app:recalculate-collector-badges # recalcul des badges
+$PHP bin/console app:badges:recalculate-collector # recalcul des badges
 $PHP -S localhost:8000 -t public public/index.php # serveur de dev sans Symfony CLI
 $PHP vendor/bin/phpunit                           # suite de tests
 ```
@@ -97,7 +97,7 @@ src/
   Repository/   repositories Doctrine (DQL / QueryBuilder)
   Service/      logique métier réutilisable (voir plus bas)
   Form/         Symfony Forms (Anime, Film, CardAnime, CardFilm, Badge, profil, inscription)
-  Command/      commandes console (hash de mots de passe, recalcul badges)
+  Command/      commandes console (recalcul badges)
 config/packages/  doctrine, security, twig, cache, csrf, validator...
 migrations/       migrations Doctrine (versions horodatées)
 templates/        Twig, un dossier par domaine, tous étendent base.html.twig
@@ -187,7 +187,7 @@ Les images de cartes de jeu vidéo vont dans `public/images/Cartes/Jeux_<Rareté
 - Les images de cartes sont rangées par rareté sous `public/images/Cartes/<Rareté>/`
   (`Films_<Rareté>/` pour les films, `Jeux_<Rareté>/` pour les jeux vidéo) ; l'upload
   calcule le dossier cible à partir du libellé de rareté.
-- `AGENTS.md` est une **copie** de ce fichier : modifier les deux ensemble.
+- Ce fichier est la **seule source** des instructions : `CLAUDE.md` se contente de l'importer (`@AGENTS.md`). Ne rien écrire dans `CLAUDE.md`.
 - Ne pas committer `.env` (il contient l'`APP_SECRET`, les identifiants de base et les
   webhooks Discord réels) et ne pas relayer son contenu.
 
