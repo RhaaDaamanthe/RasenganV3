@@ -57,7 +57,7 @@
 
         .carousel-track {
             display: flex;
-            transition: transform 0.8s ease-in-out;
+            will-change: transform; /* défilement continu piloté en JS */
         }
 
         .carousel-card {
@@ -304,26 +304,54 @@ document.addEventListener("DOMContentLoaded", () => {
     const track = document.getElementById("carouselTrack");
     if (!track) return;
 
-    const images = {{ carouselImages|json_encode|raw }};
-    const total = images.length;
-    const visible = 5;
-    const delay = 4000;
+    // Réserve d'images (déjà mélangée côté serveur) : les cartes qui sortent à gauche
+    // reviennent à droite avec une nouvelle image, pour ne pas boucler sur les mêmes.
+    const pool = {{ allCarouselImages|slice(0, 80)|map(path => asset(path))|json_encode|raw }};
+    const cards = track.querySelectorAll(".carousel-card");
+    const speed = 45; // pixels par seconde
 
-    if (total <= visible) return;
+    // Pas assez de cartes pour remplir la bande, ou animations désactivées par l'utilisateur.
+    if (cards.length <= 5 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    setInterval(() => {
-        const first = track.firstElementChild;
-        const cardWidth = first.offsetWidth + 20; // padding inclus
+    let offset = 0;
+    let nextImage = cards.length;
+    let paused = false;
+    let lastTime = null;
 
-        track.style.transition = "transform 0.8s ease-in-out";
-        track.style.transform = `translateX(-${cardWidth}px)`;
+    const container = track.parentElement;
+    container.addEventListener("mouseenter", () => { paused = true; });
+    container.addEventListener("mouseleave", () => { paused = false; });
 
-        setTimeout(() => {
-            track.appendChild(first);
-            track.style.transition = "none";
-            track.style.transform = "translateX(0)";
-        }, 850);
-    }, delay);
+    const step = (time) => {
+        // dt plafonné : au retour sur l'onglet (rAF suspendu), pas de saut brutal.
+        const dt = lastTime === null ? 0 : Math.min(time - lastTime, 100) / 1000;
+        lastTime = time;
+
+        if (!paused) {
+            offset += speed * dt;
+
+            // La première carte est entièrement sortie : on la recycle en fin de piste et on
+            // retire exactement sa largeur (padding compris) pour que rien ne bouge à l'écran.
+            const first = track.firstElementChild;
+            const width = first.getBoundingClientRect().width;
+            if (offset >= width) {
+                offset -= width;
+                track.appendChild(first);
+
+                if (pool.length > cards.length) {
+                    const img = first.querySelector("img");
+                    img.src = pool[nextImage % pool.length];
+                    nextImage++;
+                }
+            }
+
+            track.style.transform = `translate3d(${-offset}px, 0, 0)`;
+        }
+
+        requestAnimationFrame(step);
+    };
+
+    requestAnimationFrame(step);
 });
 
 document.addEventListener("DOMContentLoaded", () => {
