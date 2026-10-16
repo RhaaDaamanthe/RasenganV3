@@ -58,20 +58,24 @@ class MythicController extends AbstractController
             $ownedQuantity = $owned?->getQuantity() ?? 0;
             $ok = $ownedQuantity >= $needed;
 
+            // Toutes les alternatives sont renvoyées (pas seulement celle qui valide la
+            // ligne) pour que le joueur sache quelles autres cartes sont acceptées.
             $viaAlt = null;
-            if (!$ok) {
-                foreach ($requirement->getAlternativeCards() as $altCard) {
-                    $altOwned = $entityManager->getRepository(UserCardAnime::class)->findOneBy([
-                        'user' => $user,
-                        'cardAnime' => $altCard,
-                    ]);
-                    $altQuantity = $altOwned?->getQuantity() ?? 0;
-                    if ($altQuantity >= $needed) {
-                        $ok = true;
-                        $viaAlt = $altCard;
-                        $ownedQuantity = $altQuantity;
-                        break;
-                    }
+            $alternatives = [];
+            foreach ($requirement->getAlternativeCards() as $altCard) {
+                $altOwned = $entityManager->getRepository(UserCardAnime::class)->findOneBy([
+                    'user' => $user,
+                    'cardAnime' => $altCard,
+                ]);
+                $altQuantity = $altOwned?->getQuantity() ?? 0;
+                $alternatives[] = [
+                    'nom' => $altCard->getNom(),
+                    'owned' => $altQuantity,
+                ];
+                if (!$ok && $altQuantity >= $needed) {
+                    $ok = true;
+                    $viaAlt = $altCard;
+                    $ownedQuantity = $altQuantity;
                 }
             }
 
@@ -88,6 +92,7 @@ class MythicController extends AbstractController
                 'ok' => $ok,
                 'wishlisted' => $user->getWishlistCardAnimes()->contains($requiredCard),
                 'viaAlt' => $viaAlt?->getNom(),
+                'alternatives' => $alternatives,
             ];
         }
 
@@ -225,20 +230,24 @@ class MythicController extends AbstractController
             $ownedQuantity = $owned?->getQuantity() ?? 0;
             $ok = $ownedQuantity >= $needed;
 
+            // Toutes les alternatives sont renvoyées (pas seulement celle qui valide la
+            // ligne) pour que le joueur sache quelles autres cartes sont acceptées.
             $viaAlt = null;
-            if (!$ok) {
-                foreach ($requirement->getAlternativeCards() as $altCard) {
-                    $altOwned = $entityManager->getRepository(UserCardFilm::class)->findOneBy([
-                        'user' => $user,
-                        'cardFilm' => $altCard,
-                    ]);
-                    $altQuantity = $altOwned?->getQuantity() ?? 0;
-                    if ($altQuantity >= $needed) {
-                        $ok = true;
-                        $viaAlt = $altCard;
-                        $ownedQuantity = $altQuantity;
-                        break;
-                    }
+            $alternatives = [];
+            foreach ($requirement->getAlternativeCards() as $altCard) {
+                $altOwned = $entityManager->getRepository(UserCardFilm::class)->findOneBy([
+                    'user' => $user,
+                    'cardFilm' => $altCard,
+                ]);
+                $altQuantity = $altOwned?->getQuantity() ?? 0;
+                $alternatives[] = [
+                    'nom' => $altCard->getNom(),
+                    'owned' => $altQuantity,
+                ];
+                if (!$ok && $altQuantity >= $needed) {
+                    $ok = true;
+                    $viaAlt = $altCard;
+                    $ownedQuantity = $altQuantity;
                 }
             }
 
@@ -255,6 +264,7 @@ class MythicController extends AbstractController
                 'ok' => $ok,
                 'wishlisted' => $user->getWishlistCardFilms()->contains($requiredCard),
                 'viaAlt' => $viaAlt?->getNom(),
+                'alternatives' => $alternatives,
             ];
         }
 
@@ -354,12 +364,7 @@ class MythicController extends AbstractController
         ]);
     }
 
-    /**
-     * Section jeux vidéo encore fermée aux joueurs : fonctionnelle, mais réservée
-     * aux admins le temps du lancement. Retirer l'attribut IsGranted pour l'ouvrir.
-     */
     #[Route('/catalogue/jeu/mythic/{id}/status', name: 'app_mythic_jeu_status', methods: ['GET'])]
-    #[IsGranted('ROLE_ADMIN')]
     public function jeuStatus(CardJeu $card, EntityManagerInterface $entityManager): JsonResponse
     {
         $user = $this->getUser();
@@ -397,20 +402,24 @@ class MythicController extends AbstractController
             $ownedQuantity = $owned?->getQuantity() ?? 0;
             $ok = $ownedQuantity >= $needed;
 
+            // Toutes les alternatives sont renvoyées (pas seulement celle qui valide la
+            // ligne) pour que le joueur sache quelles autres cartes sont acceptées.
             $viaAlt = null;
-            if (!$ok) {
-                foreach ($requirement->getAlternativeCards() as $altCard) {
-                    $altOwned = $entityManager->getRepository(UserCardJeu::class)->findOneBy([
-                        'user' => $user,
-                        'cardJeu' => $altCard,
-                    ]);
-                    $altQuantity = $altOwned?->getQuantity() ?? 0;
-                    if ($altQuantity >= $needed) {
-                        $ok = true;
-                        $viaAlt = $altCard;
-                        $ownedQuantity = $altQuantity;
-                        break;
-                    }
+            $alternatives = [];
+            foreach ($requirement->getAlternativeCards() as $altCard) {
+                $altOwned = $entityManager->getRepository(UserCardJeu::class)->findOneBy([
+                    'user' => $user,
+                    'cardJeu' => $altCard,
+                ]);
+                $altQuantity = $altOwned?->getQuantity() ?? 0;
+                $alternatives[] = [
+                    'nom' => $altCard->getNom(),
+                    'owned' => $altQuantity,
+                ];
+                if (!$ok && $altQuantity >= $needed) {
+                    $ok = true;
+                    $viaAlt = $altCard;
+                    $ownedQuantity = $altQuantity;
                 }
             }
 
@@ -427,6 +436,7 @@ class MythicController extends AbstractController
                 'ok' => $ok,
                 'wishlisted' => $user->getWishlistCardJeus()->contains($requiredCard),
                 'viaAlt' => $viaAlt?->getNom(),
+                'alternatives' => $alternatives,
             ];
         }
 
@@ -438,11 +448,7 @@ class MythicController extends AbstractController
         ]);
     }
 
-    /**
-     * Voir jeuStatus() : section encore réservée aux admins.
-     */
     #[Route('/catalogue/jeu/mythic/{id}/unlock', name: 'app_mythic_jeu_unlock', methods: ['POST'])]
-    #[IsGranted('ROLE_ADMIN')]
     public function jeuUnlock(CardJeu $card, Request $request, EntityManagerInterface $entityManager, BadgeService $badgeService, WishlistService $wishlistService): JsonResponse
     {
         if (!$this->isCsrfTokenValid('mythic-unlock', (string) $request->request->get('_token'))) {

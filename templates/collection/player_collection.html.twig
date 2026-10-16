@@ -69,9 +69,7 @@
                         <option value="">Toutes les sections</option>
                         <option value="anime" {% if selectedSection == 'anime' %}selected{% endif %}>Animés</option>
                         <option value="film" {% if selectedSection == 'film' %}selected{% endif %}>Films & séries</option>
-                        {% if is_granted('ROLE_ADMIN') %}
-                            <option value="jeu" {% if selectedSection == 'jeu' %}selected{% endif %}>Jeux vidéo</option>
-                        {% endif %}
+                        <option value="jeu" {% if selectedSection == 'jeu' %}selected{% endif %}>Jeux vidéo</option>
                     </select>
                 </div>
 
@@ -279,7 +277,7 @@
                 { key: 'film', label: '🎬 Films & séries', rows: collectionProgress.film },
                 { key: 'jeu', label: '🎮 Jeux vidéo', rows: collectionProgress.jeu }
             ] %}
-                {% if group.rows|length > 0 and (group.key != 'jeu' or is_granted('ROLE_ADMIN')) %}
+                {% if group.rows|length > 0 %}
                     <section class="work-progress-section work-progress-{{ group.key }}">
                         <header class="work-progress-section-header">
                             <h4>{{ group.label }}</h4>
@@ -288,14 +286,30 @@
                         <div class="work-progress-grid">
                             {% for row in group.rows %}
                                 <article class="work-progress-card{% if row.owned == row.total %} complete{% endif %}">
-                                    <div class="work-progress-info">
-                                        <strong>{{ row.name }}</strong>
-                                        <span>{{ row.owned }}/{{ row.total }} · {{ row.percent|number_format(1) }}%</span>
+                                    <div class="work-progress-thumb{% if not row.imageOwned %} unowned{% endif %}">
+                                        {% if row.imagePath %}
+                                            <img src="{{ asset(row.imagePath) }}" alt="" loading="lazy">
+                                        {% else %}
+                                            <span>{{ row.name|first|upper }}</span>
+                                        {% endif %}
                                     </div>
-                                    <div class="work-progress-track" role="progressbar" aria-valuenow="{{ row.percent }}" aria-valuemin="0" aria-valuemax="100" aria-label="Progression de {{ row.name }}">
-                                        <span style="width: {{ row.percent }}%"></span>
+                                    <div class="work-progress-body">
+                                        <strong class="work-progress-name" title="{{ row.name }}">{{ row.name }}</strong>
+                                        <span class="work-progress-count">
+                                            {{ row.owned }}/{{ row.total }} · {{ row.percent|number_format(0) }} %
+                                            {% if row.owned == row.total %}<span class="work-progress-complete">✓ Terminée</span>{% endif %}
+                                        </span>
+                                        <div class="work-progress-track" role="progressbar" aria-valuenow="{{ row.percent }}" aria-valuemin="0" aria-valuemax="100" aria-label="Progression de {{ row.name }}">
+                                            <span style="width: {{ row.percent }}%"></span>
+                                        </div>
+                                        <ul class="work-progress-rarities">
+                                            {% for rarity in row.rarities %}
+                                                <li class="work-rarity {{ rarity.slug }}{% if rarity.owned == rarity.total %} done{% endif %}" title="{{ rarity.label }} : {{ rarity.owned }}/{{ rarity.total }}">
+                                                    <abbr>{{ rarity.short }}</abbr> {{ rarity.owned }}/{{ rarity.total }}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
                                     </div>
-                                    {% if row.owned == row.total %}<span class="work-progress-complete">✓ Terminée</span>{% endif %}
                                 </article>
                             {% endfor %}
                         </div>

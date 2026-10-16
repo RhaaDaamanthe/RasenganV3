@@ -119,6 +119,8 @@ qu'un service existe : vérifier avant.
 - **BadgeService** — `refreshCollectorBadges()` / `refreshSeniorityBadges()` (paliers) et
   `getBadgeShowcase()` pour la vitrine du profil.
 - **RarityStatsService** — répartition de la collection par rareté (barres du profil).
+- **CollectionProgressService** — progression par œuvre (vignette = carte la plus rare
+  possédée, détail possédé/total par rareté), triée de la plus fournie à la moins fournie.
 - **DiscordNotifier** — webhooks Discord (drops et échanges). Regroupe les drops
   successifs d'un même joueur en **batch** (TTL 1800 s, stocké en cache), édite le message
   existant, joint l'image de la carte, mentionne le joueur via son `discordId`, couleur
@@ -166,25 +168,11 @@ Les raretés sans carte disponible sont exclues avant le tirage ; l'attribution 
 `app_wheel_*_confirm`, qui crée ou incrémente le `UserCard*`, rafraîchit les badges,
 nettoie la wishlist et notifie Discord. Le rendu visuel est dans `public/js/wheel.js`.
 
-### Jeux vidéo (section non encore ouverte aux joueurs)
+### Jeux vidéo
 
-La famille **Jeu / CardJeu / UserCardJeu / CardJeuRequirement** est complète et
-fonctionnelle (roue, attribution, catalogue, wishlist, mythiques, échanges, badges,
-stats, drops Discord — type `Jeu vidéo`), mais **volontairement fermée aux joueurs** en
-attendant le lancement :
-
-- dans `templates/catalogue/index.html.twig`, la troisième tuile reste « ????? », porte
-  la classe `card-locked`, n'a pas de `data-url` et est exclue du listener JS : elle
-  n'est **pas cliquable** ;
-- les routes joueur de la section (`app_catalogue_jeu_cards`,
-  `app_catalogue_all_jeu_cards`, `app_mythic_jeu_*`, `app_wishlist_toggle_jeu`) portent
-  `#[IsGranted('ROLE_ADMIN')]` ;
-- la liste des jeux dans le catalogue et l'option « Jeux vidéo » du filtre de section
-  d'une collection ne s'affichent que pour un admin.
-
-**Pour ouvrir la section aux joueurs** : retirer les `#[IsGranted('ROLE_ADMIN')]` de ces
-routes, retirer la classe `card-locked` de la tuile et lui rendre son `data-url` +
-son libellé, puis lever les `is_granted('ROLE_ADMIN')` des templates concernés.
+La famille **Jeu / CardJeu / UserCardJeu / CardJeuRequirement** est complète et ouverte
+à tous les joueurs (roue, attribution, catalogue, wishlist, mythiques, échanges, badges,
+stats, drops Discord — type `Jeu vidéo`), au même titre que les animés et les films.
 
 Les images de cartes de jeu vidéo vont dans `public/images/Cartes/Jeux_<Rareté>/`
 (comme `Films_<Rareté>/` pour les films).

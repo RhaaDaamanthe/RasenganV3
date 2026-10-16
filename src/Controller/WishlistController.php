@@ -80,12 +80,7 @@ class WishlistController extends AbstractController
         return $this->json(['success' => true, 'wishlisted' => $wishlisted]);
     }
 
-    /**
-     * Section jeux vidéo encore fermée aux joueurs : fonctionnelle, mais réservée
-     * aux admins le temps du lancement. Retirer l'attribut IsGranted pour l'ouvrir.
-     */
     #[Route('/catalogue/jeu/wishlist/{id}/toggle', name: 'app_wishlist_toggle_jeu', methods: ['POST'])]
-    #[IsGranted('ROLE_ADMIN')]
     public function toggleJeu(CardJeu $card, Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         if (!$this->isCsrfTokenValid('wishlist-toggle', (string) $request->request->get('_token'))) {

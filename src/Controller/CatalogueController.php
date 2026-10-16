@@ -40,18 +40,14 @@ class CatalogueController extends AbstractController
             ->getQuery()
             ->getResult();
 
-        // Les jeux vidéo ne sont pas encore ouverts aux joueurs : la tuile du catalogue
-        // reste « ????? » et non cliquable, et la liste n'est affichée qu'aux admins.
-        $jeux = $this->isGranted('ROLE_ADMIN')
-            ? $entityManager->getRepository(CardJeu::class)
-                ->createQueryBuilder('cj')
-                ->select('j.id, j.nom, count(cj.id) as card_count')
-                ->join('cj.jeu', 'j')
-                ->groupBy('j.id, j.nom')
-                ->orderBy('j.nom', 'ASC')
-                ->getQuery()
-                ->getResult()
-            : [];
+        $jeux = $entityManager->getRepository(CardJeu::class)
+            ->createQueryBuilder('cj')
+            ->select('j.id, j.nom, count(cj.id) as card_count')
+            ->join('cj.jeu', 'j')
+            ->groupBy('j.id, j.nom')
+            ->orderBy('j.nom', 'ASC')
+            ->getQuery()
+            ->getResult();
 
         return $this->render('catalogue/index.html.twig', [
             'animes' => $animes,
@@ -310,12 +306,8 @@ class CatalogueController extends AbstractController
 
     /**
      * Cartes d'un jeu vidéo précis.
-     *
-     * Section encore fermée aux joueurs : tout est fonctionnel mais réservé aux admins
-     * le temps de préparer le lancement. Retirer l'attribut IsGranted pour l'ouvrir.
      */
     #[Route('/catalogue/jeu/{id}', name: 'app_catalogue_jeu_cards')]
-    #[IsGranted('ROLE_ADMIN')]
     public function showJeuCards(Jeu $jeu, Request $request, EntityManagerInterface $entityManager): Response
     {
         $page = max(1, $request->query->getInt('page', 1));
@@ -378,11 +370,7 @@ class CatalogueController extends AbstractController
         ]);
     }
 
-    /**
-     * Voir showJeuCards() : section encore réservée aux admins.
-     */
     #[Route('/catalogue/jeu', name: 'app_catalogue_all_jeu_cards')]
-    #[IsGranted('ROLE_ADMIN')]
     public function showAllJeuCards(Request $request, EntityManagerInterface $entityManager): Response
     {
         $page = max(1, $request->query->getInt('page', 1));
