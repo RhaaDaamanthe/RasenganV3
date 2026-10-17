@@ -80,7 +80,8 @@ Tests existants :
 - `tests/WheelOddsTest.php` — tables de poids, plancher de rareté, seuils du tirage ;
 - `tests/RaritiesTest.php` — points par rareté, `isMythique()`, `isAuMoinsLegendaire()` ;
 - `tests/TradeServiceTest.php` — règles de `TradeService` (validation d'une offre,
-  droits sur accepter / refuser / annuler, expiration) avec un EntityManager simulé, sans base ;
+  droits sur accepter / refuser / annuler, expiration, offre traitée en concurrence) avec un
+  EntityManager simulé, sans base ;
 - `tests/DiscordNotifierTradeTest.php` — notifications d'échange : un embed par carte,
   image jointe quand elle existe.
 

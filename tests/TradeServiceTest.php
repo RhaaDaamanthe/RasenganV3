@@ -234,6 +234,72 @@ class TradeServiceTest extends TestCase
         self::assertEquals($offer->getExpiresAt(), $offer->getResolvedAt());
     }
 
+    /**
+     * Double-clic sur « Accepter » : la seconde requête, une fois le verrou obtenu, relit
+     * l'offre déjà acceptée par la première et ne doit pas transférer les cartes une
+     * seconde fois.
+     */
+    public function testOfferAcceptedConcurrentlyIsNotTransferredTwice(): void
+    {
+        $offer = $this->pendingOffer();
+        $offer->addItem((new TradeOfferItem())->setOwner($this->bob)->setCardAnime($this->cards[2])->setQuantity(1));
+
+        // Le refresh verrouillé relit l'état committé par la requête concurrente.
+        $this->entityManager->method('refresh')->willReturnCallback(function (object $entity) {
+            if ($entity instanceof TradeOffer) {
+                $entity->setStatus(TradeOffer::STATUS_ACCEPTED);
+            }
+        });
+        $this->entityManager->expects(self::never())->method('flush');
+        $this->discordNotifier->expects(self::never())->method('notifyTradeAccepted');
+
+        try {
+            $this->service->accept($offer, $this->bob);
+            self::fail('Une offre déjà acceptée ne doit pas être traitée une seconde fois.');
+        } catch (\InvalidArgumentException $e) {
+            self::assertSame('Cette offre a déjà été traitée.', $e->getMessage());
+        }
+
+        self::assertSame(1, $this->inventory[0]->getQuantity(), 'Alice garde son Naruto.');
+        self::assertSame(3, $this->inventory[1]->getQuantity(), 'Bob garde ses Sasuke.');
+    }
+
+    /** Une annulation qui arrive pendant l'acceptation ne doit pas écraser le statut. */
+    public function testCannotCancelAnOfferAcceptedConcurrently(): void
+    {
+        $offer = $this->pendingOffer();
+
+        $this->entityManager->method('refresh')->willReturnCallback(function (object $entity) {
+            $entity->setStatus(TradeOffer::STATUS_ACCEPTED);
+        });
+
+        $this->expectExceptionMessage('déjà été traitée');
+
+        try {
+            $this->service->cancel($offer, $this->alice);
+        } finally {
+            self::assertSame(TradeOffer::STATUS_ACCEPTED, $offer->getStatus());
+        }
+    }
+
+    public function testInvalidCounterOfferLeavesOriginalOfferPending(): void
+    {
+        $offer = $this->pendingOffer();
+
+        try {
+            // Bob ne possède que 3 Sasuke.
+            $this->service->counter($offer, $this->bob, [
+                $this->line($this->bob, 2, 4),
+                $this->line($this->alice, 1, 1),
+            ]);
+            self::fail('La contre-offre aurait dû être refusée.');
+        } catch (\InvalidArgumentException) {
+        }
+
+        self::assertTrue($offer->isPending());
+        self::assertNull($offer->getResolvedAt());
+    }
+
     private function card(int $id, string $nom): CardAnime
     {
         $card = (new CardAnime())->setNom($nom);
