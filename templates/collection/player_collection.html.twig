@@ -166,7 +166,7 @@
                         <div class="card-content">
                             <h2 class="card-title">x{{ userCard.quantity }}</h2>
                             {% if card.description %}
-                                <p>{{ card.description|raw }}</p>
+                                <p>{{ card.description|nl2br }}</p>
                             {% endif %}
                         </div>
                     </div>

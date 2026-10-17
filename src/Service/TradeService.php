@@ -295,20 +295,36 @@ class TradeService
     }
 
     /**
-     * Pose un verrou d'écriture sur les lignes UserCard* engagées dans l'offre.
+     * Pose un verrou d'écriture sur les cartes engagées dans l'offre, puis sur les lignes
+     * UserCard* correspondantes.
      *
-     * Les verrous sont pris dans un ordre déterministe (classe puis id) pour que deux
-     * échanges concurrents portant sur les mêmes cartes ne se bloquent pas mutuellement.
+     * Le verrou sur la carte (le même que CardAttributionService) sérialise aussi les
+     * créations de lignes : sans lui, deux échanges simultanés donnant une carte jamais
+     * possédée au même joueur inséreraient chacun leur ligne (refusée par la contrainte
+     * unique user/carte). Les verrous sont pris dans un ordre déterministe (classe puis
+     * id) pour que deux échanges concurrents ne se bloquent pas mutuellement.
      */
     private function lockUserCards(TradeOffer $offer): void
     {
+        $cards = [];
+        foreach ($offer->getItems() as $item) {
+            $card = $item->getCard();
+            $cards[sprintf('%s#%010d', $card::class, $card->getId())] = $card;
+        }
+
+        ksort($cards);
+
+        foreach ($cards as $card) {
+            $this->entityManager->lock($card, LockMode::PESSIMISTIC_WRITE);
+        }
+
         $userCards = [];
 
         foreach ($offer->getItems() as $item) {
             foreach ([$offer->getProposer(), $offer->getRecipient()] as $participant) {
                 $userCard = $this->findUserCard($participant, $item->getCard());
                 if ($userCard !== null) {
-                    $userCards[$userCard::class . '#' . $userCard->getId()] = $userCard;
+                    $userCards[sprintf('%s#%010d', $userCard::class, $userCard->getId())] = $userCard;
                 }
             }
         }

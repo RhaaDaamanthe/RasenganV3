@@ -6,6 +6,8 @@ use App\Repository\UserCardJeuRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: UserCardJeuRepository::class)]
+// Une seule ligne par joueur et par carte : les exemplaires sont comptés dans quantity.
+#[ORM\UniqueConstraint(name: 'uniq_user_card_jeu', columns: ['user_id', 'card_jeu_id'])]
 class UserCardJeu
 {
     #[ORM\Id]

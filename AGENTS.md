@@ -188,7 +188,9 @@ commun aux trois familles, passer par cet enum plutôt que de dupliquer.
   plutôt que des nombres. `getPoints()` (points de collection, selon le libellé),
   `isMythique()` et `isAuMoinsLegendaire()` servent aussi dans les templates.
 - **UserCardAnime / UserCardFilm / UserCardJeu** — possession : `user`, `card`,
-  `quantity`, `obtainedAt`. `quantity > 1` = doublon échangeable.
+  `quantity`, `obtainedAt`. `quantity > 1` = doublon échangeable. Une seule ligne par
+  joueur et par carte (index unique `uniq_user_card_*`) : toujours incrémenter `quantity`
+  d'une ligne existante plutôt qu'en créer une seconde.
 - **CardAnimeRequirement / CardFilmRequirement / CardJeuRequirement** — recette d'une mythique : carte requise
   (ou `placeholderNom` si la carte n'existe pas encore), `quantityRequired`, et des
   `alternativeCards` acceptées en remplacement.

@@ -49,6 +49,7 @@ final class UserController extends AbstractController
         UserCardAnimeRepository $userCardAnimeRepository
     ): Response {
         $user = $this->getUser();
+        $previousImage = $user->getImageCollection();
         $form = $this->createForm(ProfileSettingsType::class, $user);
         $form->handleRequest($request);
 
@@ -105,6 +106,17 @@ final class UserController extends AbstractController
 
         // TRAITEMENT DU FORMULAIRE (pseudo, titre, mdp, image)
         if ($form->isSubmitted() && $form->isValid()) {
+            // L'image de profil arrive d'un champ caché libre : seule l'image d'une carte
+            // possédée est acceptée (sinon une URL externe chargée par chaque visiteur de
+            // /joueurs, ou la carte de quelqu'un d'autre). L'image actuelle reste acceptée
+            // même si la carte a été échangée depuis.
+            $image = $user->getImageCollection();
+            $ownedImages = array_column($showcaseChoices, 'imagePath');
+            if ($image !== null && $image !== $previousImage && !in_array($image, $ownedImages, true)) {
+                $user->setImageCollection($previousImage);
+                $this->addFlash('error', "L'image de profil doit être celle d'une carte de votre collection.");
+            }
+
             $plainPassword = $form->get('plainPassword')->getData();
             if ($plainPassword) {
                 $user->setPassword($passwordHasher->hashPassword($user, $plainPassword));

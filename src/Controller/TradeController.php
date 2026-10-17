@@ -246,8 +246,14 @@ class TradeController extends AbstractController
         return array_filter($items);
     }
 
-    private function parseItem(string $raw, User $owner): ?array
+    private function parseItem(mixed $raw, User $owner): ?array
     {
+        // Un champ forgé (proposer_items[0][]=x) arrive sous forme de tableau : sans ce
+        // contrôle, le typage strict du paramètre produirait une erreur 500.
+        if (!is_string($raw)) {
+            throw new \InvalidArgumentException('Format de carte invalide.');
+        }
+
         [$type, $cardId, $quantity] = array_pad(explode(':', $raw), 3, null);
 
         if (!$type || !$cardId || !$quantity) {
