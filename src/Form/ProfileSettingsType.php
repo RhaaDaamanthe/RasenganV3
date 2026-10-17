@@ -3,7 +3,6 @@
 namespace App\Form;
 
 use App\Entity\User;
-use App\Repository\UserRepository;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
@@ -13,18 +12,9 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\Regex;
 use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\Callback;
-use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 class ProfileSettingsType extends AbstractType
 {
-    private $userRepository;
-
-    public function __construct(UserRepository $userRepository)
-    {
-        $this->userRepository = $userRepository;
-    }
-
 public function buildForm(FormBuilderInterface $builder, array $options): void
 {
     $builder
@@ -43,7 +33,6 @@ public function buildForm(FormBuilderInterface $builder, array $options): void
                     'pattern' => '/^[a-zA-Z0-9À-ÿ\s\-_]+$/u',
                     'message' => 'Caractères autorisés : lettres, chiffres, espaces, tirets, underscores',
                 ]),
-                new Callback([$this, 'validatePseudoUniqueness']),
             ],
         ])
         ->add('titreCollection', TextType::class, [
@@ -98,22 +87,7 @@ public function buildForm(FormBuilderInterface $builder, array $options): void
         ]);
 }
 
-    public function validatePseudoUniqueness($pseudo, ExecutionContextInterface $context): void
-    {
-        $user = $context->getRoot()->getData(); // L'utilisateur connecté
-        if (!$user || !$user->getId()) {
-            return;
-        }
-
-        $existingUser = $this->userRepository->findOneBy(['pseudo' => $pseudo]);
-
-        if ($existingUser && $existingUser->getId() !== $user->getId()) {
-            $context->buildViolation('Ce pseudo est déjà utilisé par un autre compte.')
-                ->atPath('pseudo')
-                ->addViolation();
-        }
-    }
-
+    // Unicité du pseudo : contrainte UniqueEntity portée par User.
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([

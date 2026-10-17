@@ -14,6 +14,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\IsTrue;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Regex;
 
 class RegistrationFormType extends AbstractType
 {
@@ -26,10 +27,17 @@ class RegistrationFormType extends AbstractType
                     new NotBlank([
                         'message' => 'Veuillez entrer un pseudo',
                     ]),
+                    // Mêmes règles que dans ProfileSettingsType ; max = longueur de la
+                    // colonne User::pseudo (au-delà, erreur SQL en 500).
                     new Length([
                         'min' => 3,
                         'minMessage' => 'Votre pseudo doit contenir au moins {{ limit }} caractères',
-                        'max' => 50,
+                        'max' => 25,
+                        'maxMessage' => 'Votre pseudo doit contenir au plus {{ limit }} caractères',
+                    ]),
+                    new Regex([
+                        'pattern' => '/^[a-zA-Z0-9À-ÿ\s\-_]+$/u',
+                        'message' => 'Caractères autorisés : lettres, chiffres, espaces, tirets, underscores',
                     ]),
                 ],
             ])

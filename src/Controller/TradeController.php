@@ -24,8 +24,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class TradeController extends AbstractController
 {
     #[Route('', name: 'app_trade_list')]
-    public function list(TradeOfferRepository $tradeOfferRepository, UserRepository $userRepository): Response
+    public function list(TradeOfferRepository $tradeOfferRepository, UserRepository $userRepository, TradeService $tradeService): Response
     {
+        $tradeService->expireOverdueOffers();
+
         /** @var User $user */
         $user = $this->getUser();
 
@@ -112,9 +114,11 @@ class TradeController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_trade_show', requirements: ['id' => '\d+'])]
-    public function show(TradeOffer $offer): Response
+    public function show(TradeOffer $offer, TradeService $tradeService): Response
     {
         $this->assertParticipant($offer);
+
+        $tradeService->expireIfOverdue($offer);
 
         return $this->render('trade/show.html.twig', [
             'offer' => $offer,
@@ -242,8 +246,14 @@ class TradeController extends AbstractController
         return array_filter($items);
     }
 
-    private function parseItem(string $raw, User $owner): ?array
+    private function parseItem(mixed $raw, User $owner): ?array
     {
+        // Un champ forgé (proposer_items[0][]=x) arrive sous forme de tableau : sans ce
+        // contrôle, le typage strict du paramètre produirait une erreur 500.
+        if (!is_string($raw)) {
+            throw new \InvalidArgumentException('Format de carte invalide.');
+        }
+
         [$type, $cardId, $quantity] = array_pad(explode(':', $raw), 3, null);
 
         if (!$type || !$cardId || !$quantity) {

@@ -109,8 +109,9 @@ class TradeService
 
         // Tout le transfert doit être atomique : si une seule ligne échoue, personne ne
         // doit perdre de carte. Les verrous pessimistes empêchent en plus deux échanges
-        // concurrents de dépenser la même carte.
-        $this->entityManager->wrapInTransaction(function () use ($offer, $proposer, $recipient): void {
+        // concurrents de dépenser la même carte, et deux acceptations simultanées de la
+        // même offre (double-clic) de transférer les cartes deux fois.
+        $this->withLockedPendingOffer($offer, function () use ($offer, $proposer, $recipient): void {
             $this->lockUserCards($offer);
 
             // Revérification après verrouillage : les cartes ont pu être échangées
@@ -152,10 +153,12 @@ class TradeService
             throw new \InvalidArgumentException("Seul le destinataire de l'offre peut la refuser.");
         }
 
-        $offer->setStatus(TradeOffer::STATUS_DECLINED);
-        $offer->setResolvedAt(new \DateTimeImmutable());
+        $this->withLockedPendingOffer($offer, function () use ($offer): void {
+            $offer->setStatus(TradeOffer::STATUS_DECLINED);
+            $offer->setResolvedAt(new \DateTimeImmutable());
 
-        $this->entityManager->flush();
+            $this->entityManager->flush();
+        });
     }
 
     public function cancel(TradeOffer $offer, User $currentUser): void
@@ -166,10 +169,12 @@ class TradeService
             throw new \InvalidArgumentException("Seul l'auteur de l'offre peut l'annuler.");
         }
 
-        $offer->setStatus(TradeOffer::STATUS_CANCELLED);
-        $offer->setResolvedAt(new \DateTimeImmutable());
+        $this->withLockedPendingOffer($offer, function () use ($offer): void {
+            $offer->setStatus(TradeOffer::STATUS_CANCELLED);
+            $offer->setResolvedAt(new \DateTimeImmutable());
 
-        $this->entityManager->flush();
+            $this->entityManager->flush();
+        });
     }
 
     /**
@@ -185,10 +190,50 @@ class TradeService
             throw new \InvalidArgumentException("Seul le destinataire de l'offre peut faire une contre-offre.");
         }
 
-        $offer->setStatus(TradeOffer::STATUS_COUNTERED);
-        $offer->setResolvedAt(new \DateTimeImmutable());
+        return $this->withLockedPendingOffer($offer, function () use ($offer, $itemsData): TradeOffer {
+            $offer->setStatus(TradeOffer::STATUS_COUNTERED);
+            $offer->setResolvedAt(new \DateTimeImmutable());
 
-        return $this->proposeTrade($offer->getRecipient(), $offer->getProposer(), $itemsData, $offer);
+            try {
+                return $this->proposeTrade($offer->getRecipient(), $offer->getProposer(), $itemsData, $offer);
+            } catch (\InvalidArgumentException $e) {
+                // Contre-offre invalide : l'offre d'origine reste en attente (le formulaire
+                // est réaffiché pour corriger la saisie).
+                $offer->setStatus(TradeOffer::STATUS_PENDING);
+                $offer->setResolvedAt(null);
+
+                throw $e;
+            }
+        });
+    }
+
+    /**
+     * Clôt les offres restées sans réponse au-delà de leur durée de validité.
+     *
+     * Pas de tâche planifiée : appelé avant chaque affichage des échanges, ce qui
+     * suffit puisqu'une offre expirée n'a d'effet que lorsqu'on la consulte.
+     */
+    public function expireOverdueOffers(): int
+    {
+        return $this->tradeOfferRepository->expireOverdue(new \DateTimeImmutable());
+    }
+
+    /**
+     * Marque cette offre comme expirée si sa date limite est passée.
+     *
+     * @return bool true si l'offre vient d'expirer
+     */
+    public function expireIfOverdue(TradeOffer $offer): bool
+    {
+        if (!$offer->isOverdue()) {
+            return false;
+        }
+
+        $offer->setStatus(TradeOffer::STATUS_EXPIRED);
+        $offer->setResolvedAt($offer->getExpiresAt());
+        $this->entityManager->flush();
+
+        return true;
     }
 
     /**
@@ -250,20 +295,36 @@ class TradeService
     }
 
     /**
-     * Pose un verrou d'écriture sur les lignes UserCard* engagées dans l'offre.
+     * Pose un verrou d'écriture sur les cartes engagées dans l'offre, puis sur les lignes
+     * UserCard* correspondantes.
      *
-     * Les verrous sont pris dans un ordre déterministe (classe puis id) pour que deux
-     * échanges concurrents portant sur les mêmes cartes ne se bloquent pas mutuellement.
+     * Le verrou sur la carte (le même que CardAttributionService) sérialise aussi les
+     * créations de lignes : sans lui, deux échanges simultanés donnant une carte jamais
+     * possédée au même joueur inséreraient chacun leur ligne (refusée par la contrainte
+     * unique user/carte). Les verrous sont pris dans un ordre déterministe (classe puis
+     * id) pour que deux échanges concurrents ne se bloquent pas mutuellement.
      */
     private function lockUserCards(TradeOffer $offer): void
     {
+        $cards = [];
+        foreach ($offer->getItems() as $item) {
+            $card = $item->getCard();
+            $cards[sprintf('%s#%010d', $card::class, $card->getId())] = $card;
+        }
+
+        ksort($cards);
+
+        foreach ($cards as $card) {
+            $this->entityManager->lock($card, LockMode::PESSIMISTIC_WRITE);
+        }
+
         $userCards = [];
 
         foreach ($offer->getItems() as $item) {
             foreach ([$offer->getProposer(), $offer->getRecipient()] as $participant) {
                 $userCard = $this->findUserCard($participant, $item->getCard());
                 if ($userCard !== null) {
-                    $userCards[$userCard::class . '#' . $userCard->getId()] = $userCard;
+                    $userCards[sprintf('%s#%010d', $userCard::class, $userCard->getId())] = $userCard;
                 }
             }
         }
@@ -326,8 +387,51 @@ class TradeService
         }
     }
 
+    /**
+     * Exécute $action dans une transaction, après avoir verrouillé la ligne de l'offre
+     * (SELECT ... FOR UPDATE) et relu son statut committé. Deux requêtes concurrentes sur
+     * la même offre (double-clic sur « Accepter », annulation pendant une acceptation...)
+     * s'exécutent donc l'une après l'autre, et la seconde voit l'offre déjà traitée.
+     *
+     * Transaction gérée à la main plutôt que wrapInTransaction() : ce dernier ferme
+     * l'EntityManager à la moindre exception, or un refus est un cas normal après lequel
+     * la page (formulaire de contre-offre notamment) doit encore pouvoir s'afficher.
+     *
+     * @template T
+     *
+     * @param callable(): T $action
+     *
+     * @return T
+     */
+    private function withLockedPendingOffer(TradeOffer $offer, callable $action): mixed
+    {
+        $connection = $this->entityManager->getConnection();
+        $connection->beginTransaction();
+
+        try {
+            $this->entityManager->refresh($offer, LockMode::PESSIMISTIC_WRITE);
+
+            if (!$offer->isPending()) {
+                throw new \InvalidArgumentException('Cette offre a déjà été traitée.');
+            }
+
+            $result = $action();
+            $connection->commit();
+
+            return $result;
+        } catch (\Throwable $e) {
+            $connection->rollBack();
+
+            throw $e;
+        }
+    }
+
     private function assertPending(TradeOffer $offer): void
     {
+        if ($this->expireIfOverdue($offer)) {
+            throw new \InvalidArgumentException('Cette offre a expiré.');
+        }
+
         if (!$offer->isPending()) {
             throw new \InvalidArgumentException('Cette offre a déjà été traitée.');
         }
