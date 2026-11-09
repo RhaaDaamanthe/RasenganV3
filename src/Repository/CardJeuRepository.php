@@ -17,26 +17,18 @@ class CardJeuRepository extends ServiceEntityRepository
     }
 
     /**
-     * Prochain numéro libre de chaque jeu (plus grand numéro + 1), pour pré-remplir l'éditeur.
-     * Les numéros ne sont jamais réattribués : un trou laissé par une suppression reste un trou.
-     *
-     * @return array<int, int> id du jeu => prochain numéro
+     * Prochain numéro libre (plus grand numéro + 1), commun à tous les jeux, pour pré-remplir
+     * l'éditeur. Les numéros ne sont jamais réattribués : un trou laissé par une suppression
+     * reste un trou.
      */
-    public function findProchainsNumerosParJeu(): array
+    public function findProchainNumero(): int
     {
-        $rows = $this->createQueryBuilder('c')
-            ->select('IDENTITY(c.jeu) AS jeuId', 'MAX(c.numero) AS maxNumero')
-            ->where('c.jeu IS NOT NULL')
-            ->groupBy('c.jeu')
+        $max = $this->createQueryBuilder('c')
+            ->select('MAX(c.numero)')
             ->getQuery()
-            ->getArrayResult();
+            ->getSingleScalarResult();
 
-        $numeros = [];
-        foreach ($rows as $row) {
-            $numeros[(int) $row['jeuId']] = (int) $row['maxNumero'] + 1;
-        }
-
-        return $numeros;
+        return (int) $max + 1;
     }
 
     /** @return CardJeu[] cartes dont l'image est générée par l'éditeur */

@@ -44,7 +44,7 @@ final class CardJeuEditeurController extends AbstractController
             return $this->redirectToRoute('app_card_jeu_index');
         }
 
-        $carte = new CardJeu();
+        $carte = (new CardJeu())->setNumero($this->cartes->findProchainNumero());
         $form = $this->createForm(CardJeuEditeurType::class, $carte, [
             'raretes_disponibles' => $this->composer->raretesDisponibles(),
         ]);
@@ -184,8 +184,6 @@ final class CardJeuEditeurController extends AbstractController
             'y' => $composition['y'],
             'scale' => $composition['scale'],
         ] : null;
-        // Sur la page de création, le numéro suit le jeu choisi tant que l'admin ne l'a pas modifié.
-        $config['prochainsNumeros'] = $carte->getId() === null ? (object) $this->cartes->findProchainsNumerosParJeu() : null;
 
         return $this->render($template, [
             'form' => $form,

@@ -244,8 +244,8 @@ zoome sur un aperçu en direct, et le serveur assemble cadre + perso + textes.
   `app_card_jeu_editeur_edit` (`/admin/cartes-jeu/{id}/editer`), dans
   `CardJeuEditeurController` ; formulaire `CardJeuEditeurType` ; templates
   `templates/card_jeu_editeur/`.
-- `CardJeu::$numero` (numéro du médaillon, jamais réattribué : le prochain = max + 1 par
-  jeu) et `CardJeu::$composition` (JSON `source`, `x`, `y`, `scale`) ; `isComposee()` vaut
+- `CardJeu::$numero` (numéro du médaillon, jamais réattribué : le prochain = max + 1, numérotation
+  commune à tous les jeux) et `CardJeu::$composition` (JSON `source`, `x`, `y`, `scale`) ; `isComposee()` vaut
   vrai pour une carte générée. `app_card_jeu_edit` redirige ces cartes vers l'éditeur.
 - Mise en page (fenêtre, textes, halo, couleurs par rareté) : constantes de
   `CardJeuComposer`, transmises à `public/js/card_jeu_editor.js` qui dessine l'aperçu

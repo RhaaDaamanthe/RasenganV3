@@ -62,7 +62,7 @@ class CardJeuEditeurType extends AbstractType
                 'label' => 'Numéro',
                 'required' => false,
                 'constraints' => [new Positive(message: 'Le numéro doit être positif.')],
-                'help' => 'Pré-rempli avec le prochain numéro libre du jeu. Laisser vide pour ne rien afficher.',
+                'help' => 'Pré-rempli avec le prochain numéro libre (numérotation commune à tous les jeux). Laisser vide pour ne rien afficher.',
                 'attr' => ['min' => 1, 'data-editeur' => 'numero'],
             ])
             ->add('image', FileType::class, [

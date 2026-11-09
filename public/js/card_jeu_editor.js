@@ -242,26 +242,10 @@
 
     // ------------------------------------------------------------------ Textes
 
-    let numeroModifie = el.numero.value !== '';
-    el.numero.addEventListener('input', () => {
-        numeroModifie = true;
-        redessiner();
-    });
-
-    function proposerNumero() {
-        if (!cfg.prochainsNumeros || numeroModifie) {
-            return;
-        }
-        el.numero.value = el.jeu.value ? (cfg.prochainsNumeros[el.jeu.value] || 1) : '';
-    }
-
+    el.numero.addEventListener('input', redessiner);
     el.nom.addEventListener('input', redessiner);
     el.rarete.addEventListener('change', redessiner);
-    el.jeu.addEventListener('change', () => {
-        proposerNumero();
-        redessiner();
-    });
-    proposerNumero();
+    el.jeu.addEventListener('change', redessiner);
 
     // ------------------------------------------------------------------ Souris, doigt, clavier
 
