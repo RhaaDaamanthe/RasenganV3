@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier {{ carte.nom }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/admin.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/card_jeu_editor.css') }}" />
+{% endblock %}
+
+{% block body %}
+<main>
+    <div class="admin-container">
+        <div class="dashboard-hero">
+            <h1>🎨 Modifier « {{ carte.nom }} »</h1>
+            {% if carte.composee %}
+                <p>Recadrez l'image ou changez les textes : la carte sera régénérée.</p>
+            {% else %}
+                <p>Cette carte a été montée à la main. Pour la passer à l'éditeur, envoyez l'image du perso seule (sans cadre).</p>
+            {% endif %}
+        </div>
+
+        {{ include('card_jeu_editeur/_editeur.html.twig', {'button_label': 'Enregistrer et régénérer'}) }}
+
+        <div class="card-form-footer">
+            <a href="{{ path('app_card_jeu_index') }}" class="btn btn-secondary">← Retour à la liste</a>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/card_jeu_editor.js') }}"></script>
+{% endblock %}

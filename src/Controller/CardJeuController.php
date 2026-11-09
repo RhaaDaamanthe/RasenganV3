@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\CardJeu;
 use App\Form\CardJeuType;
 use App\Repository\CardJeuRepository;
+use App\Service\CardJeuComposer;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -140,6 +141,11 @@ final class CardJeuController extends AbstractController
     #[Route('/{id}/edit', name: 'app_card_jeu_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, CardJeu $cardJeu, EntityManagerInterface $entityManager): Response
     {
+        // Une carte générée par l'éditeur se modifie dans l'éditeur, qui régénère son image.
+        if ($cardJeu->isComposee()) {
+            return $this->redirectToRoute('app_card_jeu_editeur_edit', ['id' => $cardJeu->getId()]);
+        }
+
         // La logique d'édition d'image est omise ici.
         $form = $this->createForm(CardJeuType::class, $cardJeu);
         $form->handleRequest($request);
@@ -161,9 +167,12 @@ final class CardJeuController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_card_jeu_delete', methods: ['POST'])]
-    public function delete(Request $request, CardJeu $cardJeu, EntityManagerInterface $entityManager): Response
+    public function delete(Request $request, CardJeu $cardJeu, EntityManagerInterface $entityManager, CardJeuComposer $composer): Response
     {
         if ($this->isCsrfTokenValid('delete'.$cardJeu->getId(), $request->getPayload()->getString('_token'))) {
+
+            // Carte générée par l'éditeur : son image source part avec elle.
+            $composer->supprimer($cardJeu->getComposition()['source'] ?? null);
 
             // Suppression optionnelle du fichier physique
             $imagePath = $cardJeu->getImagePath();

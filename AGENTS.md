@@ -54,6 +54,7 @@ $PHP bin/console lint:twig templates  # vérifier les templates
 $PHP bin/console cache:clear
 $PHP bin/console doctrine:migrations:migrate      # nécessite la base
 $PHP bin/console app:badges:recalculate-collector # recalcul des badges
+$PHP bin/console app:cartes-jeu:regenerer         # régénère les cartes jeu de l'éditeur
 $PHP -S localhost:8000 -t public public/index.php # serveur de dev sans Symfony CLI
 $PHP vendor/bin/phpunit                           # suite de tests
 ```
@@ -83,7 +84,9 @@ Tests existants :
   droits sur accepter / refuser / annuler, expiration, offre traitée en concurrence) avec un
   EntityManager simulé, sans base ;
 - `tests/DiscordNotifierTradeTest.php` — notifications d'échange : un embed par carte,
-  image jointe quand elle existe.
+  image jointe quand elle existe ;
+- `tests/CardJeuComposerTest.php` — éditeur de cartes jeu vidéo : bornes du cadrage, nom
+  de fichier, raretés disponibles, assemblage réel avec le cadre de `public/` (GD).
 
 ## Stack et dépendances
 
@@ -166,6 +169,9 @@ commun aux trois familles, passer par cet enum plutôt que de dupliquer.
   de `kernel.terminate` / `console.terminate`) ; en console il part immédiatement. Le gain
   n'existe que si le serveur sait terminer la réponse avant la fin du script (PHP-FPM,
   LiteSpeed) ; sous Apache mod_php (WAMP) le navigateur attend quand même.
+- **CardJeuComposer** — génère l'image des cartes jeu vidéo créées avec l'éditeur (voir
+  « Éditeur de cartes jeu vidéo »). Cadrage (`Cadrage`, `borner()`), assemblage GD
+  (`composer()`), écriture du fichier et mise à jour d'`imagePath` (`generer()`).
 - **WheelOdds** — tables de poids de la roue (`RARITY_WEIGHTS`, `RARITY_WEIGHTS_333`),
   plancher de rareté (`weightsForMinimumRarity`) et tirage (`pick` / `roll`). Sans
   dépendance, testé unitairement.
@@ -227,6 +233,30 @@ stats, drops Discord — type `Jeu vidéo`), au même titre que les animés et l
 
 Les images de cartes de jeu vidéo vont dans `public/images/Cartes/Jeux_<Rareté>/`
 (comme `Films_<Rareté>/` pour les films).
+
+### Éditeur de cartes jeu vidéo
+
+Propre aux jeux vidéo (exception voulue au parallélisme des trois familles) : au lieu
+d'envoyer une carte déjà montée, l'admin envoie l'image du perso seule, la place et la
+zoome sur un aperçu en direct, et le serveur assemble cadre + perso + textes.
+
+- Routes : `app_card_jeu_editeur_new` (`/admin/cartes-jeu/creer`) et
+  `app_card_jeu_editeur_edit` (`/admin/cartes-jeu/{id}/editer`), dans
+  `CardJeuEditeurController` ; formulaire `CardJeuEditeurType` ; templates
+  `templates/card_jeu_editeur/`.
+- `CardJeu::$numero` (numéro du médaillon, jamais réattribué : le prochain = max + 1 par
+  jeu) et `CardJeu::$composition` (JSON `source`, `x`, `y`, `scale`) ; `isComposee()` vaut
+  vrai pour une carte générée. `app_card_jeu_edit` redirige ces cartes vers l'éditeur.
+- Mise en page (fenêtre, textes, halo, couleurs par rareté) : constantes de
+  `CardJeuComposer`, transmises à `public/js/card_jeu_editor.js` qui dessine l'aperçu
+  `<canvas>` avec les mêmes valeurs. Toute modification se fait côté PHP ; le JS suit.
+- Fichiers : cadres `public/images/cadres/jeu/<rareté>.png` (`commune`, `rare`, `epique`,
+  `legendaire`, `mythique`, `event` ; 1524×2102, fenêtre transparente). Une rareté n'est
+  proposée dans l'éditeur que si son cadre existe. Police `public/fonts/OPTICopperplate.otf`,
+  images source `public/images/sources_jeu/`, image générée en WebP dans
+  `Jeux_<Rareté>/<Nom>_<id>.webp`.
+- Régénération : automatique quand on modifie la carte ou qu'on renomme son jeu ; sinon
+  `app:cartes-jeu:regenerer` (après avoir remplacé un cadre ou changé la mise en page).
 
 ## Conventions
 
