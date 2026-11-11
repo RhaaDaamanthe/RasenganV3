@@ -33,8 +33,8 @@ class CardJeuComposer
      */
     public const TEXTES = [
         'nom' => ['taille' => 72, 'cx' => 750, 'cy' => 108, 'largeurMax' => 900],
-        'jeu' => ['taille' => 66, 'cx' => 665, 'cy' => 2015, 'largeurMax' => 820],
-        'numero' => ['taille' => 64, 'cx' => 1310, 'cy' => 1910, 'largeurMax' => 160],
+        'jeu' => ['taille' => 66, 'cx' => 665, 'cy' => 2000, 'largeurMax' => 820],
+        'numero' => ['taille' => 64, 'cx' => 1325, 'cy' => 1910, 'largeurMax' => 160],
     ];
 
     /**
