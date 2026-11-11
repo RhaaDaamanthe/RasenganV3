@@ -58,12 +58,12 @@ class CardJeuComposer
 
     /** Nom de fichier du cadre (sans extension) et couleurs des textes, par rareté. */
     private const RARETES = [
-        Rarities::COMMUNE => ['cadre' => 'commune', 'remplissage' => [205, 255, 200], 'halo' => [30, 200, 70], 'contour' => [10, 110, 35]],
-        Rarities::RARE => ['cadre' => 'rare', 'remplissage' => [210, 232, 255], 'halo' => [40, 130, 230], 'contour' => [10, 50, 120]],
-        Rarities::EPIQUE => ['cadre' => 'epique', 'remplissage' => [236, 214, 255], 'halo' => [160, 70, 230], 'contour' => [70, 20, 120]],
-        Rarities::LEGENDAIRE => ['cadre' => 'legendaire', 'remplissage' => [255, 240, 200], 'halo' => [240, 170, 30], 'contour' => [120, 70, 0]],
-        Rarities::MYTHIQUE => ['cadre' => 'mythique', 'remplissage' => [255, 212, 212], 'halo' => [230, 50, 50], 'contour' => [110, 10, 10]],
-        Rarities::EVENT => ['cadre' => 'event', 'remplissage' => [255, 225, 245], 'halo' => [235, 80, 180], 'contour' => [110, 20, 80]],
+        Rarities::COMMUNE => ['cadre' => 'commune', 'remplissage' => [245, 247, 240], 'halo' => [19, 52, 16], 'contour' => [56, 150, 43]],
+        Rarities::RARE => ['cadre' => 'rare', 'remplissage' => [245, 247, 240], 'halo' => [5, 24, 40], 'contour' => [0, 145, 235]],
+        Rarities::EPIQUE => ['cadre' => 'epique', 'remplissage' => [245, 247, 240], 'halo' => [29, 8, 43], 'contour' => [177, 71, 235]],
+        Rarities::LEGENDAIRE => ['cadre' => 'legendaire', 'remplissage' => [255, 250, 238], 'halo' => [48, 25, 0], 'contour' => [230, 128, 0]],
+        Rarities::MYTHIQUE => ['cadre' => 'mythique', 'remplissage' => [255, 244, 244], 'halo' => [43, 5, 8], 'contour' => [220, 42, 52]],
+        Rarities::EVENT => ['cadre' => 'event', 'remplissage' => [255, 244, 252], 'halo' => [40, 8, 30], 'contour' => [220, 45, 165]],
     ];
 
     /** Dossiers et fichiers, relatifs au dossier public. */

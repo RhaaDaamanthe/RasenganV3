@@ -87,6 +87,29 @@ class CardJeuComposerTest extends TestCase
         self::assertNull($this->composer->cadrePourRarete($this->rarete(999, 'Inconnue')));
     }
 
+    public function testToutesLesRaretesUtilisentLeStyleDeTexteAdapte(): void
+    {
+        $configuration = $this->composer->configurationEditeur();
+        $attendues = [
+            Rarities::COMMUNE => [[245, 247, 240], [19, 52, 16], [56, 150, 43]],
+            Rarities::RARE => [[245, 247, 240], [5, 24, 40], [0, 145, 235]],
+            Rarities::EPIQUE => [[245, 247, 240], [29, 8, 43], [177, 71, 235]],
+            Rarities::LEGENDAIRE => [[255, 250, 238], [48, 25, 0], [230, 128, 0]],
+            Rarities::MYTHIQUE => [[255, 244, 244], [43, 5, 8], [220, 42, 52]],
+            Rarities::EVENT => [[255, 244, 252], [40, 8, 30], [220, 45, 165]],
+        ];
+
+        foreach ($attendues as $id => [$remplissage, $halo, $contour]) {
+            if (!isset($configuration['raretes'][$id])) {
+                continue;
+            }
+
+            self::assertSame($remplissage, $configuration['raretes'][$id]['remplissage']);
+            self::assertSame($halo, $configuration['raretes'][$id]['halo']);
+            self::assertSame($contour, $configuration['raretes'][$id]['contour']);
+        }
+    }
+
     public function testComposerPlaceLePersoSousLeCadre(): void
     {
         // Image source unie, rouge : la fenêtre doit être rouge, le haut du cadre non.
