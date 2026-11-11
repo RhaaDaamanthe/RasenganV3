@@ -48,3 +48,14 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
+// Messages flash : fermeture au clic, disparition auto (sauf erreurs, à fermer à la main)
+document.querySelectorAll(".flash").forEach((flash) => {
+    const fermer = () => {
+        flash.classList.add("flash-sortie");
+        setTimeout(() => flash.remove(), 300);
+    };
+    flash.querySelector(".flash-fermer")?.addEventListener("click", fermer);
+    if (!flash.classList.contains("flash-error")) {
+        setTimeout(fermer, 6000);
+    }
+});

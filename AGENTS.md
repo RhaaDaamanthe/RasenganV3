@@ -265,6 +265,9 @@ zoome sur un aperçu en direct, et le serveur assemble cadre + perso + textes.
 - Code, commentaires, libellés d'UI et noms de routes/templates en **français**
   (`app_trade_new`, `/echanges`, `templates/trade/`).
 - Routes déclarées en **attributs PHP**, jamais dans `config/routes.yaml`.
+- Messages flash : `base.html.twig` les affiche tous via `templates/_flashes.html.twig`
+  (notifs en haut à droite ; types `success`, `error`, `warning`, les autres en `info`). Ne
+  pas relire `app.flashes` dans un template de page.
 - Autowiring/autoconfiguration complets (`config/services.yaml`) : un service de
   `src/Service` s'injecte directement dans un contrôleur.
 - Les images de cartes sont rangées par rareté sous `public/images/Cartes/<Rareté>/`

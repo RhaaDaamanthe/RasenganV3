@@ -7,10 +7,6 @@
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}" />
     <style>
-        .flash-message { padding: 1rem; margin-bottom: 1rem; border-radius: 8px; font-weight: bold; }
-        .flash-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .flash-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-
         .assign-grid {
             grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
             gap: 16px;
@@ -123,13 +119,6 @@
         <div class="dashboard-hero">
             <h1>🏅 Attribuer « {{ badge.name }} »</h1>
         </div>
-
-        {% for message in app.flashes('success') %}
-            <div class="flash-message flash-success">{{ message }}</div>
-        {% endfor %}
-        {% for message in app.flashes('error') %}
-            <div class="flash-message flash-error">{{ message }}</div>
-        {% endfor %}
 
         <div class="search-container" style="margin: 0 auto 20px;">
             <input type="text" id="card-search" placeholder="Rechercher un joueur..." aria-label="Rechercher un joueur" onkeyup="filterCards()">

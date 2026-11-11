@@ -7,9 +7,6 @@
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}" />
     <style>
-        .flash-message { padding: 1rem; margin-bottom: 1.5rem; border-radius: 8px; font-weight: bold; }
-        .flash-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-
         .recipe-header {
             display: flex;
             align-items: center;
@@ -358,10 +355,6 @@
                 <div class="recipe-subtitle">{{ { anime: 'Carte d\'animé', film: 'Carte de film', jeu: 'Carte de jeu vidéo' }[type] }} · Mythique</div>
             </div>
         </div>
-
-        {% for message in app.flashes('error') %}
-            <div class="flash-message flash-error">{{ message }}</div>
-        {% endfor %}
 
         <form method="post" action="{{ path({ anime: 'app_mythic_recipe_edit_anime', film: 'app_mythic_recipe_edit_film', jeu: 'app_mythic_recipe_edit_jeu' }[type], {id: card.id}) }}">
             <input type="hidden" name="_token" value="{{ csrf_token('mythic-recipe-edit' ~ card.id) }}">

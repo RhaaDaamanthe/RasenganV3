@@ -4,12 +4,6 @@
     Le JS (public/js/card_jeu_editor.js) dessine l'aperçu avec la même mise en page que
     App\Service\CardJeuComposer et remplit les champs cachés du cadrage.
 #}
-{% for type in ['success', 'error', 'warning'] %}
-    {% for message in app.flashes(type) %}
-        <div class="editeur-flash editeur-flash-{{ type }}">{{ message }}</div>
-    {% endfor %}
-{% endfor %}
-
 {{ form_start(form, {'attr': {'class': 'editeur-carte', 'novalidate': 'novalidate', 'data-config': config_editeur|json_encode}}) }}
     <div class="editeur-colonne editeur-champs">
         {{ form_errors(form) }}
