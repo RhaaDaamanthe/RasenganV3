@@ -86,7 +86,9 @@ Tests existants :
 - `tests/DiscordNotifierTradeTest.php` — notifications d'échange : un embed par carte,
   image jointe quand elle existe ;
 - `tests/CardJeuComposerTest.php` — éditeur de cartes jeu vidéo : bornes du cadrage, nom
-  de fichier, raretés disponibles, assemblage réel avec le cadre de `public/` (GD).
+  de fichier, raretés disponibles, assemblage réel avec le cadre de `public/` (GD) ;
+- `tests/ImagePlaceholderControllerTest.php` — carte de remplacement servie en dev pour
+  une image absente, nom échappé, route inexistante en prod.
 
 ## Stack et dépendances
 
@@ -268,6 +270,11 @@ zoome sur un aperçu en direct, et le serveur assemble cadre + perso + textes.
 - Les images de cartes sont rangées par rareté sous `public/images/Cartes/<Rareté>/`
   (`Films_<Rareté>/` pour les films, `Jeux_<Rareté>/` pour les jeux vidéo) ; l'upload
   calcule le dossier cible à partir du libellé de rareté.
+- Ces images de contenu (`public/images/Cartes/`, `public/images/sources_jeu/`) ne sont
+  **pas versionnées** (`.gitignore`) : un poste local n'en a qu'une partie. En dev,
+  `ImagePlaceholderController` (route `env: 'dev'`) répond aux images absentes par une
+  carte SVG de remplacement (nom + couleur de rareté). Les visuels de l'interface,
+  `badges/` et `cadres/` restent versionnés. Ne pas committer d'images de test.
 - Ce fichier est la **seule source** des instructions : `CLAUDE.md` se contente de l'importer (`@AGENTS.md`). Ne rien écrire dans `CLAUDE.md`.
 - Ne pas committer `.env` (il contient l'`APP_SECRET`, les identifiants de base et les
   webhooks Discord réels) et ne pas relayer son contenu.

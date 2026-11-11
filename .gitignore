@@ -19,3 +19,13 @@
 /.claude/agents/
 /.claude/commands/
 ###< superpowers-symfony ###
+
+###> images de contenu (non versionnées) ###
+# Illustrations des cartes et images source de l'éditeur jeu vidéo : contenu
+# uploadé depuis l'admin, pas du code. En dev, une image absente est remplacée
+# par une carte générée (ImagePlaceholderController, env dev uniquement).
+# Les visuels de l'interface, les badges et les cadres restent versionnés.
+/public/images/Cartes/
+/public/images/sources_jeu/*
+!/public/images/sources_jeu/.gitkeep
+###< images de contenu ###
