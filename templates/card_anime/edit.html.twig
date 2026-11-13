@@ -22,3 +22,8 @@
         </div>
     </main>
 {% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/select_recherche.js') }}"></script>
+{% endblock %}

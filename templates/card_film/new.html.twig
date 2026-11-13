@@ -13,38 +13,16 @@
         <div class="card-form-wrapper">
             <h1>Créer une nouvelle carte de film</h1>
 
-            {{ form_start(form, {'attr': {'enctype': 'multipart/form-data', 'class': 'form-upload'}}) }}
-                <div class="form-row">
-                    <div class="form-group">
-                        {{ form_label(form.nom) }}
-                        {{ form_widget(form.nom, {'attr': {'class': 'form-control'}}) }}
-                    </div>
-                    <div class="form-group">
-                        {{ form_label(form.rarity) }}
-                        {{ form_widget(form.rarity, {'attr': {'class': 'form-control'}}) }}
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        {{ form_label(form.film) }}
-                        {{ form_widget(form.film, {'attr': {'class': 'form-control'}}) }}
-                    </div>
-                    <div class="form-group">
-                        {{ form_label(form.imagePath) }}
-                        {{ form_widget(form.imagePath, {'attr': {'class': 'form-control-file'}}) }}
-                        <small class="form-text text-muted">JPG ou PNG, 5MB max.</small>
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form_label(form.description) }}
-                    {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 3}}) }}
-                </div>
-                <button class="btn btn-primary" type="submit">{{ button_label|default('Créer') }}</button>
-            {{ form_end(form) }}
+            {{ include('card_film/_form.html.twig') }}
 
             <div class="card-form-footer">
                 <a href="{{ path('app_card_film_index') }}" class="btn btn-secondary">← Retour à la liste</a>
             </div>
         </div>
     </main>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/select_recherche.js') }}"></script>
 {% endblock %}

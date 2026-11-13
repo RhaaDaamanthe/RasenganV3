@@ -1272,3 +1272,73 @@ h1 {
     color: #777;
     font-weight: 600;
 }
+
+/* ========================================= */
+/* CHAMP DE RECHERCHE (select_recherche.js)  */
+/* ========================================= */
+
+.select-recherche {
+    position: relative;
+}
+
+.select-recherche-liste {
+    position: absolute;
+    z-index: 50;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    max-height: 260px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 4px 0;
+    list-style: none;
+    background: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    text-align: left;
+}
+
+.select-recherche-liste li {
+    padding: 8px 12px;
+    font-size: 0.95em;
+    color: #333;
+    cursor: pointer;
+}
+
+.select-recherche-liste li.actif {
+    background: rgba(255, 140, 0, 0.12);
+}
+
+.select-recherche-liste li[aria-selected="true"] {
+    font-weight: 600;
+}
+
+.select-recherche-liste li mark {
+    background: none;
+    color: #e07b00;
+    font-weight: 700;
+}
+
+.select-recherche-liste li.select-recherche-vide {
+    color: #888;
+    font-style: italic;
+    cursor: default;
+}
+
+/* Erreurs de validation et image actuelle du formulaire de carte */
+.card-form-wrapper ul:has(> li) {
+    margin: 6px 0 0;
+    padding: 0;
+    list-style: none;
+    color: #dc2626;
+    font-size: 0.85em;
+}
+
+.card-form-image-actuelle {
+    display: block;
+    max-width: 120px;
+    margin-top: 8px;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+}

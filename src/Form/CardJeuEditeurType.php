@@ -43,7 +43,8 @@ class CardJeuEditeurType extends AbstractType
                 'placeholder' => 'Choisissez un jeu vidéo',
                 'constraints' => [new NotNull(message: 'Le jeu est obligatoire : son nom est écrit sur la carte.')],
                 'query_builder' => fn (EntityRepository $er) => $er->createQueryBuilder('j')->orderBy('j.nom', 'ASC'),
-                'attr' => ['data-editeur' => 'jeu'],
+                // Remplacé par un champ de recherche (public/js/select_recherche.js).
+                'attr' => ['data-editeur' => 'jeu', 'data-recherche' => 'Rechercher un jeu vidéo...'],
             ])
             ->add('rarity', EntityType::class, [
                 'class' => Rarities::class,

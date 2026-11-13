@@ -265,6 +265,11 @@ zoome sur un aperçu en direct, et le serveur assemble cadre + perso + textes.
 - Code, commentaires, libellés d'UI et noms de routes/templates en **français**
   (`app_trade_new`, `/echanges`, `templates/trade/`).
 - Routes déclarées en **attributs PHP**, jamais dans `config/routes.yaml`.
+- Listes longues dans un formulaire (animé / film / jeu d'une carte) : ajouter l'attribut
+  `data-recherche="Placeholder..."` au `<select>` et inclure `public/js/select_recherche.js`,
+  qui le remplace par un champ de recherche (le `<select>` masqué reste la valeur envoyée
+  et reçoit un `change`). Ne pas écraser `attr` dans `form_widget()` sous peine de perdre
+  l'attribut.
 - Messages flash : `base.html.twig` les affiche tous via `templates/_flashes.html.twig`
   (notifs en haut à droite ; types `success`, `error`, `warning`, les autres en `info`). Ne
   pas relire `app.flashes` dans un template de page.

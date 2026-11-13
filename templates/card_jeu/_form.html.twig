@@ -1,25 +1,41 @@
+{# Formulaire commun à la création et à la modification d'une carte. #}
 {{ form_start(form, {'attr': {'enctype': 'multipart/form-data', 'class': 'form-upload'}}) }}
-    <div class="form-group">
-        {{ form_label(form.nom) }}
-        {{ form_widget(form.nom, {'attr': {'class': 'form-control'}}) }}
+    {{ form_errors(form) }}
+    <div class="form-row">
+        <div class="form-group">
+            {{ form_label(form.nom) }}
+            {{ form_widget(form.nom) }}
+            {{ form_errors(form.nom) }}
+        </div>
+        <div class="form-group">
+            {{ form_label(form.rarity) }}
+            {{ form_widget(form.rarity) }}
+            {{ form_errors(form.rarity) }}
+        </div>
     </div>
-    <div class="form-group">
-        {{ form_label(form.rarity) }}
-        {{ form_widget(form.rarity, {'attr': {'class': 'form-control'}}) }}
-    </div>
-    <div class="form-group">
-        {{ form_label(form.jeu) }}
-        {{ form_widget(form.jeu, {'attr': {'class': 'form-control'}}) }}
-    </div>
-    <div class="form-group">
-        {{ form_label(form.imagePath) }}
-        {{ form_widget(form.imagePath, {'attr': {'class': 'form-control-file'}}) }}
-        <small class="form-text text-muted">Formats acceptés : JPG, PNG ou WEBP. Taille max : 1MB.</small>
+    <div class="form-row">
+        <div class="form-group">
+            {{ form_label(form.jeu) }}
+            {{ form_widget(form.jeu) }}
+            {{ form_errors(form.jeu) }}
+        </div>
+        <div class="form-group">
+            {{ form_label(form.imagePath) }}
+            {{ form_widget(form.imagePath) }}
+            {{ form_errors(form.imagePath) }}
+            <small class="form-text text-muted">
+                JPG, PNG ou WEBP, 20 Mo max.
+                {%- if card_jeu.imagePath %} Laisser vide pour garder l'image actuelle.{% endif %}
+            </small>
+            {% if card_jeu.imagePath %}
+                <img class="card-form-image-actuelle" src="{{ asset(card_jeu.imagePath) }}" alt="Image actuelle de {{ card_jeu.nom }}">
+            {% endif %}
+        </div>
     </div>
     <div class="form-group">
         {{ form_label(form.description) }}
-        {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 5}}) }}
+        {{ form_widget(form.description, {'attr': {'rows': 3}}) }}
+        {{ form_errors(form.description) }}
     </div>
-    <br>
     <button class="btn btn-primary" type="submit">{{ button_label|default('Créer') }}</button>
 {{ form_end(form) }}
