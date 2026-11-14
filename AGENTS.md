@@ -88,7 +88,9 @@ Tests existants :
 - `tests/CardJeuComposerTest.php` — éditeur de cartes jeu vidéo : bornes du cadrage, nom
   de fichier, raretés disponibles, assemblage réel avec le cadre de `public/` (GD) ;
 - `tests/ImagePlaceholderControllerTest.php` — carte de remplacement servie en dev pour
-  une image absente, nom échappé, route inexistante en prod.
+  une image absente, nom échappé, route inexistante en prod ;
+- `tests/SurnomsTest.php` — nettoyage des surnoms d'une œuvre, recherche par nom ou surnom
+  (`RechercheTitre`).
 
 ## Stack et dépendances
 
@@ -185,7 +187,13 @@ commun aux trois familles, passer par cet enum plutôt que de dupliquer.
   `userCardAnimes`, `userCardFilms`, `userCardJeus`, `badges` (ManyToMany ordonné par
   `position`), wishlists ManyToMany (`user_wishlist_anime`, `user_wishlist_film`,
   `user_wishlist_jeu`).
-- **Anime / Film / Jeu** — séries, films et jeux vidéo regroupant les cartes.
+- **Anime / Film / Jeu** — séries, films et jeux vidéo regroupant les cartes. Chacune a des
+  **surnoms** (`SurnomsTrait` : colonne texte, séparés par des virgules, ex. « SNK, Attack on
+  Titan ») pris en compte par toutes les recherches sur l'œuvre : en DQL via
+  `RechercheTitre::condition()` / `motif()` (insensible à la casse), en PHP via
+  `RechercheTitre::correspond()`, et dans les `<select data-recherche>` via l'attribut
+  `data-surnoms` des `<option>` (`choice_attr` des formulaires de carte). Toute nouvelle
+  recherche sur une œuvre doit passer par `RechercheTitre`.
 - **CardAnime / CardFilm / CardJeu** — la carte : `nom`, `description`, `imagePath`,
   `quantity` (tirage total), `rarity`, plus ses `requirements` si elle est mythique. Les
   trois familles sont **strictement parallèles** : toute évolution sur l'une doit être
@@ -226,6 +234,12 @@ mode `RARITY_WEIGHTS_333` = 33/33/33/1. Les mythiques ne se tirent pas : elles s
 Les raretés sans carte disponible sont exclues avant le tirage ; l'attribution passe par
 `app_wheel_*_confirm`, qui délègue à `CardAttributionService::attribuer()`. Le rendu visuel
 est dans `public/js/wheel.js`.
+
+En mode classique / 333, l'admin peut tirer jusqu'à `WheelController::MAX_TIRAGES` (6)
+raretés d'un coup (`app_wheel_spin_rarity` avec `count`, réponse `results[]`) : une roue par
+tirage, chacune relançable tant que sa carte n'est pas attribuée ; les cartes se tirent ensuite
+une par une (relançables aussi), « Annuler » abandonne seulement le tirage courant. Le quitte
+ou double reste à un seul tirage.
 
 ### Jeux vidéo
 

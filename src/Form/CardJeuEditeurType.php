@@ -39,6 +39,8 @@ class CardJeuEditeurType extends AbstractType
             ->add('jeu', EntityType::class, [
                 'class' => Jeu::class,
                 'choice_label' => 'nom',
+                // Les surnoms de l'œuvre sont aussi cherchés par select_recherche.js.
+                'choice_attr' => fn ($titre) => $titre->getSurnoms() ? ['data-surnoms' => $titre->getSurnoms()] : [],
                 'label' => 'Jeu vidéo',
                 'placeholder' => 'Choisissez un jeu vidéo',
                 'constraints' => [new NotNull(message: 'Le jeu est obligatoire : son nom est écrit sur la carte.')],

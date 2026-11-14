@@ -1124,6 +1124,109 @@ h1 {
     margin-top: 10px;
 }
 
+/* Champ de recherche du titre (select_recherche.js remplace le <select>) */
+.wheel-option-field .select-recherche input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 0.95em;
+    color: #333;
+}
+
+.wheel-option-field .select-recherche input:focus {
+    border-color: #ff8c00;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.15);
+}
+
+.wheel-option-field .select-recherche input:disabled {
+    background: #f4f4f4;
+    color: #999;
+    cursor: not-allowed;
+}
+
+/* Plusieurs raretés d'un coup : une roue par tirage */
+.wheel-draws-multi {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.wheel-draw-header {
+    display: none;
+}
+
+.wheel-draws-multi .wheel-draw {
+    padding: 8px 10px;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    transition: border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.wheel-draws-multi .wheel-draw.is-current {
+    border-color: #ff8c00;
+    background: #fff8ef;
+}
+
+.wheel-draws-multi .wheel-draw.is-done,
+.wheel-draws-multi .wheel-draw.is-skipped {
+    opacity: 0.55;
+}
+
+.wheel-draws-multi .wheel-draw-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 6px;
+    text-align: left;
+}
+
+.wheel-draw-title {
+    font-weight: 700;
+    color: #333;
+}
+
+.wheel-draw-status {
+    flex: 1;
+    font-size: 0.85em;
+    font-weight: 600;
+    color: #1e8449;
+}
+
+.wheel-draw.is-skipped .wheel-draw-status {
+    color: #888;
+}
+
+.wheel-draw-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.wheel-draw-actions .btn-small {
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 0.8em;
+    font-weight: 700;
+}
+
+.wheel-draw-actions .btn-small:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.wheel-draws-multi .wheel-viewport {
+    margin-bottom: 0;
+}
+
+.wheel-viewport-compact {
+    height: 64px;
+}
+
 /* ========================================= */
 /* FORMULAIRE DE BADGE */
 /* ========================================= */

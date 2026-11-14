@@ -22,8 +22,8 @@ class CardFilm
     #[ORM\ManyToOne(inversedBy: 'cardFilms')]
     private ?Rarities $rarity = null;
 
-    #[ORM\ManyToOne(inversedBy: 'cardFilms')]
-    private ?Film $film = null; // <= Correction ici !
+    #[ORM\ManyToOne(inversedBy: 'cards')]
+    private ?Film $film = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $imagePath = null;

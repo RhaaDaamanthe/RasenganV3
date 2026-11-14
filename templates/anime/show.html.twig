@@ -13,6 +13,7 @@
     <div class="admin-container">
         <div class="dashboard-hero">
             <h1>🎬 {{ anime.nom }}</h1>
+            {% if anime.surnoms %}<p><strong>Surnoms :</strong> {{ anime.surnoms }}</p>{% endif %}
         </div>
 
         <div class="card-grid">

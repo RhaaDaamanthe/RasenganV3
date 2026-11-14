@@ -25,6 +25,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class WheelController extends AbstractController
 {
+    /** Nombre maximum de raretés tirées d'un coup (les cartes sont ensuite tirées une par une). */
+    public const MAX_TIRAGES = 6;
+
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly WheelOdds $wheelOdds,
@@ -88,18 +91,24 @@ class WheelController extends AbstractController
             return $this->json(['success' => false, 'message' => 'Rareté minimum invalide.'], 400);
         }
 
-        $chosenId = $this->wheelOdds->roll($this->wheelOdds->weightsForMinimumRarity($baseWeights, $minRarityId));
-
-        $rarity = $this->entityManager->getRepository(Rarities::class)->find($chosenId);
-        if ($rarity === null) {
-            return $this->json(['success' => false, 'message' => 'Rareté introuvable en base.'], 500);
+        $count = $request->request->getInt('count', 1);
+        if ($count < 1 || $count > self::MAX_TIRAGES) {
+            return $this->json(['success' => false, 'message' => sprintf('Nombre de tirages invalide (1 à %d).', self::MAX_TIRAGES)], 400);
         }
 
-        return $this->json([
-            'success' => true,
-            'rarityId' => $rarity->getId(),
-            'libelle' => $rarity->getLibelle(),
-        ]);
+        $weights = $this->wheelOdds->weightsForMinimumRarity($baseWeights, $minRarityId);
+        $repository = $this->entityManager->getRepository(Rarities::class);
+
+        $results = [];
+        for ($i = 0; $i < $count; $i++) {
+            $rarity = $repository->find($this->wheelOdds->roll($weights));
+            if ($rarity === null) {
+                return $this->json(['success' => false, 'message' => 'Rareté introuvable en base.'], 500);
+            }
+            $results[] = ['rarityId' => $rarity->getId(), 'libelle' => $rarity->getLibelle()];
+        }
+
+        return $this->json(['success' => true, 'results' => $results]);
     }
 
     #[Route('/anime/user/{id}/spin-card', name: 'app_wheel_anime_spin_card', methods: ['POST'])]
@@ -184,9 +193,9 @@ class WheelController extends AbstractController
         // Œuvres ayant au moins une carte, pour le filtre "tirer dans une œuvre précise".
         $titles = $this->entityManager->getRepository($type->cardClass())
             ->createQueryBuilder('c')
-            ->select('t.id, t.nom')
+            ->select('t.id, t.nom, t.surnoms')
             ->join('c.' . $type->titleProperty(), 't')
-            ->groupBy('t.id, t.nom')
+            ->groupBy('t.id, t.nom, t.surnoms')
             ->orderBy('t.nom', 'ASC')
             ->getQuery()
             ->getResult();
@@ -197,6 +206,7 @@ class WheelController extends AbstractController
             'rarities' => $this->getEligibleRaritiesAsArray(WheelOdds::RARITY_WEIGHTS),
             'rarities333' => $this->getEligibleRaritiesAsArray(WheelOdds::RARITY_WEIGHTS_333),
             'titles' => $titles,
+            'maxTirages' => self::MAX_TIRAGES,
         ]);
     }
 

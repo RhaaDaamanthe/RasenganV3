@@ -20,6 +20,15 @@ class FilmType extends AbstractType
                     'class' => 'form-control'
                 ]
             ])
+            ->add('surnoms', TextType::class, [
+                'label' => 'Surnoms (optionnel)',
+                'required' => false,
+                'help' => "Autres noms pour retrouver le film dans les recherches, séparés par des virgules.",
+                'attr' => [
+                    'placeholder' => 'Ex. : LOTR, Lord of the Rings',
+                    'class' => 'form-control'
+                ]
+            ])
         ;
     }
 

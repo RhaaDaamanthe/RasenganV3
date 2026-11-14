@@ -20,6 +20,15 @@ class AnimeType extends AbstractType
                     'class' => 'form-control'
                 ]
             ])
+            ->add('surnoms', TextType::class, [
+                'label' => 'Surnoms (optionnel)',
+                'required' => false,
+                'help' => "Autres noms pour retrouver l'animé dans les recherches, séparés par des virgules.",
+                'attr' => [
+                    'placeholder' => 'Ex. : SNK, Attack on Titan',
+                    'class' => 'form-control'
+                ]
+            ])
         ;
     }
 

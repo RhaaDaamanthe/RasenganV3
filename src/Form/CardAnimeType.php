@@ -74,6 +74,8 @@ class CardAnimeType extends AbstractType
             ->add('anime', EntityType::class, [
                 'class' => Anime::class,
                 'choice_label' => 'nom',
+                // Les surnoms de l'œuvre sont aussi cherchés par select_recherche.js.
+                'choice_attr' => fn ($titre) => $titre->getSurnoms() ? ['data-surnoms' => $titre->getSurnoms()] : [],
                 'label' => 'Animé',
                 'placeholder' => 'Choisissez un animé',
                 'constraints' => [new NotNull(message: 'L\'animé est obligatoire.')],

@@ -13,6 +13,7 @@
     <div class="admin-container">
         <div class="dashboard-hero">
             <h1>🎮 {{ jeu.nom }}</h1>
+            {% if jeu.surnoms %}<p><strong>Surnoms :</strong> {{ jeu.surnoms }}</p>{% endif %}
         </div>
 
         <div class="card-grid">

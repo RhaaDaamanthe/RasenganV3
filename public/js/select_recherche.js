@@ -1,6 +1,7 @@
 /**
  * Remplace un <select data-recherche="Placeholder..."> par un champ de recherche :
  * on tape quelques lettres (accents et majuscules ignorés) et la liste se filtre.
+ * Une <option data-surnoms="SNK, Attack on Titan"> est aussi trouvée par ses surnoms.
  *
  * Le <select> d'origine reste dans le formulaire (masqué) : c'est lui qui est envoyé,
  * et il reçoit un événement `change` à chaque choix (l'aperçu de l'éditeur jeu en dépend).
@@ -18,7 +19,13 @@
         const id = `select-recherche-${++compteur}`;
         const options = Array.from(select.options)
             .filter((option) => option.value !== '')
-            .map((option) => ({ value: option.value, label: option.textContent.trim(), cle: normaliser(option.textContent) }));
+            .map((option) => ({
+                value: option.value,
+                label: option.textContent.trim(),
+                cle: normaliser(option.textContent),
+                // Autres noms acceptés (`data-surnoms` sur l'<option>) : « snk » trouve Shingeki no Kyojin.
+                surnoms: normaliser(option.dataset.surnoms || ''),
+            }));
 
         const wrapper = document.createElement('div');
         wrapper.className = 'select-recherche';
@@ -100,7 +107,7 @@
             resultats = cle === ''
                 ? options
                 : options
-                    .filter((o) => o.cle.includes(cle))
+                    .filter((o) => o.cle.includes(cle) || o.surnoms.includes(cle))
                     // Ceux qui commencent par la recherche d'abord, puis l'ordre alphabétique d'origine.
                     .sort((a, b) => Number(!a.cle.startsWith(cle)) - Number(!b.cle.startsWith(cle)));
 

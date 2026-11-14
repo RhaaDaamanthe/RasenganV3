@@ -34,6 +34,7 @@
                 <div class="admin-card">
                     <div class="card-content">
                         <h3>{{ film.nom }}</h3>
+                        {% if film.surnoms %}<p><strong>Surnoms :</strong> {{ film.surnoms }}</p>{% endif %}
                         <p><strong>ID:</strong> {{ film.id }}</p>
                     </div>
 

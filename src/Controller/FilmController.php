@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Film;
 use App\Form\FilmType;
+use App\Service\RechercheTitre;
 use App\Repository\FilmRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
@@ -26,8 +27,8 @@ final class FilmController extends AbstractController
             ->orderBy('f.nom', 'ASC');
 
         if ($search !== '') {
-            $qb->andWhere('f.nom LIKE :search')
-                ->setParameter('search', '%'.$search.'%');
+            $qb->andWhere(RechercheTitre::condition('f', 'search'))
+                ->setParameter('search', RechercheTitre::motif($search));
         }
 
         $films = $paginator->paginate(

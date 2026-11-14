@@ -8,6 +8,7 @@ use App\Entity\Jeu;
 use App\Entity\Rarities;
 use App\Entity\User;
 use App\Enum\CardType;
+use App\Service\RechercheTitre;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -116,8 +117,8 @@ class CatalogueController extends AbstractController
         }
 
         if (!empty($search)) {
-            $qb->andWhere($title !== null ? 'c.nom LIKE :search' : 'c.nom LIKE :search OR t.nom LIKE :search')
-               ->setParameter('search', '%' . $search . '%');
+            $qb->andWhere($title !== null ? 'LOWER(c.nom) LIKE :search' : 'LOWER(c.nom) LIKE :search OR ' . RechercheTitre::condition('t', 'search'))
+               ->setParameter('search', RechercheTitre::motif($search));
         }
 
         if (!empty($rarity)) {

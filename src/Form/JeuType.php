@@ -20,6 +20,15 @@ class JeuType extends AbstractType
                     'class' => 'form-control'
                 ]
             ])
+            ->add('surnoms', TextType::class, [
+                'label' => 'Surnoms (optionnel)',
+                'required' => false,
+                'help' => "Autres noms pour retrouver le jeu vidéo dans les recherches, séparés par des virgules.",
+                'attr' => [
+                    'placeholder' => 'Ex. : Zelda, TLOZ',
+                    'class' => 'form-control'
+                ]
+            ])
         ;
     }
 

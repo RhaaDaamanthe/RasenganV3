@@ -20,6 +20,11 @@
                     {{ form_label(form.nom) }}
                     {{ form_widget(form.nom, {'attr': {'class': 'form-control'}}) }}
                 </div>
+                <div class="form-group">
+                    {{ form_label(form.surnoms) }}
+                    {{ form_widget(form.surnoms) }}
+                    {{ form_help(form.surnoms) }}
+                </div>
                 <br>
                 <button class="btn btn-primary" type="submit">Modifier</button>
             {{ form_end(form) }}

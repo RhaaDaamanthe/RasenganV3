@@ -34,6 +34,7 @@
                 <div class="admin-card">
                     <div class="card-content">
                         <h3>{{ jeu.nom }}</h3>
+                        {% if jeu.surnoms %}<p><strong>Surnoms :</strong> {{ jeu.surnoms }}</p>{% endif %}
                         <p><strong>ID:</strong> {{ jeu.id }}</p>
                     </div>
 

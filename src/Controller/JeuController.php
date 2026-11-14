@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Jeu;
 use App\Form\JeuType;
+use App\Service\RechercheTitre;
 use App\Repository\JeuRepository;
 use App\Service\CardJeuComposer;
 use Doctrine\ORM\EntityManagerInterface;
@@ -27,8 +28,8 @@ final class JeuController extends AbstractController
             ->orderBy('j.nom', 'ASC');
 
         if ($search !== '') {
-            $qb->andWhere('j.nom LIKE :search')
-                ->setParameter('search', '%'.$search.'%');
+            $qb->andWhere(RechercheTitre::condition('j', 'search'))
+                ->setParameter('search', RechercheTitre::motif($search));
         }
 
         $jeux = $paginator->paginate(

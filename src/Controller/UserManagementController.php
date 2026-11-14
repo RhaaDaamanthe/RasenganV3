@@ -8,6 +8,7 @@ use App\Entity\UserCardFilm;
 use App\Entity\UserCardJeu;
 use App\Repository\UserRepository;
 use App\Service\BadgeService;
+use App\Service\RechercheTitre;
 use App\Service\TradeService;
 use App\Service\UserDeletionService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -57,8 +58,8 @@ class UserManagementController extends AbstractController
             ->setParameter('user', $user);
 
         if (!empty($search)) {
-            $qbAnime->andWhere('ca.nom LIKE :search OR a.nom LIKE :search')
-                ->setParameter('search', '%' . $search . '%');
+            $qbAnime->andWhere('LOWER(ca.nom) LIKE :search OR ' . RechercheTitre::condition('a', 'search'))
+                ->setParameter('search', RechercheTitre::motif($search));
         }
 
         $userCardAnimes = !in_array($section, ['film', 'jeu'], true) ? $qbAnime->getQuery()->getResult() : [];
@@ -72,8 +73,8 @@ class UserManagementController extends AbstractController
             ->setParameter('user', $user);
 
         if (!empty($search)) {
-            $qbFilm->andWhere('cf.nom LIKE :search OR f.nom LIKE :search')
-                ->setParameter('search', '%' . $search . '%');
+            $qbFilm->andWhere('LOWER(cf.nom) LIKE :search OR ' . RechercheTitre::condition('f', 'search'))
+                ->setParameter('search', RechercheTitre::motif($search));
         }
 
         $userCardFilms = !in_array($section, ['anime', 'jeu'], true) ? $qbFilm->getQuery()->getResult() : [];
@@ -87,8 +88,8 @@ class UserManagementController extends AbstractController
             ->setParameter('user', $user);
 
         if (!empty($search)) {
-            $qbJeu->andWhere('cj.nom LIKE :search OR j.nom LIKE :search')
-                ->setParameter('search', '%' . $search . '%');
+            $qbJeu->andWhere('LOWER(cj.nom) LIKE :search OR ' . RechercheTitre::condition('j', 'search'))
+                ->setParameter('search', RechercheTitre::motif($search));
         }
 
         $userCardJeus = !in_array($section, ['anime', 'film'], true) ? $qbJeu->getQuery()->getResult() : [];

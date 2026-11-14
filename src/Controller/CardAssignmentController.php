@@ -7,6 +7,7 @@ use App\Enum\CardType;
 use App\Exception\StockEpuiseException;
 use App\Repository\UserRepository;
 use App\Service\CardAttributionService;
+use App\Service\RechercheTitre;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -106,8 +107,8 @@ class CardAssignmentController extends AbstractController
             ->leftJoin('c.rarity', 'r');
 
         if (!empty($search)) {
-            $qb->andWhere('c.nom LIKE :search OR t.nom LIKE :search')
-               ->setParameter('search', '%' . $search . '%');
+            $qb->andWhere('LOWER(c.nom) LIKE :search OR ' . RechercheTitre::condition('t', 'search'))
+               ->setParameter('search', RechercheTitre::motif($search));
         }
 
         $totalCards = (clone $qb)->select('count(c.id)')->getQuery()->getSingleScalarResult();

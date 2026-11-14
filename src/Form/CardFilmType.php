@@ -74,6 +74,8 @@ class CardFilmType extends AbstractType
             ->add('film', EntityType::class, [
                 'class' => Film::class,
                 'choice_label' => 'nom',
+                // Les surnoms de l'œuvre sont aussi cherchés par select_recherche.js.
+                'choice_attr' => fn ($titre) => $titre->getSurnoms() ? ['data-surnoms' => $titre->getSurnoms()] : [],
                 'label' => 'Film',
                 'placeholder' => 'Choisissez un film',
                 'constraints' => [new NotNull(message: 'Le film est obligatoire.')],

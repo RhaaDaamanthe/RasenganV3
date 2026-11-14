@@ -39,10 +39,19 @@
                     </div>
                     <div class="wheel-option-field">
                         <label for="title-select">Titre (optionnel)</label>
-                        <select id="title-select">
+                        {# Remplacé par un champ de recherche (select_recherche.js) : vide = tous les titres. #}
+                        <select id="title-select" data-recherche="🎲 Aléatoire (tous les titres) — tapez pour chercher...">
                             <option value="">🎲 Aléatoire (tous les titres)</option>
                             {% for title in titles %}
-                                <option value="{{ title.id }}">{{ title.nom }}</option>
+                                <option value="{{ title.id }}"{% if title.surnoms %} data-surnoms="{{ title.surnoms }}"{% endif %}>{{ title.nom }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="wheel-option-field" id="count-field">
+                        <label for="count-select">Nombre de tirages</label>
+                        <select id="count-select">
+                            {% for n in 1..maxTirages %}
+                                <option value="{{ n }}">{{ n }} {{ n > 1 ? "raretés d'un coup" : 'rareté' }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -69,14 +78,13 @@
 
             <section class="wheel-step" id="step-rarity">
                 <h2 id="rarity-step-title">1. Rareté</h2>
-                <div class="wheel-viewport">
-                    <div class="wheel-strip" id="rarity-strip"></div>
-                </div>
+                {# Une roue par tirage, construite par wheel.js. #}
+                <div class="wheel-draws" id="rarity-reels"></div>
                 <button type="button" id="spin-rarity-btn" class="btn btn-action">Lancer la roue des raretés</button>
             </section>
 
             <section class="wheel-step wheel-collapsible" id="step-card">
-                <h2>2. Carte <span class="wheel-rarity-tag" id="rarity-result-label"></span></h2>
+                <h2>2. Carte <span id="draw-number-label"></span><span class="wheel-rarity-tag" id="rarity-result-label"></span></h2>
                 <div class="wheel-viewport">
                     <div class="wheel-strip" id="card-strip"></div>
                 </div>
@@ -101,6 +109,7 @@
                     <button type="button" id="confirm-btn" class="btn btn-success">✔ Attribuer la carte</button>
                 </div>
                 <div class="wheel-result-actions" id="wheel-after-actions" style="display:none;">
+                    <button type="button" id="next-draw-btn" class="btn btn-action" style="display:none;"></button>
                     <button type="button" id="retry-btn" class="btn btn-secondary">Nouveau tirage</button>
                 </div>
                 <p class="wheel-message" id="wheel-status-message"></p>
@@ -114,5 +123,6 @@
 
 {% block javascripts %}
     {{ parent() }}
+    <script src="{{ asset('js/select_recherche.js') }}"></script>
     <script src="{{ asset('js/wheel.js') }}"></script>
 {% endblock %}

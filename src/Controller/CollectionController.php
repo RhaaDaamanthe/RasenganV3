@@ -15,6 +15,7 @@ use App\Entity\Rarities;
 use App\Entity\ShowcaseCard;
 use App\Service\RarityStatsService;
 use App\Service\CollectionProgressService;
+use App\Service\RechercheTitre;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -164,28 +165,14 @@ class CollectionController extends AbstractController
                     return true;
                 }
 
-                // Recherche dans le nom de l'animé
-                if ($type === 'anime' && $card->getAnime()) {
-                    $animeName = mb_strtolower($card->getAnime()->getNom());
-                    if (stripos($animeName, $searchLower) !== false) {
-                        return true;
-                    }
-                }
-
-                // Recherche dans le nom du film
-                if ($type === 'film' && $card->getFilm()) {
-                    $filmName = mb_strtolower($card->getFilm()->getNom());
-                    if (stripos($filmName, $searchLower) !== false) {
-                        return true;
-                    }
-                }
-
-                // Recherche dans le nom du jeu vidéo
-                if ($type === 'jeu' && $card->getJeu()) {
-                    $jeuName = mb_strtolower($card->getJeu()->getNom());
-                    if (stripos($jeuName, $searchLower) !== false) {
-                        return true;
-                    }
+                // Recherche dans le nom (ou les surnoms) de l'œuvre : animé, film ou jeu vidéo
+                $titre = match ($type) {
+                    'anime' => $card->getAnime(),
+                    'film' => $card->getFilm(),
+                    'jeu' => $card->getJeu(),
+                };
+                if ($titre && RechercheTitre::correspond($search, $titre->getNom(), $titre->getSurnoms())) {
+                    return true;
                 }
 
                 // Aucune correspondance trouvée

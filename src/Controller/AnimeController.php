@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Anime;
 use App\Form\AnimeType;
+use App\Service\RechercheTitre;
 use App\Repository\AnimeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
@@ -26,8 +27,8 @@ final class AnimeController extends AbstractController
             ->orderBy('a.nom', 'ASC');
 
         if ($search !== '') {
-            $qb->andWhere('a.nom LIKE :search')
-                ->setParameter('search', '%'.$search.'%');
+            $qb->andWhere(RechercheTitre::condition('a', 'search'))
+                ->setParameter('search', RechercheTitre::motif($search));
         }
 
         $animes = $paginator->paginate(
