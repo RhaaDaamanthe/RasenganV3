@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Jeu;
 use App\Form\JeuType;
 use App\Repository\JeuRepository;
+use App\Service\CardJeuComposer;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -72,14 +73,34 @@ final class JeuController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_jeu_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Jeu $jeu, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request, Jeu $jeu, EntityManagerInterface $entityManager, CardJeuComposer $composer): Response
     {
+        $ancienNom = $jeu->getNom();
         $form = $this->createForm(JeuType::class, $jeu);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
             $this->addFlash('success', 'Le jeu vidéo a été modifié avec succès !');
+
+            // Le nom du jeu est imprimé sur les cartes générées par l'éditeur : on les régénère.
+            if ($jeu->getNom() !== $ancienNom) {
+                $echecs = 0;
+                foreach ($jeu->getCards() as $carte) {
+                    if (!$carte->isComposee()) {
+                        continue;
+                    }
+                    try {
+                        $composer->generer($carte);
+                    } catch (\Throwable) {
+                        ++$echecs;
+                    }
+                }
+                $entityManager->flush();
+                if ($echecs > 0) {
+                    $this->addFlash('error', sprintf('%d carte(s) n\'ont pas pu être régénérées : lancez app:cartes-jeu:regenerer.', $echecs));
+                }
+            }
             return $this->redirectToRoute('app_jeu_index', [], Response::HTTP_SEE_OTHER);
         }
 

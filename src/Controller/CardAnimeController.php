@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\CardAnime;
+use App\Entity\Rarities;
 use App\Form\CardAnimeType;
 use App\Repository\CardAnimeRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -12,7 +13,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
-use Symfony\Component\String\Slugger\SluggerInterface; // Gardé pour référence, mais non utilisé pour le nom
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 #[Route('/card/anime')]
@@ -44,6 +44,27 @@ final class CardAnimeController extends AbstractController
         // 4. Réassembler
         return $cleanedName . (empty($extension) ? '' : '.' . $extension);
     }
+
+    /**
+     * Range l'image envoyée dans `images/Cartes/<Rareté>/` sous son nom d'origine
+     * nettoyé, et renvoie le chemin public à stocker dans `imagePath`.
+     *
+     * @throws FileException si le dossier ne peut pas être créé ou le fichier déplacé
+     */
+    private function enregistrerImage(UploadedFile $imageFile, Rarities $rarity): string
+    {
+        $dossier = $rarity->getLibelle();
+        $targetDirectory = $this->getParameter('app.public_dir') . '/images/Cartes/' . $dossier;
+
+        if (!is_dir($targetDirectory) && !mkdir($targetDirectory, 0777, true) && !is_dir($targetDirectory)) {
+            throw new FileException(sprintf('Le dossier "%s" n’a pas pu être créé.', $targetDirectory));
+        }
+
+        $newFilename = $this->cleanFilename($imageFile->getClientOriginalName());
+        $imageFile->move($targetDirectory, $newFilename);
+
+        return 'images/Cartes/' . $dossier . '/' . $newFilename;
+    }
     
     #[Route(name: 'app_card_anime_index', methods: ['GET'])]
     public function index(CardAnimeRepository $cardAnimeRepository): Response
@@ -54,75 +75,29 @@ final class CardAnimeController extends AbstractController
     }
 
     #[Route('/new', name: 'app_card_anime_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response 
+    public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $cardAnime = new CardAnime();
-        $form = $this->createForm(CardAnimeType::class, $cardAnime);
+        $form = $this->createForm(CardAnimeType::class, $cardAnime, ['image_obligatoire' => true]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            /** @var UploadedFile|null $imageFile */
-            $imageFile = $form->get('imagePath')->getData();
-
             // Quantité déterminée automatiquement par la rareté choisie
             $cardAnime->setQuantity($cardAnime->getRarity()?->getQuantiteParDefaut() ?? 1);
 
-            // Persister l'entité pour obtenir l'ID (utile même si l'ID n'est pas dans le nom)
+            try {
+                $cardAnime->setImagePath($this->enregistrerImage($form->get('imagePath')->getData(), $cardAnime->getRarity()));
+            } catch (FileException $e) {
+                $this->addFlash('error', "Erreur lors du téléchargement de l'image. La carte n'a pas été créée : " . $e->getMessage());
+
+                return $this->render('card_anime/new.html.twig', [
+                    'card_anime' => $cardAnime,
+                    'form' => $form,
+                ], new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY));
+            }
+
             $entityManager->persist($cardAnime);
             $entityManager->flush();
-            
-            if ($imageFile) {
-                
-                // A. Détermination du dossier cible basé sur la rareté (ex: "Legendaires")
-                $rarityObject = $cardAnime->getRarity();
-                if ($rarityObject === null) {
-                    $this->addFlash('error', 'La rareté de la carte est obligatoire.');
-                    $entityManager->remove($cardAnime);
-                    $entityManager->flush();
-                    return $this->redirectToRoute('app_card_anime_new', [], Response::HTTP_SEE_OTHER);
-                }
-                
-                $rarityFolderName = $rarityObject->getLibelle();
-                $targetDirectory = $this->getParameter('app.public_dir') . '/images/Cartes/' . $rarityFolderName;
-
-
-                // B. Utilisation du nom de Fichier ORIGINAL (Nettoyé pour la sécurité)
-                
-                // On utilise le nom de fichier original (ex: "91_Buccel.jpg")
-                $originalFilenameWithExtension = $imageFile->getClientOriginalName();
-                
-                // On nettoie le nom de fichier pour la sécurité, mais sans modifier l'underscore (_)
-                $newFilename = $this->cleanFilename($originalFilenameWithExtension);
-
-                // C. Déplacement du fichier
-                try {
-                    // Création des dossiers s'ils n'existent pas
-                    if (!is_dir($targetDirectory)) {
-                        if (!mkdir($targetDirectory, 0777, true) && !is_dir($targetDirectory)) {
-                            throw new \RuntimeException(sprintf('Directory "%s" was not created', $targetDirectory));
-                        }
-                    }
-                    
-                    $imageFile->move($targetDirectory, $newFilename);
-                    
-                    // D. Chemin Public à stocker en base de données : images/Cartes/{Rareté}/NomOriginal.jpg
-                    $publicPath = 'images/Cartes/' . $rarityFolderName . '/' . $newFilename;
-                    
-                    // Mise à jour de l'entité avec le chemin correct
-                    $cardAnime->setImagePath($publicPath);
-                    
-                    // Étape 2 : Re-flusher pour sauvegarder le chemin de l'image
-                    $entityManager->flush();
-                    
-                } catch (FileException $e) {
-                    $entityManager->remove($cardAnime);
-                    $entityManager->flush();
-                    $this->addFlash('error', 'Erreur lors du téléchargement de l\'image. La carte n\'a pas été créée : ' . $e->getMessage());
-                    return $this->redirectToRoute('app_card_anime_new', [], Response::HTTP_SEE_OTHER);
-                }
-            } else {
-                 $this->addFlash('warning', 'La carte a été créée sans image. Pensez à l\'éditer pour en ajouter une.');
-            }
 
             $this->addFlash('success', 'La carte a été créée avec succès !');
             return $this->redirectToRoute('app_card_anime_index', [], Response::HTTP_SEE_OTHER);
@@ -145,13 +120,27 @@ final class CardAnimeController extends AbstractController
     #[Route('/{id}/edit', name: 'app_card_anime_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, CardAnime $cardAnime, EntityManagerInterface $entityManager): Response
     {
-        // La logique d'édition d'image est omise ici.
         $form = $this->createForm(CardAnimeType::class, $cardAnime);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             // Quantité déterminée automatiquement par la rareté choisie
             $cardAnime->setQuantity($cardAnime->getRarity()?->getQuantiteParDefaut() ?? 1);
+
+            // Nouvelle image envoyée : elle remplace l'ancienne (sinon on garde l'actuelle).
+            $imageFile = $form->get('imagePath')->getData();
+            if ($imageFile instanceof UploadedFile) {
+                try {
+                    $cardAnime->setImagePath($this->enregistrerImage($imageFile, $cardAnime->getRarity()));
+                } catch (FileException $e) {
+                    $this->addFlash('error', "Erreur lors du téléchargement de l'image. La carte n'a pas été modifiée : " . $e->getMessage());
+
+                    return $this->render('card_anime/edit.html.twig', [
+                        'card_anime' => $cardAnime,
+                        'form' => $form,
+                    ], new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY));
+                }
+            }
 
             $entityManager->flush();
             $this->addFlash('success', 'La carte a été modifiée avec succès !');

@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Éditeur de carte jeu vidéo{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/admin.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/card_jeu_editor.css') }}" />
+{% endblock %}
+
+{% block body %}
+<main>
+    <div class="admin-container">
+        <div class="dashboard-hero">
+            <h1>🎨 Créer une carte de jeu vidéo</h1>
+            <p>Le cadre et les textes sont ajoutés automatiquement : il suffit de placer l'image du perso.</p>
+        </div>
+
+        {{ include('card_jeu_editeur/_editeur.html.twig', {'button_label': 'Créer la carte'}) }}
+
+        <div class="card-form-footer">
+            <a href="{{ path('app_card_jeu_index') }}" class="btn btn-secondary">← Retour à la liste</a>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/select_recherche.js') }}"></script>
+    <script src="{{ asset('js/card_jeu_editor.js') }}"></script>
+{% endblock %}

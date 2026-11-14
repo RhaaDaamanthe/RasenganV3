@@ -3,8 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\CardJeu;
+use App\Entity\Rarities;
 use App\Form\CardJeuType;
 use App\Repository\CardJeuRepository;
+use App\Service\CardJeuComposer;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -12,7 +14,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
-use Symfony\Component\String\Slugger\SluggerInterface; // Gardé pour référence, mais non utilisé pour le nom
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 #[Route('/card/jeu')]
@@ -45,6 +46,27 @@ final class CardJeuController extends AbstractController
         return $cleanedName . (empty($extension) ? '' : '.' . $extension);
     }
 
+    /**
+     * Range l'image envoyée dans `images/Cartes/Jeux_<Rareté>/` sous son nom d'origine
+     * nettoyé, et renvoie le chemin public à stocker dans `imagePath`.
+     *
+     * @throws FileException si le dossier ne peut pas être créé ou le fichier déplacé
+     */
+    private function enregistrerImage(UploadedFile $imageFile, Rarities $rarity): string
+    {
+        $dossier = 'Jeux_' . $rarity->getLibelle();
+        $targetDirectory = $this->getParameter('app.public_dir') . '/images/Cartes/' . $dossier;
+
+        if (!is_dir($targetDirectory) && !mkdir($targetDirectory, 0777, true) && !is_dir($targetDirectory)) {
+            throw new FileException(sprintf('Le dossier "%s" n’a pas pu être créé.', $targetDirectory));
+        }
+
+        $newFilename = $this->cleanFilename($imageFile->getClientOriginalName());
+        $imageFile->move($targetDirectory, $newFilename);
+
+        return 'images/Cartes/' . $dossier . '/' . $newFilename;
+    }
+
     #[Route(name: 'app_card_jeu_index', methods: ['GET'])]
     public function index(CardJeuRepository $cardJeuRepository): Response
     {
@@ -54,70 +76,29 @@ final class CardJeuController extends AbstractController
     }
 
     #[Route('/new', name: 'app_card_jeu_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
+    public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $cardJeu = new CardJeu();
-        $form = $this->createForm(CardJeuType::class, $cardJeu);
+        $form = $this->createForm(CardJeuType::class, $cardJeu, ['image_obligatoire' => true]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            /** @var UploadedFile|null $imageFile */
-            $imageFile = $form->get('imagePath')->getData();
-
             // Quantité déterminée automatiquement par la rareté choisie
             $cardJeu->setQuantity($cardJeu->getRarity()?->getQuantiteParDefaut() ?? 1);
 
-            // Persister l'entité pour obtenir l'ID (utile même si l'ID n'est pas dans le nom)
+            try {
+                $cardJeu->setImagePath($this->enregistrerImage($form->get('imagePath')->getData(), $cardJeu->getRarity()));
+            } catch (FileException $e) {
+                $this->addFlash('error', "Erreur lors du téléchargement de l'image. La carte n'a pas été créée : " . $e->getMessage());
+
+                return $this->render('card_jeu/new.html.twig', [
+                    'card_jeu' => $cardJeu,
+                    'form' => $form,
+                ], new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY));
+            }
+
             $entityManager->persist($cardJeu);
             $entityManager->flush();
-
-            if ($imageFile) {
-
-                // A. Détermination du dossier cible basé sur la rareté (ex: "Legendaires")
-                $rarityObject = $cardJeu->getRarity();
-                if ($rarityObject === null) {
-                    $this->addFlash('error', 'La rareté de la carte est obligatoire.');
-                    $entityManager->remove($cardJeu);
-                    $entityManager->flush();
-                    return $this->redirectToRoute('app_card_jeu_new', [], Response::HTTP_SEE_OTHER);
-                }
-
-                $rarityFolderName = 'Jeux_' . $rarityObject->getLibelle();
-                $targetDirectory = $this->getParameter('app.public_dir') . '/images/Cartes/' . $rarityFolderName;
-
-                // B. Utilisation du nom de Fichier ORIGINAL (Nettoyé pour la sécurité)
-                $originalFilenameWithExtension = $imageFile->getClientOriginalName();
-                $newFilename = $this->cleanFilename($originalFilenameWithExtension);
-
-                // C. Déplacement du fichier
-                try {
-                    // Création des dossiers s'ils n'existent pas
-                    if (!is_dir($targetDirectory)) {
-                        if (!mkdir($targetDirectory, 0777, true) && !is_dir($targetDirectory)) {
-                            throw new \RuntimeException(sprintf('Directory "%s" was not created', $targetDirectory));
-                        }
-                    }
-
-                    $imageFile->move($targetDirectory, $newFilename);
-
-                    // D. Chemin Public à stocker en base de données : images/Cartes/{Rareté}/NomOriginal.jpg
-                    $publicPath = 'images/Cartes/' . $rarityFolderName . '/' . $newFilename;
-
-                    // Mise à jour de l'entité avec le chemin correct
-                    $cardJeu->setImagePath($publicPath);
-
-                    // Étape 2 : Re-flusher pour sauvegarder le chemin de l'image
-                    $entityManager->flush();
-
-                } catch (FileException $e) {
-                    $entityManager->remove($cardJeu);
-                    $entityManager->flush();
-                    $this->addFlash('error', 'Erreur lors du téléchargement de l\'image. La carte n\'a pas été créée : ' . $e->getMessage());
-                    return $this->redirectToRoute('app_card_jeu_new', [], Response::HTTP_SEE_OTHER);
-                }
-            } else {
-                 $this->addFlash('warning', 'La carte a été créée sans image. Pensez à l\'éditer pour en ajouter une.');
-            }
 
             $this->addFlash('success', 'La carte a été créée avec succès !');
             return $this->redirectToRoute('app_card_jeu_index', [], Response::HTTP_SEE_OTHER);
@@ -140,13 +121,32 @@ final class CardJeuController extends AbstractController
     #[Route('/{id}/edit', name: 'app_card_jeu_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, CardJeu $cardJeu, EntityManagerInterface $entityManager): Response
     {
-        // La logique d'édition d'image est omise ici.
+        // Une carte générée par l'éditeur se modifie dans l'éditeur, qui régénère son image.
+        if ($cardJeu->isComposee()) {
+            return $this->redirectToRoute('app_card_jeu_editeur_edit', ['id' => $cardJeu->getId()]);
+        }
+
         $form = $this->createForm(CardJeuType::class, $cardJeu);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             // Quantité déterminée automatiquement par la rareté choisie
             $cardJeu->setQuantity($cardJeu->getRarity()?->getQuantiteParDefaut() ?? 1);
+
+            // Nouvelle image envoyée : elle remplace l'ancienne (sinon on garde l'actuelle).
+            $imageFile = $form->get('imagePath')->getData();
+            if ($imageFile instanceof UploadedFile) {
+                try {
+                    $cardJeu->setImagePath($this->enregistrerImage($imageFile, $cardJeu->getRarity()));
+                } catch (FileException $e) {
+                    $this->addFlash('error', "Erreur lors du téléchargement de l'image. La carte n'a pas été modifiée : " . $e->getMessage());
+
+                    return $this->render('card_jeu/edit.html.twig', [
+                        'card_jeu' => $cardJeu,
+                        'form' => $form,
+                    ], new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY));
+                }
+            }
 
             $entityManager->flush();
             $this->addFlash('success', 'La carte a été modifiée avec succès !');
@@ -161,9 +161,12 @@ final class CardJeuController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_card_jeu_delete', methods: ['POST'])]
-    public function delete(Request $request, CardJeu $cardJeu, EntityManagerInterface $entityManager): Response
+    public function delete(Request $request, CardJeu $cardJeu, EntityManagerInterface $entityManager, CardJeuComposer $composer): Response
     {
         if ($this->isCsrfTokenValid('delete'.$cardJeu->getId(), $request->getPayload()->getString('_token'))) {
+
+            // Carte générée par l'éditeur : son image source part avec elle.
+            $composer->supprimer($cardJeu->getComposition()['source'] ?? null);
 
             // Suppression optionnelle du fichier physique
             $imagePath = $cardJeu->getImagePath();

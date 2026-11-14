@@ -1,0 +1,56 @@
+{#
+    Éditeur de carte jeu vidéo (partagé par la création et la modification).
+    Variables : form, config_editeur, button_label, image_actuelle (optionnelle).
+    Le JS (public/js/card_jeu_editor.js) dessine l'aperçu avec la même mise en page que
+    App\Service\CardJeuComposer et remplit les champs cachés du cadrage.
+#}
+{{ form_start(form, {'attr': {'class': 'editeur-carte', 'novalidate': 'novalidate', 'data-config': config_editeur|json_encode}}) }}
+    <div class="editeur-colonne editeur-champs">
+        {{ form_errors(form) }}
+        {{ form_row(form.nom) }}
+        {{ form_row(form.jeu) }}
+        <div class="editeur-ligne">
+            {{ form_row(form.rarity) }}
+            {{ form_row(form.numero) }}
+        </div>
+        {{ form_row(form.image) }}
+        {{ form_row(form.description) }}
+
+        {{ form_widget(form.cadrageX) }}
+        {{ form_widget(form.cadrageY) }}
+        {{ form_widget(form.cadrageScale) }}
+        {{ form_rest(form) }}
+
+        <button class="btn btn-primary editeur-valider" type="submit">{{ button_label }}</button>
+    </div>
+
+    <div class="editeur-colonne editeur-apercu">
+        <div class="editeur-canvas-cadre">
+            <canvas class="editeur-canvas" width="762" height="1051" aria-label="Aperçu de la carte"></canvas>
+            <div class="editeur-vide" data-editeur="vide">
+                <i class="fas fa-image"></i>
+                <span>Choisissez l'image du perso<br>pour voir l'aperçu</span>
+            </div>
+        </div>
+
+        <div class="editeur-controles" data-editeur="controles" hidden>
+            <label class="editeur-zoom">
+                <i class="fas fa-search-minus" aria-hidden="true"></i>
+                <input type="range" min="1" max="4" step="0.01" value="1" data-editeur="zoom" aria-label="Zoom">
+                <i class="fas fa-search-plus" aria-hidden="true"></i>
+            </label>
+            <button type="button" class="btn btn-secondary" data-editeur="recentrer">Recentrer</button>
+        </div>
+        <p class="editeur-aide" data-editeur="aide" hidden>
+            Glissez l'image pour la placer, molette ou curseur pour zoomer.
+        </p>
+        <p class="editeur-alerte" data-editeur="alerte" hidden></p>
+
+        {% if image_actuelle %}
+            <details class="editeur-image-actuelle">
+                <summary>Image actuelle de la carte</summary>
+                <img src="{{ asset(image_actuelle) }}" alt="Image actuelle">
+            </details>
+        {% endif %}
+    </div>
+{{ form_end(form) }}

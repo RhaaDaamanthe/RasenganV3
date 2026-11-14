@@ -1,0 +1,19 @@
+{#
+    Messages flash : affichés une seule fois, sur la page qui suit l'action, quel que soit
+    le template. Inclus par base.html.twig : ne pas relire app.flashes ailleurs, sinon
+    un message non lu reste en session et ressort sur une page sans rapport.
+#}
+{% set flashes = app.flashes %}
+{% if flashes is not empty %}
+    <div class="flash-stack" role="status" aria-live="polite">
+        {% for type, messages in flashes %}
+            {% set niveau = type in ['success', 'error', 'warning'] ? type : (type ends with 'error' ? 'error' : 'info') %}
+            {% for message in messages %}
+                <div class="flash flash-{{ niveau }}">
+                    <span class="flash-texte">{{ message }}</span>
+                    <button type="button" class="flash-fermer" aria-label="Fermer">&times;</button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+{% endif %}

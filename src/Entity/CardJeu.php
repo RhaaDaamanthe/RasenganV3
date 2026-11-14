@@ -34,6 +34,19 @@ class CardJeu
     #[ORM\Column]
     private ?int $quantity = null;
 
+    /** Numéro affiché dans le médaillon des cartes générées par l'éditeur (null = aucun). */
+    #[ORM\Column(nullable: true)]
+    private ?int $numero = null;
+
+    /**
+     * Paramètres de l'éditeur de carte : image source du perso et cadrage choisi
+     * (`source`, `x`, `y`, `scale`). Null pour une carte dont l'image a été montée à la main.
+     *
+     * @var array{source: string, x: float, y: float, scale: float}|null
+     */
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $composition = null;
+
     /**
      * @var Collection<int, UserCardJeu>
      */
@@ -134,6 +147,42 @@ class CardJeu
         $this->quantity = $quantity;
 
         return $this;
+    }
+
+    public function getNumero(): ?int
+    {
+        return $this->numero;
+    }
+
+    public function setNumero(?int $numero): static
+    {
+        $this->numero = $numero;
+
+        return $this;
+    }
+
+    /**
+     * @return array{source: string, x: float, y: float, scale: float}|null
+     */
+    public function getComposition(): ?array
+    {
+        return $this->composition;
+    }
+
+    /**
+     * @param array{source: string, x: float, y: float, scale: float}|null $composition
+     */
+    public function setComposition(?array $composition): static
+    {
+        $this->composition = $composition;
+
+        return $this;
+    }
+
+    /** Vrai si l'image de la carte est générée par l'éditeur (et donc régénérable). */
+    public function isComposee(): bool
+    {
+        return $this->composition !== null;
     }
 
     /**

@@ -16,8 +16,11 @@
         </div>
 
         <div class="actions-header">
-            <a href="{{ path('app_card_jeu_new') }}" class="btn btn-action">
-                Créer une nouvelle carte
+            <a href="{{ path('app_card_jeu_editeur_new') }}" class="btn btn-action">
+                🎨 Créer avec l'éditeur
+            </a>
+            <a href="{{ path('app_card_jeu_new') }}" class="btn btn-secondary">
+                Importer une carte déjà montée
             </a>
 
             {# Barre de recherche fonctionnelle #}
@@ -49,7 +52,12 @@
                     </div>
 
                     <div class="admin-card-actions">
-                        <a href="{{ path('app_card_jeu_edit', {'id': card_jeu.id}) }}" class="btn btn-warning">Modifier</a>
+                        {% if card_jeu.composee %}
+                            <a href="{{ path('app_card_jeu_editeur_edit', {'id': card_jeu.id}) }}" class="btn btn-warning">Modifier</a>
+                        {% else %}
+                            <a href="{{ path('app_card_jeu_edit', {'id': card_jeu.id}) }}" class="btn btn-warning">Modifier</a>
+                            <a href="{{ path('app_card_jeu_editeur_edit', {'id': card_jeu.id}) }}" class="btn btn-secondary">Passer à l'éditeur</a>
+                        {% endif %}
                         <form method="post" action="{{ path('app_card_jeu_delete', {'id': card_jeu.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette carte ?');">
                             <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ card_jeu.id) }}">
                             <button type="submit" class="btn btn-danger">Supprimer</button>

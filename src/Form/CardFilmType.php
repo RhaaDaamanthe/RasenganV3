@@ -13,6 +13,8 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\File;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\NotNull;
 use Doctrine\ORM\EntityRepository;
 
 class CardFilmType extends AbstractType
@@ -22,6 +24,7 @@ class CardFilmType extends AbstractType
         $builder
             ->add('nom', TextType::class, [
                 'label' => 'Nom de la carte',
+                'constraints' => [new NotBlank(message: 'Le nom de la carte est obligatoire.')],
                 'attr' => [
                     'placeholder' => 'Entrez le nom de la carte',
                     'class' => 'form-control'
@@ -39,11 +42,14 @@ class CardFilmType extends AbstractType
             ->add('imagePath', FileType::class, [
                 'label' => 'Image de la carte (fichier image)',
                 'mapped' => false,
-                'required' => false,
+                // Obligatoire à la création ; à l'édition, laisser vide garde l'image actuelle.
+                'required' => $options['image_obligatoire'],
                 'attr' => [
-                    'class' => 'form-control-file'
+                    'class' => 'form-control-file',
+                    'accept' => 'image/jpeg,image/png,image/webp',
                 ],
                 'constraints' => [
+                    ...($options['image_obligatoire'] ? [new NotNull(message: 'L\'image de la carte est obligatoire.')] : []),
                     new File([
                         'maxSize' => '20M',
                         'mimeTypes' => [
@@ -60,6 +66,7 @@ class CardFilmType extends AbstractType
                 'choice_label' => 'libelle',
                 'label' => 'Rareté',
                 'placeholder' => 'Choisissez une rareté',
+                'constraints' => [new NotNull(message: 'La rareté est obligatoire.')],
                 'attr' => [
                     'class' => 'form-control'
                 ]
@@ -69,9 +76,11 @@ class CardFilmType extends AbstractType
                 'choice_label' => 'nom',
                 'label' => 'Film',
                 'placeholder' => 'Choisissez un film',
-                'required' => false,
+                'constraints' => [new NotNull(message: 'Le film est obligatoire.')],
                 'attr' => [
-                    'class' => 'form-control'
+                    'class' => 'form-control',
+                    // Remplacé par un champ de recherche (public/js/select_recherche.js).
+                    'data-recherche' => 'Rechercher un film...',
                 ],
                 'query_builder' => function (EntityRepository $er) {
                     return $er->createQueryBuilder('f')
@@ -85,6 +94,8 @@ class CardFilmType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => CardFilm::class,
+            'image_obligatoire' => false,
         ]);
+        $resolver->setAllowedTypes('image_obligatoire', 'bool');
     }
 }

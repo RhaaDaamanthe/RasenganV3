@@ -9,6 +9,7 @@ use App\Entity\UserCardJeu;
 use App\Repository\UserRepository;
 use App\Service\BadgeService;
 use App\Service\TradeService;
+use App\Service\UserDeletionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -204,6 +205,73 @@ class UserManagementController extends AbstractController
         $user->setDiscordId($discordId);
         $entityManager->flush();
         $this->addFlash('success', "✅ Identifiant Discord de {$user->getPseudo()} enregistré !");
+
+        return $this->redirectToRoute('app_manage_users');
+    }
+
+    // Donner ou retirer les droits d'administration à un joueur.
+    #[Route('/toggle-admin/{id}', name: 'app_toggle_user_admin', methods: ['POST'])]
+    public function toggleUserAdmin(
+        User $user,
+        Request $request,
+        EntityManagerInterface $entityManager
+    ): Response {
+        if (!$this->isCsrfTokenValid('toggle-admin' . $user->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', '❌ Jeton de sécurité invalide.');
+
+            return $this->redirectToRoute('app_manage_users');
+        }
+
+        // Empêche un admin de se retirer ses propres droits (et de perdre l'accès).
+        if ($user === $this->getUser()) {
+            $this->addFlash('error', '❌ Vous ne pouvez pas modifier vos propres droits d\'administration.');
+
+            return $this->redirectToRoute('app_manage_users');
+        }
+
+        $devientAdmin = !$user->isAdmin();
+        $user->setIsAdmin($devientAdmin);
+
+        // getRoles() ajoute ROLE_ADMIN d'après isAdmin, mais le rôle peut aussi être
+        // stocké dans la colonne JSON : on la garde cohérente.
+        $roles = array_values(array_diff($user->getRoles(), ['ROLE_USER', 'ROLE_ADMIN']));
+        if ($devientAdmin) {
+            $roles[] = 'ROLE_ADMIN';
+        }
+        $user->setRoles($roles);
+
+        $entityManager->flush();
+
+        $this->addFlash('success', $devientAdmin
+            ? "✅ {$user->getPseudo()} est maintenant administrateur."
+            : "✅ {$user->getPseudo()} n'est plus administrateur.");
+
+        return $this->redirectToRoute('app_manage_users');
+    }
+
+    // Supprimer définitivement le compte d'un joueur.
+    #[Route('/delete/{id}', name: 'app_delete_user', methods: ['POST'])]
+    public function deleteUser(
+        User $user,
+        Request $request,
+        UserDeletionService $userDeletionService
+    ): Response {
+        if (!$this->isCsrfTokenValid('delete-user' . $user->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', '❌ Jeton de sécurité invalide.');
+
+            return $this->redirectToRoute('app_manage_users');
+        }
+
+        if ($user === $this->getUser()) {
+            $this->addFlash('error', '❌ Vous ne pouvez pas supprimer votre propre compte.');
+
+            return $this->redirectToRoute('app_manage_users');
+        }
+
+        $pseudo = $user->getPseudo();
+        $userDeletionService->supprimer($user);
+
+        $this->addFlash('success', "✅ Le compte de {$pseudo} a été supprimé.");
 
         return $this->redirectToRoute('app_manage_users');
     }

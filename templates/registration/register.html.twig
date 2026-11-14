@@ -27,13 +27,13 @@
                 
                 <div class="input-box">
                     {{ form_widget(registrationForm.plainPassword.first, {'attr': {'placeholder': 'Mot de passe'}}) }}
-                    <i class='bx bxs-lock-alt' ></i>
+                    <button type="button" class="toggle-password" aria-label="Afficher le mot de passe" aria-pressed="false"><i class='bx bx-show'></i></button>
                 </div>
                 {{ form_errors(registrationForm.plainPassword.first) }}
                 
                 <div class="input-box">
                     {{ form_widget(registrationForm.plainPassword.second, {'attr': {'placeholder': 'Confirmer mot de passe'}}) }}
-                    <i class='bx bxs-lock-alt' ></i>
+                    <button type="button" class="toggle-password" aria-label="Afficher le mot de passe" aria-pressed="false"><i class='bx bx-show'></i></button>
                 </div>
                 {{ form_errors(registrationForm.plainPassword.second) }}
                 
@@ -46,4 +46,9 @@
             {{ form_end(registrationForm) }}
         </div>
     </main>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/password_toggle.js') }}" defer></script>
 {% endblock %}
