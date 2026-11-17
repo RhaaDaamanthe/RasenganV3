@@ -11,10 +11,12 @@
 {% block body %}
     <main class="admin-container">
         <div class="card-form-wrapper">
-            <h1>Modifier le film "{{ film.nom }}"</h1>
-            <p class="subtitle">Modifiez les informations de ce film.</p>
-            <a href="{{ path('app_film_index') }}" class="btn btn-secondary top-action-link">Retour à la liste</a>
-            
+            <div class="simple-form-header">
+                <span class="simple-form-icon">🎞️</span>
+                <h1>Modifier le film<br><span class="simple-form-nom">{{ film.nom }}</span></h1>
+                <p>Les changements s'appliquent à toutes les cartes de ce film.</p>
+            </div>
+
             {{ form_start(form, {'attr': {'class': 'form-upload'}}) }}
                 <div class="form-group">
                     {{ form_label(form.nom) }}
@@ -25,11 +27,12 @@
                     {{ form_widget(form.surnoms) }}
                     {{ form_help(form.surnoms) }}
                 </div>
-                <br>
-                <button class="btn btn-primary" type="submit">Modifier</button>
+                <button class="btn btn-primary" type="submit">Enregistrer les modifications</button>
             {{ form_end(form) }}
 
-            <a href="{{ path('app_film_index') }}" class="btn btn-secondary mt-3">Retour à la liste</a>
+            <div class="card-form-footer">
+                <a href="{{ path('app_film_index') }}" class="btn btn-secondary">← Retour à la liste</a>
+            </div>
         </div>
     </main>
 {% endblock %}

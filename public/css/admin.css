@@ -795,7 +795,7 @@ h1 {
 
 .card-form-wrapper form > div {
     margin-bottom: 14px;
-    padding: 0 10px;
+    padding: 0;
 }
 
 .card-form-wrapper label {
@@ -1444,4 +1444,38 @@ h1 {
     margin-top: 8px;
     border-radius: 6px;
     border: 1px solid #e0e0e0;
+}
+
+/* En-tête des formulaires simples (animé / film / jeu) */
+.simple-form-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.simple-form-header .simple-form-icon {
+    font-size: 2.4em;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.simple-form-header h1 {
+    margin: 0;
+    font-size: 1.6em;
+    line-height: 1.3;
+}
+
+.simple-form-header .simple-form-nom {
+    color: #ff8c00;
+}
+
+.simple-form-header p {
+    color: #777;
+    margin: 6px 0 0;
+    font-size: 0.95em;
+}
+
+.card-form-wrapper .help-text {
+    margin-top: 6px;
+    font-size: 0.82em;
+    color: #888;
 }
